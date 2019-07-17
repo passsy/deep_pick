@@ -1,6 +1,6 @@
 # deep_pick
 
-A library to access deep nested values inside of dart structures, like returned from `dynamic jsonDecode(String source)`.
+A library to access deep nested values inside of dart data structures, like returned from `dynamic jsonDecode(String source)`.
 
 ## Example
 
