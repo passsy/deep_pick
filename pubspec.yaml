@@ -9,3 +9,4 @@ environment:
 
 dev_dependencies:
   test: ^1.6.0
+  lint: ^0.2.0
