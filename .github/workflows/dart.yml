@@ -17,6 +17,6 @@ jobs:
     - name: Run tests
       run: pub run test
     - name: check formatting
-      run: dartfmt lib test --fix --set-exit-if-changed -n
+      run: dartfmt lib test --fix --set-exit-if-changed -w
     - name: Verify package completness
       run: pub publish -n
