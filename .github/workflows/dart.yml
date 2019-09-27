@@ -3,8 +3,7 @@ name: Dart CI
 on: [push]
 
 jobs:
-  build:
-
+  test:
     runs-on: ubuntu-latest
     
     container:
@@ -16,8 +15,30 @@ jobs:
       run: pub get
     - name: Run tests
       run: pub run test
+
+  formatting:
+    runs-on: ubuntu-latest
+
+    container:
+      image:  google/dart:2.5
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install dependencies
+      run: pub get
     - name: check formatting
       run: dartfmt lib test --fix --set-exit-if-changed -w
+
+  lint:
+    runs-on: ubuntu-latest
+
+    container:
+      image:  google/dart:2.5
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install dependencies
+      run: pub get
     - name: lint
       run: dartanalyzer .
     - name: Verify package completness
