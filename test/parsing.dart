@@ -96,6 +96,19 @@ void main() {
       expect(_picked("a").asDoubleOrNull(), isNull);
       expect(_nullPick().asDoubleOrNull(), isNull);
     });
+    test("asDateTime()", () {
+      expect(_picked("2012-02-27 13:27:00,123456z").asDateTime(), DateTime.utc(2012, 2, 27, 13, 27, 0, 123, 456));
+      expect(() => _picked("Bubblegum").asDateTime(),
+          throwsA(pickException(containing: ["Bubblegum", "String", "DateTime"])));
+      expect(() => _nullPick().asDateTime(), throwsA(pickException(containing: ["unknownKey", "null", "DateTime"])));
+    });
+    test("asDateTimeOrNull()", () {
+      expect(
+          _picked("2012-02-27 13:27:00,123456z").asDateTimeOrNull(), DateTime.utc(2012, 2, 27, 13, 27, 0, 123, 456));
+      expect(_picked("1").asDateTimeOrNull(), isNull);
+      expect(_picked("Bubblegum").asDateTimeOrNull(), isNull);
+      expect(_nullPick().asDateTimeOrNull(), isNull);
+    });
   });
 }
 

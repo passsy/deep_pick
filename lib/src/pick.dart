@@ -228,6 +228,55 @@ class Pick {
     return null;
   }
 
+  /// Examples of parsable date formats:
+  ///
+  /// - `"2012-02-27 13:27:00"`
+  /// - `"2012-02-27 13:27:00.123456z"`
+  /// - `"2012-02-27 13:27:00,123456z"`
+  /// - `"20120227 13:27:00"`
+  /// - `"20120227T132700"`
+  /// - `"20120227"`
+  /// - `"+20120227"`
+  /// - `"2012-02-27T14Z"`
+  /// - `"2012-02-27T14+00:00"`
+  /// - `"-123450101 00:00:00 Z"`: in the year -12345.
+  /// - `"2002-02-27T14:00:00-0500"`: Same as `"2002-02-27T19:00:00Z"`
+  DateTime asDateTime() {
+    _verifyNonNull("DateTime");
+    if (value is String) {
+      final dateTime = DateTime.tryParse(value as String);
+      if (dateTime != null) {
+        return dateTime;
+      }
+    }
+    throw PickException(
+        "value $value of type ${value.runtimeType} at location ${_location()} can't be parsed as DateTime");
+  }
+
+  /// Examples of parsable date formats:
+  ///
+  /// - `"2012-02-27 13:27:00"`
+  /// - `"2012-02-27 13:27:00.123456z"`
+  /// - `"2012-02-27 13:27:00,123456z"`
+  /// - `"20120227 13:27:00"`
+  /// - `"20120227T132700"`
+  /// - `"20120227"`
+  /// - `"+20120227"`
+  /// - `"2012-02-27T14Z"`
+  /// - `"2012-02-27T14+00:00"`
+  /// - `"-123450101 00:00:00 Z"`: in the year -12345.
+  /// - `"2002-02-27T14:00:00-0500"`: Same as `"2002-02-27T19:00:00Z"`
+  DateTime asDateTimeOrNull() {
+    if (value == null) return null;
+    if (value is String) {
+      final dateTime = DateTime.tryParse(value as String);
+      if (dateTime != null) {
+        return dateTime;
+      }
+    }
+    return null;
+  }
+
   void _verifyNonNull(String expectedType) {
     if (value == null) {
       throw PickException("value at location ${_location()} is null and not an instance of $expectedType");
