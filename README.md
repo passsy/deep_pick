@@ -1,5 +1,7 @@
 # deep_pick
 
+[![Pub](https://img.shields.io/pub/v/deep_pick.svg)](https://pub.dartlang.org/packages/deep_pick)
+
 A library to access deep nested values inside of dart data structures, like returned from `dynamic jsonDecode(String source)`.
 
 ## Example
