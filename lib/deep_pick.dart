@@ -4,7 +4,8 @@ import 'package:deep_pick/src/pick.dart';
 
 export 'package:deep_pick/src/pick.dart';
 
-@Deprecated("Call jsonDecode(String) yourself and then call pick(json, arg0, arg1, ...).as*() for further parsing")
+@Deprecated(
+    "Call jsonDecode(String) yourself and then call pick(json, arg0, arg1, ...).as*() for further parsing")
 dynamic parseRawJsonTo<T>(
   String text, [
   dynamic arg0,
@@ -19,7 +20,8 @@ dynamic parseRawJsonTo<T>(
   dynamic arg9,
 ]) {
   final dynamic json = jsonDecode(text);
-  return pick(json, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9).value;
+  return pick(json, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+      .value;
 }
 
 @Deprecated("Replace with pick(json, arg0, arg1, ...).asMapOrNull()")
@@ -36,7 +38,8 @@ Map<String, dynamic> parseJsonToMap(
   dynamic arg8,
   dynamic arg9,
 ]) {
-  return pick(json, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9).asMapOrNull();
+  return pick(json, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+      .asMapOrNull();
 }
 
 @Deprecated("Replace with pick(json, arg0, arg1, ...).asMapOrEmpty()")
@@ -53,7 +56,8 @@ Map<String, dynamic> parseJsonToNonNullMap(
   dynamic arg8,
   dynamic arg9,
 ]) {
-  return pick(json, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9).asMapOrEmpty();
+  return pick(json, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+      .asMapOrEmpty();
 }
 
 @Deprecated("Replace with pick(json, arg0, arg1, ...).asList<T>()")
@@ -70,7 +74,8 @@ List<T> parseJsonToList<T>(
   dynamic arg8,
   dynamic arg9,
 ]) {
-  return pick(json, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9).asList<T>();
+  return pick(json, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+      .asList<T>();
 }
 
 @Deprecated("Replace with pick(json, arg0, arg1, ...).asListOrEmpty<T>()")
@@ -87,7 +92,8 @@ List<T> parseJsonToNonNullList<T>(
   dynamic arg8,
   dynamic arg9,
 ]) {
-  return pick(json, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9).asListOrEmpty<T>();
+  return pick(json, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+      .asListOrEmpty<T>();
 }
 
 @Deprecated("Replace with pick(json, arg0, arg1, ...).asBool()")
@@ -104,7 +110,8 @@ bool parseJsonToBool(
   dynamic arg8,
   dynamic arg9,
 ]) {
-  return pick(json, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9).asBool();
+  return pick(json, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+      .asBool();
 }
 
 @Deprecated("Replace with pick(json, arg0, arg1, ...).asStringOrNull()")
@@ -121,7 +128,8 @@ String parseJsonToString(
   dynamic arg8,
   dynamic arg9,
 ]) {
-  return pick(json, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9).asStringOrNull();
+  return pick(json, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+      .asStringOrNull();
 }
 
 @Deprecated("Replace with pick(json, arg0, arg1, ...).asIntOrNull()")
@@ -138,7 +146,8 @@ int parseJsonToInt(
   dynamic arg8,
   dynamic arg9,
 ]) {
-  return pick(json, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9).asIntOrNull();
+  return pick(json, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+      .asIntOrNull();
 }
 
 @Deprecated("Replace with pick(json, arg0, arg1, ...).asDoubleOrNull()")
@@ -155,7 +164,8 @@ double parseJsonToDouble(
   dynamic arg8,
   dynamic arg9,
 ]) {
-  return pick(json, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9).asDoubleOrNull();
+  return pick(json, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+      .asDoubleOrNull();
 }
 
 @Deprecated("Replace with pick(json, arg0, arg1, ...).value")
@@ -172,7 +182,9 @@ T parseJsonTo<T>(
   dynamic arg8,
   dynamic arg9,
 ]) {
-  final data = pick(json, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9).value;
+  final data =
+      pick(json, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+          .value;
   if (data == null) return null;
   if (data is T) return data;
   if (T == int) {

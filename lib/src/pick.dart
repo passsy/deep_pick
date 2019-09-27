@@ -17,9 +17,18 @@ Pick pick(
   dynamic arg9,
 ]) {
   if (json == null) return Pick._(null, const []);
-  final selectors = <dynamic>[arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9]
-      .where((dynamic it) => it != null)
-      .toList(growable: false);
+  final selectors = <dynamic>[
+    arg0,
+    arg1,
+    arg2,
+    arg3,
+    arg4,
+    arg5,
+    arg6,
+    arg7,
+    arg8,
+    arg9
+  ].where((dynamic it) => it != null).toList(growable: false);
   final List<dynamic> path = [];
   dynamic data = json;
   for (final selector in selectors) {
@@ -29,7 +38,8 @@ Pick pick(
         data = data[selector];
         continue;
       } else {
-        throw PickException("'$selector' is not a valid index for List, expected int.");
+        throw PickException(
+            "'$selector' is not a valid index for List, expected int.");
       }
     }
     if (data is Map) {
@@ -56,7 +66,8 @@ class Pick {
       return value as String;
     } else {
       if (value is List || value is Map) {
-        throw PickException("value at location ${_location()} is of type ${value.runtimeType}. "
+        throw PickException(
+            "value at location ${_location()} is of type ${value.runtimeType}. "
             "Drill further down to a value which is not a List or Map. "
             "value: $value");
       }
@@ -279,7 +290,8 @@ class Pick {
 
   void _verifyNonNull(String expectedType) {
     if (value == null) {
-      throw PickException("value at location ${_location()} is null and not an instance of $expectedType");
+      throw PickException(
+          "value at location ${_location()} is null and not an instance of $expectedType");
     }
   }
 

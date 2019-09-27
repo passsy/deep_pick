@@ -75,9 +75,12 @@ void main() {
           'something': 'else',
         }
       ];
-      expect(parseJsonTo<String>(json, 0, 'level1', 'level2', 0), equals('adam'));
-      expect(parseJsonTo<String>(json, 0, 'level1', 'level2', 1), equals('berta'));
-      expect(parseJsonTo<String>(json, 0, 'level1', 'level2', 2), equals('caesar'));
+      expect(
+          parseJsonTo<String>(json, 0, 'level1', 'level2', 0), equals('adam'));
+      expect(
+          parseJsonTo<String>(json, 0, 'level1', 'level2', 1), equals('berta'));
+      expect(parseJsonTo<String>(json, 0, 'level1', 'level2', 2),
+          equals('caesar'));
       expect(parseJsonTo<String>(json, 1, 'something'), equals('else'));
     });
   });
