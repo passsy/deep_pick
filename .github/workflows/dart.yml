@@ -12,7 +12,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Install dependencies
-      run: pub get
+      run: pub get --no-precompile
     - name: Run tests
       run: pub run test
 
@@ -25,7 +25,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Install dependencies
-      run: pub get
+      run: pub get --no-precompile
     - name: check formatting
       run: dartfmt lib test --fix --set-exit-if-changed -w
 
@@ -38,7 +38,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Install dependencies
-      run: pub get
+      run: pub get --no-precompile
     - name: lint
       run: dartanalyzer .
     - name: Verify package completness
