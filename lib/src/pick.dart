@@ -289,6 +289,45 @@ class Pick {
     return null;
   }
 
+  R map<R>(R Function(Pick pick) block) {
+    if (value == null) {
+      throw PickException(
+          "value at location ${_location()} is null and can't be mapped");
+    }
+    return block(this);
+  }
+
+  R mapOrNull<R>(R Function(Pick pick) block) {
+    if (value == null) return null;
+    return block(this);
+  }
+
+  List<R> mapList<R>(R Function(Pick pick) block) {
+    var index = 0;
+    return asList()
+        .map((value) => Pick._(value, [...path, index++]))
+        .map(block)
+        .toList(growable: false);
+  }
+
+  List<R> mapListOrEmpty<R>(R Function(Pick pick) block) {
+    var index = 0;
+    return asListOrEmpty()
+        .map((value) => Pick._(value, [...path, index++]))
+        .map(block)
+        .toList(growable: false);
+  }
+
+  List<R> mapListOrNull<R>(R Function(Pick pick) block) {
+    final list = asListOrNull();
+    if (list == null) return null;
+    var index = 0;
+    return list
+        .map((value) => Pick._(value, [...path, index++]))
+        .map(block)
+        .toList(growable: false);
+  }
+
   void _verifyNonNull(String expectedType) {
     if (value == null) {
       throw PickException(
