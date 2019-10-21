@@ -288,17 +288,17 @@ class Pick {
     return null;
   }
 
-  R map<R>(R Function(Pick pick) block) {
+  R let<R>(R Function(NonNullPick pick) block) {
     if (value == null) {
       throw PickException(
           "value at location ${_location()} is null and can't be mapped");
     }
-    return block(this);
+    return block(_nonNull());
   }
 
-  R mapOrNull<R>(R Function(Pick pick) block) {
+  R letOrNull<R>(R Function(NonNullPick pick) block) {
     if (value == null) return null;
-    return block(this);
+    return block(_nonNull());
   }
 
   List<R> mapList<R>(R Function(Pick pick) block) {
@@ -336,6 +336,75 @@ class Pick {
 
   String _location() {
     return path.map((it) => "`$it`").join(",");
+  }
+
+  NonNullPick _nonNull() => NonNullPick._(value, path);
+}
+
+class NonNullPick extends Pick {
+  NonNullPick._(dynamic value, List<dynamic> path) : super._(value, path);
+
+  @Deprecated("Can't be null, use let")
+  @override
+  // ignore: unnecessary_overrides
+  R letOrNull<R>(R Function(NonNullPick pick) block) {
+    return super.letOrNull(block);
+  }
+
+  @Deprecated("Can't be null, use mapList")
+  @override
+  // ignore: unnecessary_overrides
+  List<R> mapListOrNull<R>(R Function(Pick pick) block) {
+    return super.mapListOrNull(block);
+  }
+
+  @Deprecated("Can't be null, use asBool")
+  @override
+  // ignore: unnecessary_overrides
+  bool asBoolOrNull() {
+    return super.asBoolOrNull();
+  }
+
+  @Deprecated("Can't be null, use asDouble")
+  @override
+  // ignore: unnecessary_overrides
+  double asDoubleOrNull() {
+    return super.asDoubleOrNull();
+  }
+
+  @Deprecated("Can't be null, use asInt")
+  @override
+  // ignore: unnecessary_overrides
+  int asIntOrNull() {
+    return super.asIntOrNull();
+  }
+
+  @Deprecated("Can't be null, use asString")
+  @override
+  // ignore: unnecessary_overrides
+  String asStringOrNull() {
+    return super.asStringOrNull();
+  }
+
+  @Deprecated("Can't be null, use asMap")
+  @override
+  // ignore: unnecessary_overrides
+  Map<String, dynamic> asMapOrNull() {
+    return super.asMapOrNull();
+  }
+
+  @Deprecated("Can't be null, use asDateTime")
+  @override
+  // ignore: unnecessary_overrides
+  DateTime asDateTimeOrNull() {
+    return super.asDateTimeOrNull();
+  }
+
+  @Deprecated("Can't be null, use asList")
+  @override
+  // ignore: unnecessary_overrides
+  List<T> asListOrNull<T>() {
+    return super.asListOrNull();
   }
 }
 
