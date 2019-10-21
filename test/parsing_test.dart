@@ -165,13 +165,13 @@ void main() {
       expect(_nullPick().asDateTimeOrNull(), isNull);
     });
 
-    test("map()", () {
+    test("let()", () {
       expect(
           _picked({"name": "John Snow"})
-              .map((pick) => Person.fromJson(pick.asMap())),
+              .let((pick) => Person.fromJson(pick.asMap())),
           Person(name: "John Snow"));
       expect(
-          () => _nullPick().map((pick) => Person.fromJson(pick.asMap())),
+          () => _nullPick().let((pick) => Person.fromJson(pick.asMap())),
           throwsA(pickException(
               containing: ["unknownKey", "null", "can't be mapped"])));
     });
@@ -179,10 +179,10 @@ void main() {
     test("mapOrNull()", () {
       expect(
           _picked({"name": "John Snow"})
-              .mapOrNull((pick) => Person.fromJson(pick.asMap())),
+              .letOrNull((pick) => Person.fromJson(pick.asMap())),
           Person(name: "John Snow"));
       expect(
-          _nullPick().mapOrNull((pick) => Person.fromJson(pick.asMap())), null);
+          _nullPick().letOrNull((pick) => Person.fromJson(pick.asMap())), null);
     });
 
     test("mapList(Pick -> T)", () {
