@@ -16,19 +16,12 @@ Pick pick(
   dynamic arg8,
   dynamic arg9,
 ]) {
-  if (json == null) return Pick._(null, const []);
-  final selectors = <dynamic>[
-    arg0,
-    arg1,
-    arg2,
-    arg3,
-    arg4,
-    arg5,
-    arg6,
-    arg7,
-    arg8,
-    arg9
-  ].where((dynamic it) => it != null).toList(growable: false);
+  if (json == null) return Pick(null, const []);
+  final selectors =
+      <dynamic>[arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9]
+          // null is a sign for unused "varargs"
+          .where((dynamic it) => it != null)
+          .toList(growable: false);
   final List<dynamic> path = [];
   dynamic data = json;
   for (final selector in selectors) {
@@ -47,366 +40,46 @@ Pick pick(
       continue;
     }
     // can't drill down any more to find the exact location.
-    return Pick._(null, path);
+    return Pick(null, path);
   }
-  return Pick._(data, path);
+  return Pick(data, path);
 }
 
 class Pick {
-  /// private constructor, no need to expose it
-  Pick._(this.value, [this.path = const []]);
+  Pick(this.value, [this.path = const []]);
 
-  /// The picked value
+  /// The picked value, might be `null`
   dynamic value;
+
+  /// The path to [value] inside of the object
+  ///
+  /// I.e. ['shoes', 0, 'name']
   List<dynamic> path;
-
-  String asString() {
-    _verifyNonNull("String");
-    if (value is String) {
-      return value as String;
-    } else {
-      if (value is List || value is Map) {
-        throw PickException(
-            "value at location ${_location()} is of type ${value.runtimeType}. "
-            "Drill further down to a value which is not a List or Map. "
-            "value: $value");
-      }
-      return value.toString();
-    }
-  }
-
-  String /*?*/ asStringOrNull() {
-    if (value == null) return null;
-    if (value is String) {
-      return value as String;
-    } else {
-      return value.toString();
-    }
-  }
-
-  /// [K] is the key type
-  Map<K, dynamic> asMap<K>() {
-    _verifyNonNull("Map<$K, dynamic>");
-    if (value is Map<K, dynamic>) {
-      return value as Map<K, dynamic>;
-    } else {
-      throw PickException(
-          "value $value of type ${value.runtimeType} at location ${_location()} can't be casted to Map<$K, dynamic>");
-    }
-  }
-
-  Map<String, dynamic> asMapOrEmpty() {
-    if (value == null) return const <String, dynamic>{};
-    if (value is Map<String, dynamic>) {
-      return value as Map<String, dynamic>;
-    } else {
-      return const <String, dynamic>{};
-    }
-  }
-
-  Map<String, dynamic> /*?*/ asMapOrNull() {
-    if (value == null) return null;
-    if (value is Map<String, dynamic>) {
-      return value as Map<String, dynamic>;
-    } else {
-      return null;
-    }
-  }
-
-  List<T> asList<T>() {
-    _verifyNonNull("List<$T>");
-    if (value is List) {
-      return (value as List<dynamic>).cast<T>();
-    } else {
-      throw PickException(
-          "value $value of type ${value.runtimeType} at location ${_location()} can't be casted to List<dynamic>");
-    }
-  }
-
-  List<T> asListOrEmpty<T>() {
-    if (value == null) return <T>[];
-    if (value is List<dynamic>) {
-      return (value as List<dynamic>).cast<T>();
-    } else {
-      return <T>[];
-    }
-  }
-
-  List<T> /*?*/ asListOrNull<T>() {
-    if (value == null) return null;
-    if (value is List<dynamic>) {
-      return (value as List<dynamic>).cast<T>();
-    } else {
-      return null;
-    }
-  }
-
-  bool asBool() {
-    _verifyNonNull("bool");
-    if (value is bool) {
-      return value as bool;
-    } else {
-      throw PickException(
-          "value $value of type ${value.runtimeType} at location ${_location()} can't be casted to bool");
-    }
-  }
-
-  bool /*?*/ asBoolOrNull() {
-    if (value == null) return null;
-    if (value is bool) {
-      return value as bool;
-    } else {
-      return null;
-    }
-  }
-
-  bool asBoolOrTrue() {
-    if (value == null) return true;
-    if (value is bool) {
-      return value as bool;
-    } else {
-      return true;
-    }
-  }
-
-  bool asBoolOrFalse() {
-    if (value == null) return false;
-    if (value is bool) {
-      return value as bool;
-    } else {
-      return false;
-    }
-  }
-
-  int asInt() {
-    _verifyNonNull("int");
-    if (value is int) {
-      return value as int;
-    } else if (value is num) {
-      return (value as num).toInt();
-    } else if (value is String) {
-      final parsed = int.tryParse(value as String);
-      if (parsed != null) {
-        return parsed;
-      }
-    }
-    throw PickException(
-        "value $value of type ${value.runtimeType} at location ${_location()} can't be casted to int");
-  }
-
-  int /*?*/ asIntOrNull() {
-    if (value == null) return null;
-    if (value is int) {
-      return value as int;
-    } else if (value is num) {
-      return (value as num).toInt();
-    } else if (value is String) {
-      final parsed = int.tryParse(value as String);
-      if (parsed != null) {
-        return parsed;
-      }
-    }
-    return null;
-  }
-
-  double asDouble() {
-    _verifyNonNull("double");
-    if (value is double) {
-      return value as double;
-    } else if (value is num) {
-      return (value as num).toDouble();
-    } else if (value is String) {
-      final parsed = double.tryParse(value as String);
-      if (parsed != null) {
-        return parsed;
-      }
-    }
-    throw PickException(
-        "value $value of type ${value.runtimeType} at location ${_location()} can't be casted to double");
-  }
-
-  double asDoubleOrNull() {
-    if (value == null) return null;
-    if (value is double) {
-      return value as double;
-    } else if (value is num) {
-      return (value as num).toDouble();
-    } else if (value is String) {
-      final parsed = double.tryParse(value as String);
-      if (parsed != null) {
-        return parsed;
-      }
-    }
-    return null;
-  }
-
-  /// Examples of parsable date formats:
-  ///
-  /// - `"2012-02-27 13:27:00"`
-  /// - `"2012-02-27 13:27:00.123456z"`
-  /// - `"2012-02-27 13:27:00,123456z"`
-  /// - `"20120227 13:27:00"`
-  /// - `"20120227T132700"`
-  /// - `"20120227"`
-  /// - `"+20120227"`
-  /// - `"2012-02-27T14Z"`
-  /// - `"2012-02-27T14+00:00"`
-  /// - `"-123450101 00:00:00 Z"`: in the year -12345.
-  /// - `"2002-02-27T14:00:00-0500"`: Same as `"2002-02-27T19:00:00Z"`
-  DateTime asDateTime() {
-    _verifyNonNull("DateTime");
-    if (value is String) {
-      final dateTime = DateTime.tryParse(value as String);
-      if (dateTime != null) {
-        return dateTime;
-      }
-    }
-    throw PickException(
-        "value $value of type ${value.runtimeType} at location ${_location()} can't be parsed as DateTime");
-  }
-
-  /// Examples of parsable date formats:
-  ///
-  /// - `"2012-02-27 13:27:00"`
-  /// - `"2012-02-27 13:27:00.123456z"`
-  /// - `"2012-02-27 13:27:00,123456z"`
-  /// - `"20120227 13:27:00"`
-  /// - `"20120227T132700"`
-  /// - `"20120227"`
-  /// - `"+20120227"`
-  /// - `"2012-02-27T14Z"`
-  /// - `"2012-02-27T14+00:00"`
-  /// - `"-123450101 00:00:00 Z"`: in the year -12345.
-  /// - `"2002-02-27T14:00:00-0500"`: Same as `"2002-02-27T19:00:00Z"`
-  DateTime asDateTimeOrNull() {
-    if (value == null) return null;
-    if (value is String) {
-      final dateTime = DateTime.tryParse(value as String);
-      if (dateTime != null) {
-        return dateTime;
-      }
-    }
-    return null;
-  }
 
   R let<R>(R Function(NonNullPick pick) block) {
     if (value == null) {
       throw PickException(
-          "value at location ${_location()} is null and can't be mapped");
+          "value at location ${location()} is null and can't be mapped");
     }
-    return block(_nonNull());
+    return block(nonNull());
   }
 
   R letOrNull<R>(R Function(NonNullPick pick) block) {
     if (value == null) return null;
-    return block(_nonNull());
+    return block(nonNull());
   }
 
-  List<R> mapList<R>(R Function(Pick pick) block) {
-    var index = 0;
-    return asList()
-        .map((value) => Pick._(value, [...path, index++]))
-        .map(block)
-        .toList(growable: false);
-  }
-
-  List<R> mapListOrEmpty<R>(R Function(Pick pick) block) {
-    var index = 0;
-    return asListOrEmpty()
-        .map((value) => Pick._(value, [...path, index++]))
-        .map(block)
-        .toList(growable: false);
-  }
-
-  List<R> mapListOrNull<R>(R Function(Pick pick) block) {
-    final list = asListOrNull();
-    if (list == null) return null;
-    var index = 0;
-    return list
-        .map((value) => Pick._(value, [...path, index++]))
-        .map(block)
-        .toList(growable: false);
-  }
-
-  void _verifyNonNull(String expectedType) {
-    if (value == null) {
-      throw PickException(
-          "value at location ${_location()} is null and not an instance of $expectedType");
-    }
-  }
-
-  String _location() {
+  String location() {
     return path.map((it) => "`$it`").join(",");
   }
 
-  NonNullPick _nonNull() => NonNullPick._(value, path);
+  NonNullPick nonNull() => NonNullPick(value, path);
 }
 
 class NonNullPick extends Pick {
-  NonNullPick._(dynamic value, List<dynamic> path) : super._(value, path);
-
-  @Deprecated("Can't be null, use let")
-  @override
-  // ignore: unnecessary_overrides
-  R letOrNull<R>(R Function(NonNullPick pick) block) {
-    return super.letOrNull(block);
-  }
-
-  @Deprecated("Can't be null, use mapList")
-  @override
-  // ignore: unnecessary_overrides
-  List<R> mapListOrNull<R>(R Function(Pick pick) block) {
-    return super.mapListOrNull(block);
-  }
-
-  @Deprecated("Can't be null, use asBool")
-  @override
-  // ignore: unnecessary_overrides
-  bool asBoolOrNull() {
-    return super.asBoolOrNull();
-  }
-
-  @Deprecated("Can't be null, use asDouble")
-  @override
-  // ignore: unnecessary_overrides
-  double asDoubleOrNull() {
-    return super.asDoubleOrNull();
-  }
-
-  @Deprecated("Can't be null, use asInt")
-  @override
-  // ignore: unnecessary_overrides
-  int asIntOrNull() {
-    return super.asIntOrNull();
-  }
-
-  @Deprecated("Can't be null, use asString")
-  @override
-  // ignore: unnecessary_overrides
-  String asStringOrNull() {
-    return super.asStringOrNull();
-  }
-
-  @Deprecated("Can't be null, use asMap")
-  @override
-  // ignore: unnecessary_overrides
-  Map<String, dynamic> asMapOrNull() {
-    return super.asMapOrNull();
-  }
-
-  @Deprecated("Can't be null, use asDateTime")
-  @override
-  // ignore: unnecessary_overrides
-  DateTime asDateTimeOrNull() {
-    return super.asDateTimeOrNull();
-  }
-
-  @Deprecated("Can't be null, use asList")
-  @override
-  // ignore: unnecessary_overrides
-  List<T> asListOrNull<T>() {
-    return super.asListOrNull();
-  }
+  NonNullPick(dynamic value, List<dynamic> path)
+      : assert(value != null),
+        super(value, path);
 }
 
 class PickException implements Exception {
