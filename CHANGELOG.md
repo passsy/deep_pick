@@ -1,3 +1,11 @@
+## 0.3.0
+
+`asMap` now expects the key type, defaults to `dynamic` instead of `String`
+```diff
+-Pick.asMap(): Map<String, dynamic>
++Pick.asMap<T>(): Map<T, dynamic>
+```
+
 ## 0.2.0
 
 New API! 

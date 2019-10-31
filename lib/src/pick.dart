@@ -84,13 +84,14 @@ class Pick {
     }
   }
 
-  Map<String, dynamic> asMap() {
-    _verifyNonNull("Map<String, dynamic>");
-    if (value is Map<String, dynamic>) {
-      return value as Map<String, dynamic>;
+  /// [K] is the key type
+  Map<K, dynamic> asMap<K>() {
+    _verifyNonNull("Map<$K, dynamic>");
+    if (value is Map<K, dynamic>) {
+      return value as Map<K, dynamic>;
     } else {
       throw PickException(
-          "value $value of type ${value.runtimeType} at location ${_location()} can't be casted to Map<String, dynamic>");
+          "value $value of type ${value.runtimeType} at location ${_location()} can't be casted to Map<$K, dynamic>");
     }
   }
 

@@ -33,12 +33,17 @@ void main() {
 
     test("asMap()", () {
       expect(_picked({"ab": "cd"}).asMap(), {"ab": "cd"});
+      expect(_picked({"ab": "cd"}).asMap<String>(), {"ab": "cd"});
       expect(
-          () => _picked("Bubblegum").asMap(),
+          () => _picked({"ab": "cd"}).asMap<int>(),
           throwsA(pickException(
-              containing: ["Bubblegum", "String", "Map<String, dynamic>"])));
+              containing: ["{ab: cd}", "String", "Map<int, dynamic>"])));
       expect(
-          () => _nullPick().asMap(),
+          () => _picked("Bubblegum").asMap<int>(),
+          throwsA(pickException(
+              containing: ["Bubblegum", "String", "Map<int, dynamic>"])));
+      expect(
+          () => _nullPick().asMap<String>(),
           throwsA(pickException(
               containing: ["unknownKey", "null", "Map<String, dynamic>"])));
     });
