@@ -33,19 +33,14 @@ void main() {
 
     test("asMap()", () {
       expect(_picked({"ab": "cd"}).asMap(), {"ab": "cd"});
-      expect(_picked({"ab": "cd"}).asMap<String>(), {"ab": "cd"});
       expect(
-          () => _picked({"ab": "cd"}).asMap<int>(),
+          () => _picked("Bubblegum").asMap(),
           throwsA(pickException(
-              containing: ["{ab: cd}", "String", "Map<int, dynamic>"])));
+              containing: ["Bubblegum", "String", "Map<dynamic, dynamic>"])));
       expect(
-          () => _picked("Bubblegum").asMap<int>(),
+          () => _nullPick().asMap(),
           throwsA(pickException(
-              containing: ["Bubblegum", "String", "Map<int, dynamic>"])));
-      expect(
-          () => _nullPick().asMap<String>(),
-          throwsA(pickException(
-              containing: ["unknownKey", "null", "Map<String, dynamic>"])));
+              containing: ["unknownKey", "null", "Map<dynamic, dynamic>"])));
     });
 
     test("asMapOrNull()", () {
@@ -185,17 +180,17 @@ void main() {
           _nullPick().letOrNull((pick) => Person.fromJson(pick.asMap())), null);
     });
 
-    test("mapList(Pick -> T)", () {
+    test("asList(Pick -> T)", () {
       final data = [
         {"name": "John Snow"},
         {"name": "Daenerys Targaryen"},
       ];
-      expect(_picked(data).mapList((pick) => Person.fromJson(pick.asMap())), [
+      expect(_picked(data).asList((pick) => Person.fromJson(pick.asMap())), [
         Person(name: "John Snow"),
         Person(name: "Daenerys Targaryen"),
       ]);
-      expect(_picked([]).mapList((pick) => Person.fromJson(pick.asMap())), []);
-      expect(() => _nullPick().mapList((pick) => Person.fromJson(pick.asMap())),
+      expect(_picked([]).asList((pick) => Person.fromJson(pick.asMap())), []);
+      expect(() => _nullPick().asList((pick) => Person.fromJson(pick.asMap())),
           throwsA(pickException(containing: ["unknownKey", "null", "List"])));
     });
 
@@ -204,17 +199,12 @@ void main() {
         {"name": "John Snow"},
         {"name": "Daenerys Targaryen"},
       ];
-      expect(
-          _picked(data).mapListOrEmpty((pick) => Person.fromJson(pick.asMap())),
-          [
-            Person(name: "John Snow"),
-            Person(name: "Daenerys Targaryen"),
-          ]);
-      expect(
-          _picked([]).mapListOrEmpty((pick) => Person.fromJson(pick.asMap())),
-          []);
-      expect(
-          _nullPick().mapListOrEmpty((pick) => Person.fromJson(pick.asMap())),
+      expect(_picked(data).asListOrEmpty((it) => Person.fromJson(it.asMap())), [
+        Person(name: "John Snow"),
+        Person(name: "Daenerys Targaryen"),
+      ]);
+      expect(_picked([]).asList((pick) => Person.fromJson(pick.asMap())), []);
+      expect(_nullPick().asListOrEmpty((pick) => Person.fromJson(pick.asMap())),
           []);
     });
 
@@ -224,14 +214,13 @@ void main() {
         {"name": "Daenerys Targaryen"},
       ];
       expect(
-          _picked(data).mapListOrNull((pick) => Person.fromJson(pick.asMap())),
-          [
-            Person(name: "John Snow"),
-            Person(name: "Daenerys Targaryen"),
-          ]);
-      expect(_picked([]).mapListOrNull((pick) => Person.fromJson(pick.asMap())),
+          _picked(data).asListOrNull((pick) => Person.fromJson(pick.asMap())), [
+        Person(name: "John Snow"),
+        Person(name: "Daenerys Targaryen"),
+      ]);
+      expect(_picked([]).asListOrNull((pick) => Person.fromJson(pick.asMap())),
           []);
-      expect(_nullPick().mapListOrNull((pick) => Person.fromJson(pick.asMap())),
+      expect(_nullPick().asListOrNull((pick) => Person.fromJson(pick.asMap())),
           null);
     });
   });
