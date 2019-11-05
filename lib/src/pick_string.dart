@@ -1,11 +1,7 @@
-import 'package:deep_pick/deep_pick.dart';
+import 'package:deep_pick/src/pick.dart';
 
-extension StringPick on Pick {
+extension StringPick on RequiredPick {
   String asString() {
-    if (value == null) {
-      throw PickException(
-          "value at location ${location()} is null and not an instance of String");
-    }
     if (value is String) {
       return value as String;
     } else {
@@ -18,13 +14,23 @@ extension StringPick on Pick {
       return value.toString();
     }
   }
+}
+
+extension NullableStringPick on Pick {
+  String asString() {
+    if (value == null) {
+      throw PickException(
+          "value at location ${location()} is null and not an instance of String");
+    }
+    return required().asString();
+  }
 
   String /*?*/ asStringOrNull() {
     if (value == null) return null;
-    if (value is String) {
-      return value as String;
-    } else {
-      return value.toString();
+    try {
+      return required().asString();
+    } catch (_) {
+      return null;
     }
   }
 }

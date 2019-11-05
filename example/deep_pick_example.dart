@@ -12,11 +12,12 @@ void main() {
        "name": "Nike Zoom Fly 3",
        "tags": ["cool", "new"]
      }
-  ]
+  ], 
+  "bags": []
 }
 ''');
 
-  final name = pick(json, 'shoes', 0, 'name').asString();
+  final name = pick(json, 'shoes', 0, 'name').required().asString();
   print(name); // Nike Zoom Fly 3
 
   final manufacturer = pick(json, 'shoes', 0, 'manufacturer').asStringOrNull();

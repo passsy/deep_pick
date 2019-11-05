@@ -45,41 +45,45 @@ Pick pick(
   return Pick(data, path);
 }
 
-class Pick {
+/// A picked object holding the [value] and giving access to useful parsing functions
+class Pick with PickLocation {
   Pick(this.value, [this.path = const []]);
 
   /// The picked value, might be `null`
-  dynamic value;
+  Object /*?*/ value;
 
-  /// The path to [value] inside of the object
-  ///
-  /// I.e. ['shoes', 0, 'name']
+  @override
   List<dynamic> path;
 
-  R let<R>(R Function(NonNullPick pick) block) {
-    if (value == null) {
-      throw PickException(
-          "value at location ${location()} is null and can't be mapped");
-    }
-    return block(nonNull());
-  }
+  RequiredPick required() => RequiredPick(value, path);
 
-  R letOrNull<R>(R Function(NonNullPick pick) block) {
-    if (value == null) return null;
-    return block(nonNull());
+  @override
+  @Deprecated("Use asStringOrNull() to pick a String value")
+  // ignore: unnecessary_overrides
+  String toString() {
+    return super.toString();
   }
-
-  String location() {
-    return path.map((it) => "`$it`").join(",");
-  }
-
-  NonNullPick nonNull() => NonNullPick(value, path);
 }
 
-class NonNullPick extends Pick {
-  NonNullPick(dynamic value, List<dynamic> path)
-      : assert(value != null),
-        super(value, path);
+class RequiredPick with PickLocation {
+  RequiredPick(this.value, [this.path = const []]) {
+    if (value == null) {
+      throw StateError("value can't be null");
+    }
+  }
+
+  /// The picked value, never `null`
+  Object value;
+
+  @override
+  List<dynamic> path;
+
+  @override
+  @Deprecated("Use asStringOrNull() to pick a String value")
+  // ignore: unnecessary_overrides
+  String toString() {
+    return super.toString();
+  }
 }
 
 class PickException implements Exception {
@@ -91,4 +95,13 @@ class PickException implements Exception {
   String toString() {
     return 'PickException{message: $message}';
   }
+}
+
+mixin PickLocation {
+  /// The path to [value] inside of the object
+  ///
+  /// I.e. ['shoes', 0, 'name']
+  List<dynamic> get path;
+
+  String location() => path.map((it) => "`$it`").join(",");
 }
