@@ -1,6 +1,6 @@
-import 'package:deep_pick/deep_pick.dart';
+import 'package:deep_pick/src/pick.dart';
 
-extension DateTimePick on Pick {
+extension DateTimePick on RequiredPick {
   /// Examples of parsable date formats:
   ///
   /// - `"2012-02-27 13:27:00"`
@@ -15,10 +15,6 @@ extension DateTimePick on Pick {
   /// - `"-123450101 00:00:00 Z"`: in the year -12345.
   /// - `"2002-02-27T14:00:00-0500"`: Same as `"2002-02-27T19:00:00Z"`
   DateTime asDateTime() {
-    if (value == null) {
-      throw PickException(
-          "value at location ${location()} is null and not an instance of DateTime");
-    }
     if (value is String) {
       final dateTime = DateTime.tryParse(value as String);
       if (dateTime != null) {
@@ -27,6 +23,16 @@ extension DateTimePick on Pick {
     }
     throw PickException(
         "value $value of type ${value.runtimeType} at location ${location()} can't be parsed as DateTime");
+  }
+}
+
+extension NullableDateTimePick on Pick {
+  DateTime asDateTime() {
+    if (value == null) {
+      throw PickException(
+          "value at location ${location()} is null and not an instance of DateTime");
+    }
+    return required().asDateTime();
   }
 
   /// Examples of parsable date formats:
@@ -42,14 +48,12 @@ extension DateTimePick on Pick {
   /// - `"2012-02-27T14+00:00"`
   /// - `"-123450101 00:00:00 Z"`: in the year -12345.
   /// - `"2002-02-27T14:00:00-0500"`: Same as `"2002-02-27T19:00:00Z"`
-  DateTime asDateTimeOrNull() {
+  DateTime /*?*/ asDateTimeOrNull() {
     if (value == null) return null;
-    if (value is String) {
-      final dateTime = DateTime.tryParse(value as String);
-      if (dateTime != null) {
-        return dateTime;
-      }
+    try {
+      return required().asDateTime();
+    } catch (_) {
+      return null;
     }
-    return null;
   }
 }
