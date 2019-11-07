@@ -30,14 +30,16 @@ Pick pick(
       if (selector is int) {
         data = data[selector];
         continue;
-      } else {
-        throw PickException(
-            "'$selector' is not a valid index for List, expected int.");
       }
     }
     if (data is Map) {
       data = data[selector];
       continue;
+    }
+    if (data is Set && selector is int) {
+      throw PickException(
+          "Value at location ${path.sublist(0, path.length - 1)} is a Set, which is a unordered data structure. "
+          "It's not possible to pick a value by using a index ($selector)");
     }
     // can't drill down any more to find the exact location.
     return Pick(null, path);
