@@ -180,16 +180,6 @@ void main() {
               .letOrNull((pick) => Person.fromJson(pick.asMap())),
           Person(name: "John Snow"));
       expect(
-          () => _nullPick().letOrNull((pick) => Person.fromJson(pick.asMap())),
-          null);
-    });
-
-    test("mapOrNull()", () {
-      expect(
-          _picked({"name": "John Snow"})
-              .letOrNull((pick) => Person.fromJson(pick.asMap())),
-          Person(name: "John Snow"));
-      expect(
           _nullPick().letOrNull((pick) => Person.fromJson(pick.asMap())), null);
     });
 
@@ -207,7 +197,7 @@ void main() {
           throwsA(pickException(containing: ["unknownKey", "null", "List"])));
     });
 
-    test("mapListOrEmpty(Pick -> T)", () {
+    test("asListOrEmpty(Pick -> T)", () {
       final data = [
         {"name": "John Snow"},
         {"name": "Daenerys Targaryen"},
@@ -221,7 +211,7 @@ void main() {
           []);
     });
 
-    test("mapListOrNull(Pick -> T)", () {
+    test("asListOrNull(Pick -> T)", () {
       final data = [
         {"name": "John Snow"},
         {"name": "Daenerys Targaryen"},
