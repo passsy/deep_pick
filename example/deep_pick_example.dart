@@ -1,8 +1,7 @@
-// ignore_for_file: avoid_print
+// ignore_for_file: avoid_print, always_require_non_null_named_parameters
 import 'dart:convert';
 
 import 'package:deep_pick/deep_pick.dart';
-import 'package:meta/meta.dart';
 
 void main() {
   final json = jsonDecode('''
@@ -68,10 +67,10 @@ void main() {
 /// PODO - plain old dart object
 class Shoe {
   const Shoe({
-    @required this.id,
-    @required this.name,
-    @required this.manufacturer,
-    @required this.tags,
+    this.id,
+    this.name,
+    this.manufacturer,
+    this.tags,
   })  : assert(id != null),
         assert(name != null),
         assert(tags != null);
@@ -92,7 +91,7 @@ class Shoe {
   final String name;
 
   /// optional
-  final String manufacturer;
+  final String /*?*/ manufacturer;
 
   /// never null, falls back to empty list
   final List<String> tags;
