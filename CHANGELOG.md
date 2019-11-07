@@ -1,3 +1,59 @@
+## 0.4.0
+
+### Map objects
+
+New APIs to map picks to objects and to map list elements to obejcts.
+
+```dart
+RequiredPick.let<R>(R Function(RequiredPick pick) block): R
+Pick.letOrNull<R>(R Function(RequiredPick pick) block): R
+
+RequiredPick.asList<T>([T Function(Pick) map]): List<T> 
+Pick.asListOrNull<T>([T Function(Pick) map]): List<T> 
+Pick.asListOrEmpty<T>([T Function(Pick) map]): List<T> 
+```
+
+Here are two example how to actually use them.
+
+```dart
+// easily pick and map objects to dart objects
+final Shoe oneShoe = pick(json, 'shoes', 0).letOrNull((p) => Shoe.fromPick(p));
+
+// map list of picks to dart objects
+final List<Shoe> shoes = 
+     pick(json, 'shoes').asListOrEmpty((p) => Shoe.fromPick(p.required()));
+```
+
+### Required picks
+
+`Pick` now offers a new `required()` method returning a `RequiredPick`. It makes sure the picked value exists or crashes if it is `null`. Because it can't be `null`, `RequiredPick` doesn't offer fallback methods like `.asIntOrNull()` but only `.asInt()`. This makes the API a bit easier to use for values you can't live without.
+
+```dart
+// use required() to crash if a object doesn't exist
+final name = pick(json, 'shoes', 0, 'name').required().asString();
+print(name); // Nike Zoom Fly 3
+```
+
+### Pick deeper
+
+Ever got a `Pick`/`RequiredPick` and you wanted to pick even further. This is now possible with the `call` method. Very useful in constructors when parsing methods.
+
+```dart
+  factory Shoe.fromPick(RequiredPick pick) {
+    return Shoe(
+      id: pick('id').asString(),
+      name: pick('name').asString(),
+      manufacturer: pick('manufacturer').asStringOrNull(),
+      tags: pick('tags').asListOrEmpty(),
+    );
+  }
+```
+
+---
+
+Also the lib has been converted to use static extension methods which was introduced in Dart 2.6
+
+
 ## 0.3.0
 
 `asMap` now expects the key type, defaults to `dynamic` instead of `String`
