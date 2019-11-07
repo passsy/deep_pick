@@ -2,10 +2,6 @@ import 'package:deep_pick/src/pick.dart';
 
 extension DoublePick on RequiredPick {
   double asDouble() {
-    if (value == null) {
-      throw PickException(
-          "value at location ${location()} is null and not an instance of double");
-    }
     if (value is double) {
       return value as double;
     } else if (value is num) {
