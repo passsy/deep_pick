@@ -30,7 +30,7 @@ extension NullableBoolPick on Pick {
   }
 
   bool asBoolOrTrue() {
-    if (value == null) return null;
+    if (value == null) return true;
     try {
       return required().asBool();
     } catch (_) {
@@ -39,7 +39,7 @@ extension NullableBoolPick on Pick {
   }
 
   bool asBoolOrFalse() {
-    if (value == null) return null;
+    if (value == null) return false;
     try {
       return required().asBool();
     } catch (_) {
