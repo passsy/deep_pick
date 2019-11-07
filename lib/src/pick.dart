@@ -55,6 +55,21 @@ class Pick with PickLocation {
   @override
   List<dynamic> path;
 
+  // Pick even further
+  Pick call([
+    dynamic arg0,
+    dynamic arg1,
+    dynamic arg2,
+    dynamic arg3,
+    dynamic arg4,
+    dynamic arg5,
+    dynamic arg6,
+    dynamic arg7,
+    dynamic arg8,
+    dynamic arg9,
+  ]) =>
+      pick(value, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+
   RequiredPick required() => RequiredPick(value, path);
 
   @override
@@ -77,6 +92,21 @@ class RequiredPick with PickLocation {
 
   @override
   List<dynamic> path;
+
+  // Pick even further
+  Pick call([
+    dynamic arg0,
+    dynamic arg1,
+    dynamic arg2,
+    dynamic arg3,
+    dynamic arg4,
+    dynamic arg5,
+    dynamic arg6,
+    dynamic arg7,
+    dynamic arg8,
+    dynamic arg9,
+  ]) =>
+      pick(value, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
 
   @override
   @Deprecated("Use asStringOrNull() to pick a String value")
