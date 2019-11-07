@@ -11,4 +11,17 @@ void main() {
     expect(RequiredPick("a", ["b", 0]).toString(),
         "RequiredPick(value=a, path=[b, 0])");
   });
+
+  test("(required) pick further", () {
+    final data = [
+      {"name": "John Snow"},
+      {"name": "Daenerys Targaryen"},
+    ];
+
+    final picked = pick(data, 0).required();
+    expect(picked.value, {"name": "John Snow"});
+
+    // pick further
+    expect(picked("name").asString(), "John Snow");
+  });
 }

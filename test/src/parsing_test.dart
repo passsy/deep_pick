@@ -1,5 +1,5 @@
+// ignore_for_file: always_require_non_null_named_parameters
 import 'package:deep_pick/deep_pick.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -249,7 +249,7 @@ Matcher pickException({List<String> containing}) {
 
 class Person {
   Person({
-    @required this.name,
+    this.name,
   }) : assert(name != null);
 
   factory Person.fromJson(Map<String, dynamic> data) {
