@@ -163,13 +163,10 @@ void main() {
     test("let()", () {
       expect(
           _picked({"name": "John Snow"})
-              .required()
               .let((pick) => Person.fromJson(pick.asMap())),
           Person(name: "John Snow"));
       expect(
-          () => _nullPick()
-              .required()
-              .let((pick) => Person.fromJson(pick.asMap())),
+          () => _nullPick().let((pick) => Person.fromJson(pick.asMap())),
           throwsA(pickException(
               containing: ["unknownKey", "null", "can't be mapped"])));
     });
