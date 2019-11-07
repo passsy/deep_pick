@@ -74,10 +74,7 @@ class Pick with PickLocation {
 
   @override
   @Deprecated("Use asStringOrNull() to pick a String value")
-  // ignore: unnecessary_overrides
-  String toString() {
-    return super.toString();
-  }
+  String toString() => "Pick(value=$value, path=$path)";
 }
 
 class RequiredPick with PickLocation {
@@ -110,10 +107,7 @@ class RequiredPick with PickLocation {
 
   @override
   @Deprecated("Use asStringOrNull() to pick a String value")
-  // ignore: unnecessary_overrides
-  String toString() {
-    return super.toString();
-  }
+  String toString() => "RequiredPick(value=$value, path=$path)";
 }
 
 class PickException implements Exception {

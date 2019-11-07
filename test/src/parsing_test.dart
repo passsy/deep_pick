@@ -50,6 +50,7 @@ void main() {
 
     test("asMapOrEmpty()", () {
       expect(_picked({"ab": "cd"}).asMapOrEmpty(), {"ab": "cd"});
+      expect(_picked("a").asMapOrEmpty(), {});
       expect(_nullPick().asMapOrEmpty(), {});
     });
 
@@ -77,6 +78,7 @@ void main() {
 
     test("asListOrEmpty()", () {
       expect(_picked([1, 2, 3]).asListOrEmpty<int>(), [1, 2, 3]);
+      expect(_picked("a").asListOrEmpty<int>(), []);
       expect(_nullPick().asListOrEmpty<int>(), []);
     });
 
@@ -107,6 +109,7 @@ void main() {
 
     test("asInt()", () {
       expect(_picked(1).asInt(), 1);
+      expect(_picked(1.0).asInt(), 1);
       expect(_picked("1").asInt(), 1);
       expect(() => _picked("Bubblegum").asInt(),
           throwsA(pickException(containing: ["Bubblegum", "String", "int"])));
@@ -163,6 +166,11 @@ void main() {
     test("let()", () {
       expect(
           _picked({"name": "John Snow"})
+              .let((pick) => Person.fromJson(pick.asMap())),
+          Person(name: "John Snow"));
+      expect(
+          _picked({"name": "John Snow"})
+              .required()
               .let((pick) => Person.fromJson(pick.asMap())),
           Person(name: "John Snow"));
       expect(
