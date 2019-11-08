@@ -1,4 +1,4 @@
-// ignore_for_file: always_require_non_null_named_parameters
+// ignore_for_file: always_require_non_null_named_parameters, deprecated_member_use_from_same_package
 import 'package:deep_pick/deep_pick.dart';
 import 'package:test/test.dart';
 
@@ -166,6 +166,7 @@ void main() {
     test("let()", () {
       expect(
           _picked({"name": "John Snow"})
+              .required()
               .let((pick) => Person.fromJson(pick.asMap())),
           Person(name: "John Snow"));
       expect(
@@ -174,9 +175,10 @@ void main() {
               .let((pick) => Person.fromJson(pick.asMap())),
           Person(name: "John Snow"));
       expect(
-          () => _nullPick().let((pick) => Person.fromJson(pick.asMap())),
-          throwsA(pickException(
-              containing: ["unknownKey", "null", "can't be mapped"])));
+          () => _nullPick()
+              .required()
+              .let((pick) => Person.fromJson(pick.asMap())),
+          throwsA(pickException(containing: ["unknownKey", "null"])));
     });
 
     test("letOrNull()", () {

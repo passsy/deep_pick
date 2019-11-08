@@ -19,6 +19,7 @@ extension ListPick on RequiredPick {
 }
 
 extension NullableListPick on Pick {
+  @Deprecated("Use .required().asList()")
   List<T> asList<T>([T Function(Pick) map]) {
     if (value == null) {
       throw PickException(

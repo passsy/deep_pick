@@ -17,6 +17,7 @@ extension StringPick on RequiredPick {
 }
 
 extension NullableStringPick on Pick {
+  @Deprecated("Use .required().asString()")
   String asString() {
     if (value == null) {
       throw PickException(

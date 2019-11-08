@@ -22,6 +22,6 @@ void main() {
     expect(picked.value, {"name": "John Snow"});
 
     // pick further
-    expect(picked("name").asString(), "John Snow");
+    expect(picked("name").required().asString(), "John Snow");
   });
 }

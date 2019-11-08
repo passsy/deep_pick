@@ -12,6 +12,7 @@ extension BoolPick on RequiredPick {
 }
 
 extension NullableBoolPick on Pick {
+  @Deprecated("Use .required().asBool()")
   bool asBool() {
     if (value == null) {
       throw PickException(

@@ -27,6 +27,7 @@ extension DateTimePick on RequiredPick {
 }
 
 extension NullableDateTimePick on Pick {
+  @Deprecated("Use .required().asDateTime()")
   DateTime asDateTime() {
     if (value == null) {
       throw PickException(
