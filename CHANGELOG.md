@@ -51,9 +51,14 @@ Ever got a `Pick`/`RequiredPick` and you wanted to pick even further. This is no
   }
 ```
 
+### Bugfixes
+
+- Don't crash when selecting a out of range index from a `List`
+- `.asMap()`, `.asMapOrNull()` and `.asMapOrEmpty()` now consistently return `Map<dynamic, dynamic>` (was `Map<String, dynamic>`)
+
 ---
 
-Also the lib has been converted to use static extension methods which was introduced in Dart 2.6
+Also the lib has been converted to use static extension methods which were introduced in Dart 2.6
 
 
 ## 0.3.0
