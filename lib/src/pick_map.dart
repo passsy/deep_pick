@@ -12,7 +12,11 @@ extension MapPick on RequiredPick {
 }
 
 extension NullableMapPick on Pick {
-  @Deprecated("Use .required().asMap()")
+  @Deprecated(
+      "By default values are optional and can only be converted when a fallback is provided "
+      "i.e. .asMapOrNull() which falls back to `null`. "
+      "Use .required().asMap() in cases the value is mandatory. "
+      "It will crash when the value couldn't be picked.")
   Map<RK, RV> asMap<RK, RV>() {
     if (value == null) {
       throw PickException(

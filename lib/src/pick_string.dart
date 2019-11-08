@@ -17,7 +17,11 @@ extension StringPick on RequiredPick {
 }
 
 extension NullableStringPick on Pick {
-  @Deprecated("Use .required().asString()")
+  @Deprecated(
+      "By default values are optional and can only be converted when a fallback is provided "
+      "i.e. .asStringOrNull() which falls back to `null`. "
+      "Use .required().asString() in cases the value is mandatory. "
+      "It will crash when the value couldn't be picked.")
   String asString() {
     if (value == null) {
       throw PickException(

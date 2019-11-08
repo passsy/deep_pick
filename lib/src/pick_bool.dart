@@ -12,6 +12,11 @@ extension BoolPick on RequiredPick {
 }
 
 extension NullableBoolPick on Pick {
+  @Deprecated(
+      "By default values are optional and can only be converted when a fallback is provided "
+      "i.e. .asBoolOrNull() which falls back to `null`. "
+      "Use .required().asBool() in cases the value is mandatory. "
+      "It will crash when the value couldn't be picked.")
   @Deprecated("Use .required().asBool()")
   bool asBool() {
     if (value == null) {

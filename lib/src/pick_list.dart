@@ -19,7 +19,11 @@ extension ListPick on RequiredPick {
 }
 
 extension NullableListPick on Pick {
-  @Deprecated("Use .required().asList()")
+  @Deprecated(
+      "By default values are optional and can only be converted when a fallback is provided "
+      "i.e. .asListOrNull() which falls back to `null`. "
+      "Use .required().asList() in cases the value is mandatory. "
+      "It will crash when the value couldn't be picked.")
   List<T> asList<T>([T Function(Pick) map]) {
     if (value == null) {
       throw PickException(
