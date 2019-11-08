@@ -34,6 +34,8 @@ final name = pick(json, 'shoes', 0, 'name').required().asString();
 print(name); // Nike Zoom Fly 3
 ```
 
+Note: Calling `.asString()` directly on `Pick` has been deprecated. You now have to call `required()` first to convert the `Pick` to a `RequiredPick` or use a mapping method with fallbacks.
+
 ### Pick deeper
 
 Ever got a `Pick`/`RequiredPick` and you wanted to pick even further. This is now possible with the `call` method. Very useful in constructors when parsing methods.
@@ -41,8 +43,8 @@ Ever got a `Pick`/`RequiredPick` and you wanted to pick even further. This is no
 ```dart
   factory Shoe.fromPick(RequiredPick pick) {
     return Shoe(
-      id: pick('id').asString(),
-      name: pick('name').asString(),
+      id: pick('id').required().asString(),
+      name: pick('name').required().asString(),
       manufacturer: pick('manufacturer').asStringOrNull(),
       tags: pick('tags').asListOrEmpty(),
     );
