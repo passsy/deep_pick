@@ -72,6 +72,9 @@ class Pick with PickLocation {
   ]) =>
       pick(value, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
 
+  /// Converts the picked values to a non-nullable type [RequiredPick].
+  ///
+  /// Crashes when the the value is `null`.
   RequiredPick required() {
     if (value == null) {
       throw PickException("required value at location ${location()} is null");

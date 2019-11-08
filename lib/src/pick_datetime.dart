@@ -27,7 +27,11 @@ extension DateTimePick on RequiredPick {
 }
 
 extension NullableDateTimePick on Pick {
-  @Deprecated("Use .required().asDateTime()")
+  @Deprecated(
+      "By default values are optional and can only be converted when a fallback is provided "
+      "i.e. .asDateTimeOrNull() which falls back to `null`. "
+      "Use .required().asDateTime() in cases the value is mandatory. "
+      "It will crash when the value couldn't be picked.")
   DateTime asDateTime() {
     if (value == null) {
       throw PickException(
