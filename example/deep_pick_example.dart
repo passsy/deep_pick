@@ -48,9 +48,13 @@ void main() {
   print(shoe); // {id: 421, name: Nike Zoom Fly 3, tags: [nike, JustDoIt]}
 
   // easily pick and map objects to dart objects
-  final oneShoe = pick(json, 'shoes', 0).letOrNull((p) => Shoe.fromPick(p));
-  print(oneShoe);
+  final firstShoe = pick(json, 'shoes', 0).letOrNull((p) => Shoe.fromPick(p));
+  print(firstShoe);
   // Shoe{id: 421, name: Nike Zoom Fly 3, tags: [nike, JustDoIt]}
+
+  // falls back to null when the value couldn't be picked
+  final thirdShoe = pick(json, 'shoes', 2).letOrNull((p) => Shoe.fromPick(p));
+  print(thirdShoe); // null
 
   // map list of picks to dart objects
   final shoes =

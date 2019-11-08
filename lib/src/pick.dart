@@ -28,13 +28,24 @@ Pick pick(
     path.add(selector);
     if (data is List) {
       if (selector is int) {
-        data = data[selector];
-        continue;
+        try {
+          data = data[selector];
+          continue;
+        } catch (_) {
+          // out of range, value not found at index selector
+          return Pick(null, selectors);
+        }
       }
     }
     if (data is Map) {
-      data = data[selector];
-      continue;
+      final picked = data[selector];
+      if (picked != null) {
+        data = picked;
+        continue;
+      } else {
+        // no value mapped to selector
+        return Pick(null, selectors);
+      }
     }
     if (data is Set && selector is int) {
       throw PickException(
@@ -42,9 +53,9 @@ Pick pick(
           "It's not possible to pick a value by using a index ($selector)");
     }
     // can't drill down any more to find the exact location.
-    return Pick(null, path);
+    return Pick(null, selectors);
   }
-  return Pick(data, path);
+  return Pick(data, selectors);
 }
 
 /// A picked object holding the [value] and giving access to useful parsing functions

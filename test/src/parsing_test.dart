@@ -234,6 +234,20 @@ void main() {
           null);
     });
   });
+
+  group("invalid pick", () {
+    test("out of range in list returns null pick", () {
+      final data = [
+        {"name": "John Snow"},
+        {"name": "Daenerys Targaryen"},
+      ];
+      expect(pick(data, 10).value, isNull);
+    });
+    test("unknown property in map returns null", () {
+      final data = {"name": "John Snow"};
+      expect(pick(data, 'birthday').value, isNull);
+    });
+  });
 }
 
 Pick _picked(dynamic value) {
