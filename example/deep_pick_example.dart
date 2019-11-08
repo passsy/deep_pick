@@ -77,8 +77,8 @@ class Shoe {
 
   factory Shoe.fromPick(RequiredPick pick) {
     return Shoe(
-      id: pick('id').asString(),
-      name: pick('name').asString(),
+      id: pick('id').required().asString(),
+      name: pick('name').required().asString(),
       manufacturer: pick('manufacturer').asStringOrNull(),
       tags: pick('tags').asListOrEmpty(),
     );

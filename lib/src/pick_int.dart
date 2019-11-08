@@ -18,6 +18,7 @@ extension IntPick on RequiredPick {
 }
 
 extension NullableIntPick on Pick {
+  @Deprecated("Use .required().asInt()")
   int asInt() {
     if (value == null) {
       throw PickException(

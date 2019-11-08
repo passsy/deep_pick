@@ -72,7 +72,12 @@ class Pick with PickLocation {
   ]) =>
       pick(value, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
 
-  RequiredPick required() => RequiredPick(value, path);
+  RequiredPick required() {
+    if (value == null) {
+      throw PickException("required value at location ${location()} is null");
+    }
+    return RequiredPick(value, path);
+  }
 
   @override
   @Deprecated("Use asStringOrNull() to pick a String value")

@@ -18,6 +18,7 @@ extension DoublePick on RequiredPick {
 }
 
 extension NullableDoublePick on Pick {
+  @Deprecated("Use .required().asDouble()")
   double asDouble() {
     if (value == null) {
       throw PickException(
