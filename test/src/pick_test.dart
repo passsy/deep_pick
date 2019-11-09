@@ -41,6 +41,12 @@ void main() {
       // pick further
       expect(picked("name").required().asString(), "John Snow");
     });
+
+    test("pick deeper than data structure returns null pick", () {
+      final p = pick([], "a", "b");
+      expect(p.path, ["a", "b"]);
+      expect(p.value, isNull);
+    });
   });
 
   group("parsing", () {
