@@ -247,6 +247,12 @@ void main() {
       final data = {"name": "John Snow"};
       expect(pick(data, 'birthday').value, isNull);
     });
+
+    test("pick from null returns null Pick with full location", () {
+      final p = pick(null, 'some', 'path');
+      expect(p.path, ['some', 'path']);
+      expect(p.value, null);
+    });
   });
 }
 

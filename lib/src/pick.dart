@@ -4,7 +4,7 @@
 /// - a [String] to pick values from a [Map]
 /// - or [int] when you want to pick a value at index from a [List]
 Pick pick(
-  dynamic json, [
+  /*Map?|List?*/ dynamic json, [
   dynamic arg0,
   dynamic arg1,
   dynamic arg2,
@@ -16,12 +16,15 @@ Pick pick(
   dynamic arg8,
   dynamic arg9,
 ]) {
-  if (json == null) return Pick(null, const []);
   final selectors =
       <dynamic>[arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9]
           // null is a sign for unused "varargs"
           .where((dynamic it) => it != null)
           .toList(growable: false);
+
+  // no data, nothing to pick
+  if (json == null) return Pick(null, selectors);
+
   final List<dynamic> path = [];
   dynamic data = json;
   for (final selector in selectors) {
