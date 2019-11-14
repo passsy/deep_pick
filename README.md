@@ -2,7 +2,9 @@
 
 [![Pub](https://img.shields.io/pub/v/deep_pick.svg)](https://pub.dartlang.org/packages/deep_pick)
 
-A library to access deep nested values inside of dart data structures, like returned from `dynamic jsonDecode(String source)`.
+A library to access deep nested values inside of dart data structures (nested Lists and Maps).
+ - json parsed with `dart:convert` `dynamic jsonDecode(String source)`
+ - `DocumentSnapshot`s in Firebase Firestore
 
 ## Example
 
@@ -19,23 +21,60 @@ void main() {
      { 
        "id": "421",
        "name": "Nike Zoom Fly 3",
-       "tags": ["cool", "new"]
+       "tags": ["nike", "JustDoIt"]
+     },
+     { 
+       "id": "532",
+       "name": "adidas Ultraboost",
+       "manufacturer": "adidas",
+       "tags": ["adidas", "ImpossibleIsNothing"]
      }
   ]
 }
 ''');
+  // pick a value deep down the json structure
+  final firstTag = pick(json, 'shoes', 1, 'tags', 0).asStringOrNull();
+  print(firstTag); // adidas
 
-  final name = pick(json, 'shoes', 0, 'name').asString();
-  print(name); // Nike Zoom Fly 3
-
+  // fallback to null if it couldn't be found
   final manufacturer = pick(json, 'shoes', 0, 'manufacturer').asStringOrNull();
   print(manufacturer); // null
 
-  final id = pick(json, 'shoes', 0, 'id').asInt();
-  print(id); // 421
+  // use required() to crash if a object doesn't exist
+  final name = pick(json, 'shoes', 0, 'name').required().asString();
+  print(name); // Nike Zoom Fly 3
 
+  // you decide which type you want
+  final id = pick(json, 'shoes', 0, 'id');
+  print(id.asIntOrNull()); // 421
+  print(id.asDoubleOrNull()); // 421.0
+  print(id.asStringOrNull()); // "421"
+
+  // pick lists
   final tags = pick(json, 'shoes', 0, 'tags').asListOrEmpty<String>();
-  print(tags); // [cool, new]
+  print(tags); // [nike, JustDoIt]
+
+  // pick maps
+  final shoe = pick(json, 'shoes', 0).required().asMap();
+  print(shoe); // {id: 421, name: Nike Zoom Fly 3, tags: [nike, JustDoIt]}
+
+  // easily pick and map objects to dart objects
+  final firstShoe = pick(json, 'shoes', 0).letOrNull((p) => Shoe.fromPick(p));
+  print(firstShoe);
+  // Shoe{id: 421, name: Nike Zoom Fly 3, tags: [nike, JustDoIt]}
+
+  // falls back to null when the value couldn't be picked
+  final thirdShoe = pick(json, 'shoes', 2).letOrNull((p) => Shoe.fromPick(p));
+  print(thirdShoe); // null
+
+  // map list of picks to dart objects
+  final shoes =
+      pick(json, 'shoes').asListOrEmpty((p) => Shoe.fromPick(p.required()));
+  print(shoes);
+  // [
+  //   Shoe{id: 421, name: Nike Zoom Fly 3, tags: [nike, JustDoIt]},
+  //   Shoe{id: 532, name: adidas Ultraboost, tags: [adidas, ImpossibleIsNothing]}
+  // ]
 }
 ```
 
