@@ -39,4 +39,8 @@ extension NullableDoublePick on Pick {
       return null;
     }
   }
+
+  double asDoubleOrDefault(double defaultValue) {
+    return asDoubleOrNull() ?? defaultValue;
+  }
 }

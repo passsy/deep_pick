@@ -55,6 +55,11 @@ void main() {
       expect(nullPick().asStringOrNull(), isNull);
     });
 
+    test("asStringOrDefault()", () {
+      expect(picked("adam").asStringOrDefault("eva"), "adam");
+      expect(nullPick().asStringOrDefault("eva"), "eva");
+    });
+
     test("asMapOrNull()", () {
       expect(picked({"ab": "cd"}).asMapOrNull(), {"ab": "cd"});
       expect(nullPick().asMapOrNull(), isNull);
@@ -66,6 +71,12 @@ void main() {
       expect(nullPick().asMapOrEmpty(), {});
     });
 
+    test("asMapOrDefault()", () {
+      expect(picked({"ab": "cd"}).asMapOrDefault({"foo": "bar"}), {"ab": "cd"});
+      expect(picked("a").asMapOrDefault({"foo": "bar"}), {"foo": "bar"});
+      expect(nullPick().asMapOrDefault({"foo": "bar"}), {"foo": "bar"});
+    });
+
     test("asListOrNull()", () {
       expect(picked([1, 2, 3]).asListOrNull<int>(), [1, 2, 3]);
       expect(nullPick().asListOrNull<int>(), isNull);
@@ -75,6 +86,12 @@ void main() {
       expect(picked([1, 2, 3]).asListOrEmpty<int>(), [1, 2, 3]);
       expect(picked("a").asListOrEmpty<int>(), []);
       expect(nullPick().asListOrEmpty<int>(), []);
+    });
+
+    test("asListOrDefault()", () {
+      expect(picked([1, 2, 3]).asListOrDefault<int>([8, 9]), [1, 2, 3]);
+      expect(picked("a").asListOrDefault<int>([8, 9]), [8, 9]);
+      expect(nullPick().asListOrDefault<int>([8, 9]), [8, 9]);
     });
 
     test("asBoolOrNull()", () {
@@ -99,12 +116,25 @@ void main() {
       expect(nullPick().asIntOrNull(), isNull);
     });
 
+    test("asIntOrDefault()", () {
+      expect(picked(1).asIntOrDefault(9), 1);
+      expect(nullPick().asIntOrDefault(9), 9);
+    });
+
     test("asDoubleOrNull()", () {
       expect(picked(1).asDoubleOrNull(), 1.0);
       expect(picked(2.0).asDoubleOrNull(), 2.0);
       expect(picked("3.0").asDoubleOrNull(), 3.0);
       expect(picked("a").asDoubleOrNull(), isNull);
       expect(nullPick().asDoubleOrNull(), isNull);
+    });
+
+    test("asDoubleOrDefault()", () {
+      expect(picked(1).asDoubleOrDefault(9.0), 1.0);
+      expect(picked(2.0).asDoubleOrDefault(9.0), 2.0);
+      expect(picked("3.0").asDoubleOrDefault(9.0), 3.0);
+      expect(picked("a").asDoubleOrDefault(9.0), 9.0);
+      expect(nullPick().asDoubleOrDefault(9.0), 9.0);
     });
 
     test("asDateTimeOrNull()", () {
@@ -115,6 +145,18 @@ void main() {
       expect(nullPick().asDateTimeOrNull(), isNull);
     });
 
+    test("asDateTimeOrDefault()", () {
+      final defaultValue = DateTime.utc(2020, 10, 20);
+      expect(
+          picked("2012-02-27 13:27:00,123456z")
+              .asDateTimeOrDefault(defaultValue),
+          DateTime.utc(2012, 2, 27, 13, 27, 0, 123, 456));
+      expect(picked("1").asDateTimeOrDefault(defaultValue), defaultValue);
+      expect(
+          picked("Bubblegum").asDateTimeOrDefault(defaultValue), defaultValue);
+      expect(nullPick().asDateTimeOrDefault(defaultValue), defaultValue);
+    });
+
     test("letOrNull()", () {
       expect(
           picked({"name": "John Snow"})
@@ -122,6 +164,18 @@ void main() {
           Person(name: "John Snow"));
       expect(
           nullPick().letOrNull((pick) => Person.fromJson(pick.asMap())), null);
+    });
+
+    test("letOrDefault()", () {
+      final defaultValue = Person(name: "Arya Stark");
+      expect(
+          picked({"name": "John Snow"}).letOrDefault(
+              defaultValue, (pick) => Person.fromJson(pick.asMap())),
+          Person(name: "John Snow"));
+      expect(
+          nullPick().letOrDefault(
+              defaultValue, (pick) => Person.fromJson(pick.asMap())),
+          defaultValue);
     });
 
     test("asListOrEmpty(Pick -> T)", () {
@@ -152,6 +206,31 @@ void main() {
           picked([]).asListOrNull((pick) => Person.fromJson(pick.asMap())), []);
       expect(nullPick().asListOrNull((pick) => Person.fromJson(pick.asMap())),
           null);
+    });
+
+    test("asListOrDefault(Pick -> T)", () {
+      final data = [
+        {"name": "John Snow"},
+        {"name": "Daenerys Targaryen"},
+      ];
+      final defaultValue = [
+        Person(name: "Arya Stark"),
+      ];
+      expect(
+          picked(data).asListOrDefault(
+              defaultValue, (pick) => Person.fromJson(pick.required().asMap())),
+          [
+            Person(name: "John Snow"),
+            Person(name: "Daenerys Targaryen"),
+          ]);
+      expect(
+          picked([]).asListOrDefault(
+              defaultValue, (pick) => Person.fromJson(pick.required().asMap())),
+          []);
+      expect(
+          nullPick().asListOrDefault(
+              defaultValue, (pick) => Person.fromJson(pick.required().asMap())),
+          defaultValue);
     });
   });
 

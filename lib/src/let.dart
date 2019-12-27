@@ -42,4 +42,8 @@ extension NullableLet on Pick {
     if (value == null) return null;
     return block(required());
   }
+
+  R letOrDefault<R>(R defaultValue, R Function(RequiredPick pick) block) {
+    return letOrNull(block) ?? defaultValue;
+  }
 }

@@ -43,4 +43,8 @@ extension NullableMapPick on Pick {
       return null;
     }
   }
+
+  Map<RK, RV> asMapOrDefault<RK, RV>(Map<RK, RV> defaultValue) {
+    return asMapOrNull() ?? defaultValue;
+  }
 }

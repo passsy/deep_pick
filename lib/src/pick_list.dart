@@ -49,4 +49,8 @@ extension NullableListPick on Pick {
       return null;
     }
   }
+
+  List<T> asListOrDefault<T>(List<T> defaultValue, [T Function(Pick) map]) {
+    return asListOrNull(map) ?? defaultValue;
+  }
 }

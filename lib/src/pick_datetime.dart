@@ -61,4 +61,8 @@ extension NullableDateTimePick on Pick {
       return null;
     }
   }
+
+  DateTime asDateTimeOrDefault(DateTime defaultValue) {
+    return asDateTimeOrNull() ?? defaultValue;
+  }
 }

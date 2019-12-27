@@ -39,4 +39,8 @@ extension NullableIntPick on Pick {
       return null;
     }
   }
+
+  int asIntOrDefault(int defaultValue) {
+    return asIntOrNull() ?? defaultValue;
+  }
 }

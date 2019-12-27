@@ -38,4 +38,8 @@ extension NullableStringPick on Pick {
       return null;
     }
   }
+
+  String asStringOrDefault(String defaultValue) {
+    return asStringOrNull() ?? defaultValue;
+  }
 }
