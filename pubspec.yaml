@@ -4,7 +4,7 @@ version: 0.4.1
 homepage: https://github.com/passsy/deep_pick
 
 environment:
-  sdk: '>=2.6.0 <3.0.0'
+  sdk: '>=2.7.0 <3.0.0'
 
 dev_dependencies:
   test: ^1.6.0
