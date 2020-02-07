@@ -1,3 +1,8 @@
+## 0.4.1
+
+- Print correct path in error message when json is `null`
+- `asDateTime()` now skips parsing when the value is already a `DateTime`
+
 ## 0.4.0
 
 ### Map objects
