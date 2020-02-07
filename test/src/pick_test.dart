@@ -110,6 +110,7 @@ void main() {
     test("asDateTimeOrNull()", () {
       expect(picked("2012-02-27 13:27:00,123456z").asDateTimeOrNull(),
           DateTime.utc(2012, 2, 27, 13, 27, 0, 123, 456));
+      expect(picked(DateTime.utc(2020)).asDateTimeOrNull(), DateTime.utc(2020));
       expect(picked("1").asDateTimeOrNull(), isNull);
       expect(picked("Bubblegum").asDateTimeOrNull(), isNull);
       expect(nullPick().asDateTimeOrNull(), isNull);
