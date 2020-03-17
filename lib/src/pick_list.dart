@@ -34,19 +34,13 @@ extension NullableListPick on Pick {
 
   List<T> asListOrEmpty<T>([T Function(Pick) map]) {
     if (value == null) return <T>[];
-    try {
-      return required().asList(map);
-    } catch (_) {
-      return <T>[];
-    }
+    if (value is! List) return <T>[];
+    return required().asList(map);
   }
 
   List<T> /*?*/ asListOrNull<T>([T Function(Pick) map]) {
     if (value == null) return null;
-    try {
-      return required().asList(map);
-    } catch (_) {
-      return null;
-    }
+    if (value is! List) return null;
+    return required().asList(map);
   }
 }

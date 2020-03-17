@@ -53,11 +53,15 @@ void main() {
   group("parsing", () {
     test("asStringOrNull()", () {
       expect(picked("adam").asStringOrNull(), "adam");
+      expect(picked(1).asStringOrNull(), "1");
+      expect(
+          picked(DateTime(2000)).asStringOrNull(), '2000-01-01 00:00:00.000');
       expect(nullPick().asStringOrNull(), isNull);
     });
 
     test("asMapOrNull()", () {
       expect(picked({"ab": "cd"}).asMapOrNull(), {"ab": "cd"});
+      expect(picked(1).asMapOrNull(), isNull);
       expect(nullPick().asMapOrNull(), isNull);
     });
 
@@ -69,6 +73,7 @@ void main() {
 
     test("asListOrNull()", () {
       expect(picked([1, 2, 3]).asListOrNull<int>(), [1, 2, 3]);
+      expect(picked("john").asListOrNull<int>(), isNull);
       expect(nullPick().asListOrNull<int>(), isNull);
     });
 
@@ -80,23 +85,27 @@ void main() {
 
     test("asBoolOrNull()", () {
       expect(picked(true).asBoolOrNull(), isTrue);
+      expect(picked("a").asBoolOrNull(), isNull);
       expect(nullPick().asBoolOrNull(), isNull);
     });
 
     test("asBoolOrTrue()", () {
       expect(picked(true).asBoolOrTrue(), isTrue);
       expect(picked(false).asBoolOrTrue(), isFalse);
+      expect(picked("a").asBoolOrTrue(), isTrue);
       expect(nullPick().asBoolOrTrue(), isTrue);
     });
 
     test("asBoolOrFalse()", () {
       expect(picked(true).asBoolOrFalse(), isTrue);
       expect(picked(false).asBoolOrFalse(), isFalse);
+      expect(picked("a").asBoolOrFalse(), isFalse);
       expect(nullPick().asBoolOrFalse(), isFalse);
     });
 
     test("asIntOrNull()", () {
       expect(picked(1).asIntOrNull(), 1);
+      expect(picked("a").asIntOrNull(), isNull);
       expect(nullPick().asIntOrNull(), isNull);
     });
 
@@ -122,8 +131,21 @@ void main() {
           picked({"name": "John Snow"})
               .letOrNull((pick) => Person.fromJson(pick.asMap())),
           Person(name: "John Snow"));
+      expect(nullPick().letOrNull((pick) => Person.fromJson(pick.asMap())),
+          isNull);
       expect(
-          nullPick().letOrNull((pick) => Person.fromJson(pick.asMap())), null);
+          () => picked('a').letOrNull((pick) => Person.fromJson(pick.asMap())),
+          throwsA(isA<PickException>().having(
+            (e) => e.message,
+            'message',
+            contains(
+                "value a of type String at location `0` can't be casted to Map<dynamic, dynamic>"),
+          )));
+      expect(
+          () => picked({"asdf": "John Snow"})
+              .letOrNull((pick) => Person.fromJson(pick.asMap())),
+          throwsA(isA<PickException>().having((e) => e.message, 'message',
+              contains('required value at location `name` is null'))));
     });
 
     test("asListOrEmpty(Pick -> T)", () {
@@ -140,6 +162,18 @@ void main() {
           []);
     });
 
+    test("asListOrEmpty(Pick -> T) reports item parsing errors", () {
+      final data = [
+        {"name": "John Snow"},
+        {"asdf": "Daenerys Targaryen"}, // <-- wrong key
+      ];
+      expect(
+          () => picked(data)
+              .asListOrEmpty((pick) => Person.fromJson(pick.asMap())),
+          throwsA(isA<PickException>().having((e) => e.message, 'message',
+              contains('required value at location `name` is null'))));
+    });
+
     test("asListOrNull(Pick -> T)", () {
       final data = [
         {"name": "John Snow"},
@@ -154,6 +188,18 @@ void main() {
           picked([]).asListOrNull((pick) => Person.fromJson(pick.asMap())), []);
       expect(nullPick().asListOrNull((pick) => Person.fromJson(pick.asMap())),
           null);
+    });
+
+    test("asListOrNull(Pick -> T) reports item parsing errors", () {
+      final data = [
+        {"name": "John Snow"},
+        {"asdf": "Daenerys Targaryen"}, // <-- wrong key
+      ];
+      expect(
+          () => picked(data)
+              .asListOrNull((pick) => Person.fromJson(pick.asMap())),
+          throwsA(isA<PickException>().having((e) => e.message, 'message',
+              contains('required value at location `name` is null'))));
     });
   });
 
