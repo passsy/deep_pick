@@ -1,3 +1,7 @@
+## 0.4.2
+
+- Fix error reporting of `asListOrNull(mapToUser)` and `asListOrEmpty(mapToUser)`. Both now return errors during mapping and don't swallow them
+
 ## 0.4.1
 
 - Print correct path in error message when json is `null`
@@ -7,7 +11,7 @@
 
 ### Map objects
 
-New APIs to map picks to objects and to map list elements to obejcts.
+New APIs to map picks to objects and to map list elements to objects.
 
 ```dart
 RequiredPick.let<R>(R Function(RequiredPick pick) block): R
