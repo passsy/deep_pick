@@ -75,10 +75,23 @@ void main() {
         fail("casted map without verifying the types. "
             "Expected Map<String, bool> but was ${parsed.runtimeType}");
         // ignore: avoid_catching_errors
-      } on TypeError catch (e, stack) {
+      } on TypeError catch (e) {
         expect(
           e,
           const TypeMatcher<TypeError>().having(
+            (e) => e.toString(),
+            'message',
+            stringContainsInOrder(
+                ["<String, String>", "is not a subtype of type", "bool"]),
+          ),
+        );
+        // ignore: avoid_catching_errors
+      } on CastError catch (e) {
+        // backwards compatibility for Dart 2.7
+        // CastError was replaced with TypeError in Dart 2.8
+        expect(
+          e,
+          const TypeMatcher<CastError>().having(
             (e) => e.toString(),
             'message',
             stringContainsInOrder(
@@ -104,10 +117,23 @@ void main() {
         fail("casted map without verifying the types. "
             "Expected Map<String, bool> but was ${parsed.runtimeType}");
         // ignore: avoid_catching_errors
-      } on TypeError catch (e, stack) {
+      } on TypeError catch (e) {
         expect(
           e,
           const TypeMatcher<TypeError>().having(
+            (e) => e.toString(),
+            'message',
+            stringContainsInOrder(
+                ["<String, String>", "is not a subtype of type", "bool"]),
+          ),
+        );
+        // ignore: avoid_catching_errors
+      } on CastError catch (e) {
+        // backwards compatibility for Dart 2.7
+        // CastError was replaced with TypeError in Dart 2.8
+        expect(
+          e,
+          const TypeMatcher<CastError>().having(
             (e) => e.toString(),
             'message',
             stringContainsInOrder(
