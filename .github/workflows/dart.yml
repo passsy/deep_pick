@@ -6,6 +6,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         version: ["2.7", "2.8", "2.9", "dev"]
 
@@ -23,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: google/dart:latest
+      image: google/dart:dev
 
     steps:
     - uses: actions/checkout@v1
@@ -36,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: google/dart:latest
+      image: google/dart:dev
 
     steps:
     - uses: actions/checkout@v1
