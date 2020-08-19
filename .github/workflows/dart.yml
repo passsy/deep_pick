@@ -5,9 +5,12 @@ on: [push]
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+    strategy:
+      matrix:
+        version: ["2.7", "2.8", "2.9", "dev"]
+
     container:
-      image:  google/dart:2.7
+      image: google/dart:${{ matrix.version }}
     
     steps:
     - uses: actions/checkout@v1
@@ -20,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image:  google/dart:2.7
+      image: google/dart:latest
 
     steps:
     - uses: actions/checkout@v1
@@ -33,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image:  google/dart:2.7
+      image: google/dart:latest
 
     steps:
     - uses: actions/checkout@v1
