@@ -3,17 +3,17 @@ import 'package:deep_pick/src/pick.dart';
 extension DateTimePick on RequiredPick {
   /// Examples of parsable date formats:
   ///
-  /// - `"2012-02-27 13:27:00"`
-  /// - `"2012-02-27 13:27:00.123456z"`
-  /// - `"2012-02-27 13:27:00,123456z"`
-  /// - `"20120227 13:27:00"`
-  /// - `"20120227T132700"`
-  /// - `"20120227"`
-  /// - `"+20120227"`
-  /// - `"2012-02-27T14Z"`
-  /// - `"2012-02-27T14+00:00"`
-  /// - `"-123450101 00:00:00 Z"`: in the year -12345.
-  /// - `"2002-02-27T14:00:00-0500"`: Same as `"2002-02-27T19:00:00Z"`
+  /// - `'2012-02-27 13:27:00'`
+  /// - `'2012-02-27 13:27:00.123456z'`
+  /// - `'2012-02-27 13:27:00,123456z'`
+  /// - `'20120227 13:27:00'`
+  /// - `'20120227T132700'`
+  /// - `'20120227'`
+  /// - `'+20120227'`
+  /// - `'2012-02-27T14Z'`
+  /// - `'2012-02-27T14+00:00'`
+  /// - `'-123450101 00:00:00 Z'`: in the year -12345.
+  /// - `'2002-02-27T14:00:00-0500'`: Same as `'2002-02-27T19:00:00Z'`
   DateTime asDateTime() {
     if (value is DateTime) {
       return value as DateTime;
@@ -31,31 +31,31 @@ extension DateTimePick on RequiredPick {
 
 extension NullableDateTimePick on Pick {
   @Deprecated(
-      "By default values are optional and can only be converted when a fallback is provided "
-      "i.e. .asDateTimeOrNull() which falls back to `null`. "
-      "Use .required().asDateTime() in cases the value is mandatory. "
+      'By default values are optional and can only be converted when a fallback is provided '
+      'i.e. .asDateTimeOrNull() which falls back to `null`. '
+      'Use .required().asDateTime() in cases the value is mandatory. '
       "It will crash when the value couldn't be picked.")
   DateTime asDateTime() {
     if (value == null) {
       throw PickException(
-          "value at location ${location()} is null and not an instance of DateTime");
+          'value at location ${location()} is null and not an instance of DateTime');
     }
     return required().asDateTime();
   }
 
   /// Examples of parsable date formats:
   ///
-  /// - `"2012-02-27 13:27:00"`
-  /// - `"2012-02-27 13:27:00.123456z"`
-  /// - `"2012-02-27 13:27:00,123456z"`
-  /// - `"20120227 13:27:00"`
-  /// - `"20120227T132700"`
-  /// - `"20120227"`
-  /// - `"+20120227"`
-  /// - `"2012-02-27T14Z"`
-  /// - `"2012-02-27T14+00:00"`
-  /// - `"-123450101 00:00:00 Z"`: in the year -12345.
-  /// - `"2002-02-27T14:00:00-0500"`: Same as `"2002-02-27T19:00:00Z"`
+  /// - `'2012-02-27 13:27:00'`
+  /// - `'2012-02-27 13:27:00.123456z'`
+  /// - `'2012-02-27 13:27:00,123456z'`
+  /// - `'20120227 13:27:00'`
+  /// - `'20120227T132700'`
+  /// - `'20120227'`
+  /// - `'+20120227'`
+  /// - `'2012-02-27T14Z'`
+  /// - `'2012-02-27T14+00:00'`
+  /// - `'-123450101 00:00:00 Z'`: in the year -12345.
+  /// - `'2002-02-27T14:00:00-0500'`: Same as `'2002-02-27T19:00:00Z'`
   DateTime /*?*/ asDateTimeOrNull() {
     if (value == null) return null;
     try {

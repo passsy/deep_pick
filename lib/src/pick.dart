@@ -18,14 +18,14 @@ Pick pick(
 ]) {
   final selectors =
       <dynamic>[arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9]
-          // null is a sign for unused "varargs"
+          // null is a sign for unused 'varargs'
           .where((dynamic it) => it != null)
           .toList(growable: false);
 
   // no data, nothing to pick
   if (json == null) return Pick(null, selectors);
 
-  final List<dynamic> path = [];
+  final path = <dynamic>[];
   dynamic data = json;
   for (final selector in selectors) {
     path.add(selector);
@@ -52,7 +52,7 @@ Pick pick(
     }
     if (data is Set && selector is int) {
       throw PickException(
-          "Value at location ${path.sublist(0, path.length - 1)} is a Set, which is a unordered data structure. "
+          'Value at location ${path.sublist(0, path.length - 1)} is a Set, which is a unordered data structure. '
           "It's not possible to pick a value by using a index ($selector)");
     }
     // can't drill down any more to find the exact location.
@@ -91,14 +91,14 @@ class Pick with PickLocation {
   /// Crashes when the the value is `null`.
   RequiredPick required() {
     if (value == null) {
-      throw PickException("required value at location ${location()} is null");
+      throw PickException('required value at location ${location()} is null');
     }
     return RequiredPick(value, path);
   }
 
   @override
-  @Deprecated("Use asStringOrNull() to pick a String value")
-  String toString() => "Pick(value=$value, path=$path)";
+  @Deprecated('Use asStringOrNull() to pick a String value')
+  String toString() => 'Pick(value=$value, path=$path)';
 }
 
 class RequiredPick with PickLocation {
@@ -130,8 +130,8 @@ class RequiredPick with PickLocation {
       pick(value, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
 
   @override
-  @Deprecated("Use asStringOrNull() to pick a String value")
-  String toString() => "RequiredPick(value=$value, path=$path)";
+  @Deprecated('Use asStringOrNull() to pick a String value')
+  String toString() => 'RequiredPick(value=$value, path=$path)';
 }
 
 class PickException implements Exception {
@@ -151,5 +151,5 @@ mixin PickLocation {
   /// I.e. ['shoes', 0, 'name']
   List<dynamic> get path;
 
-  String location() => path.map((it) => "`$it`").join(",");
+  String location() => path.map((it) => '`$it`').join(',');
 }

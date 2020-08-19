@@ -3,7 +3,7 @@ import 'package:deep_pick/src/pick.dart';
 extension MapPick on RequiredPick {
   Map<RK, RV> asMap<RK, RV>() {
     if (value is Map) {
-      final Map<RK, RV> view = (value as Map<dynamic, dynamic>).cast();
+      final view = (value as Map<dynamic, dynamic>).cast<RK, RV>();
       // create copy of casted view so all items are type checked here
       // and not lazily type checked when accessing them
       return Map.of(view);
@@ -16,14 +16,14 @@ extension MapPick on RequiredPick {
 
 extension NullableMapPick on Pick {
   @Deprecated(
-      "By default values are optional and can only be converted when a fallback is provided "
-      "i.e. .asMapOrNull() which falls back to `null`. "
-      "Use .required().asMap() in cases the value is mandatory. "
+      'By default values are optional and can only be converted when a fallback is provided '
+      'i.e. .asMapOrNull() which falls back to `null`. '
+      'Use .required().asMap() in cases the value is mandatory. '
       "It will crash when the value couldn't be picked.")
   Map<RK, RV> asMap<RK, RV>() {
     if (value == null) {
       throw PickException(
-          "value at location ${location()} is null and not an instance of Map<dynamic, dynamic>");
+          'value at location ${location()} is null and not an instance of Map<dynamic, dynamic>');
     }
     return required().asMap();
   }
