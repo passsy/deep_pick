@@ -1,3 +1,8 @@
+## 0.4.3
+
+- Fix error reporting for `asMapOr[Empty|Null]` and don't swallow parsing errors
+- Throw Map cast errors when parsing, not lazily when accessing the data
+
 ## 0.4.2
 
 - Fix error reporting of `asListOrNull(mapToUser)` and `asListOrEmpty(mapToUser)`. Both now return errors during mapping and don't swallow them
