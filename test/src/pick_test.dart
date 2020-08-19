@@ -65,10 +65,56 @@ void main() {
       expect(nullPick().asMapOrNull(), isNull);
     });
 
+    test("asMapOrNull() reports errors correctly", () {
+      final dynamic data = {
+        "a": {"some": "value"}
+      };
+
+      try {
+        final Map<String, bool> parsed = picked(data).asMapOrNull();
+        fail("casted map without verifying the types. "
+            "Expected Map<String, bool> but was ${parsed.runtimeType}");
+        // ignore: avoid_catching_errors
+      } on TypeError catch (e, stack) {
+        expect(
+          e,
+          const TypeMatcher<TypeError>().having(
+            (e) => e.toString(),
+            'message',
+            stringContainsInOrder(
+                ["<String, String>", "is not a subtype of type", "bool"]),
+          ),
+        );
+      }
+    });
+
     test("asMapOrEmpty()", () {
       expect(picked({"ab": "cd"}).asMapOrEmpty(), {"ab": "cd"});
       expect(picked("a").asMapOrEmpty(), {});
       expect(nullPick().asMapOrEmpty(), {});
+    });
+
+    test("asMapOrEmpty() reports errors correctly", () {
+      final dynamic data = {
+        "a": {"some": "value"}
+      };
+
+      try {
+        final Map<String, bool> parsed = picked(data).asMapOrEmpty();
+        fail("casted map without verifying the types. "
+            "Expected Map<String, bool> but was ${parsed.runtimeType}");
+        // ignore: avoid_catching_errors
+      } on TypeError catch (e, stack) {
+        expect(
+          e,
+          const TypeMatcher<TypeError>().having(
+            (e) => e.toString(),
+            'message',
+            stringContainsInOrder(
+                ["<String, String>", "is not a subtype of type", "bool"]),
+          ),
+        );
+      }
     });
 
     test("asListOrNull()", () {

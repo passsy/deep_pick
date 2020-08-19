@@ -64,6 +64,29 @@ void main() {
               containing: ["unknownKey", "null", "Map<dynamic, dynamic>"])));
     });
 
+    test("asMap() throws for cast error", () {
+      final dynamic data = {
+        "a": {"some": "value"}
+      };
+
+      try {
+        final Map<String, bool> parsed = picked(data).asMap();
+        fail("casted map without verifying the types. "
+            "Expected Map<String, bool> but was ${parsed.runtimeType}");
+        // ignore: avoid_catching_errors
+      } on TypeError catch (e, stack) {
+        expect(
+          e,
+          const TypeMatcher<TypeError>().having(
+            (e) => e.toString(),
+            'message',
+            stringContainsInOrder(
+                ["<String, String>", "is not a subtype of type", "bool"]),
+          ),
+        );
+      }
+    });
+
     test("asList()", () {
       expect(picked(["a", "b", "c"]).asList(), ["a", "b", "c"]);
       expect(picked([1, 2, 3]).asList<int>(), [1, 2, 3]);
