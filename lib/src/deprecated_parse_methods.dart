@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:deep_pick/deep_pick.dart';
 
 @Deprecated(
-    "Call jsonDecode(String) yourself and then call pick(json, arg0, arg1, ...).as*() for further parsing")
+    'Call jsonDecode(String) yourself and then call pick(json, arg0, arg1, ...).as*() for further parsing')
 dynamic parseRawJsonTo<T>(
   String text, [
   dynamic arg0,
@@ -22,7 +22,7 @@ dynamic parseRawJsonTo<T>(
       .value;
 }
 
-@Deprecated("Replace with pick(json, arg0, arg1, ...).asMapOrNull()")
+@Deprecated('Replace with pick(json, arg0, arg1, ...).asMapOrNull()')
 Map<String, dynamic> parseJsonToMap(
   dynamic json, [
   dynamic arg0,
@@ -40,7 +40,7 @@ Map<String, dynamic> parseJsonToMap(
       .asMapOrNull();
 }
 
-@Deprecated("Replace with pick(json, arg0, arg1, ...).asMapOrEmpty()")
+@Deprecated('Replace with pick(json, arg0, arg1, ...).asMapOrEmpty()')
 Map<String, dynamic> parseJsonToNonNullMap(
   dynamic json, [
   dynamic arg0,
@@ -58,7 +58,7 @@ Map<String, dynamic> parseJsonToNonNullMap(
       .asMapOrEmpty();
 }
 
-@Deprecated("Replace with pick(json, arg0, arg1, ...).asList<T>()")
+@Deprecated('Replace with pick(json, arg0, arg1, ...).asList<T>()')
 List<T> parseJsonToList<T>(
   dynamic json, [
   dynamic arg0,
@@ -76,7 +76,7 @@ List<T> parseJsonToList<T>(
       .asList<T>();
 }
 
-@Deprecated("Replace with pick(json, arg0, arg1, ...).asListOrEmpty<T>()")
+@Deprecated('Replace with pick(json, arg0, arg1, ...).asListOrEmpty<T>()')
 List<T> parseJsonToNonNullList<T>(
   dynamic json, [
   dynamic arg0,
@@ -94,7 +94,7 @@ List<T> parseJsonToNonNullList<T>(
       .asListOrEmpty<T>();
 }
 
-@Deprecated("Replace with pick(json, arg0, arg1, ...).asBool()")
+@Deprecated('Replace with pick(json, arg0, arg1, ...).asBool()')
 bool parseJsonToBool(
   dynamic json, [
   dynamic arg0,
@@ -113,7 +113,7 @@ bool parseJsonToBool(
       .asBool();
 }
 
-@Deprecated("Replace with pick(json, arg0, arg1, ...).asStringOrNull()")
+@Deprecated('Replace with pick(json, arg0, arg1, ...).asStringOrNull()')
 String parseJsonToString(
   dynamic json, [
   dynamic arg0,
@@ -131,7 +131,7 @@ String parseJsonToString(
       .asStringOrNull();
 }
 
-@Deprecated("Replace with pick(json, arg0, arg1, ...).asIntOrNull()")
+@Deprecated('Replace with pick(json, arg0, arg1, ...).asIntOrNull()')
 int parseJsonToInt(
   dynamic json, [
   dynamic arg0,
@@ -149,7 +149,7 @@ int parseJsonToInt(
       .asIntOrNull();
 }
 
-@Deprecated("Replace with pick(json, arg0, arg1, ...).asDoubleOrNull()")
+@Deprecated('Replace with pick(json, arg0, arg1, ...).asDoubleOrNull()')
 double parseJsonToDouble(
   dynamic json, [
   dynamic arg0,
@@ -167,7 +167,7 @@ double parseJsonToDouble(
       .asDoubleOrNull();
 }
 
-@Deprecated("Replace with pick(json, arg0, arg1, ...).value")
+@Deprecated('Replace with pick(json, arg0, arg1, ...).value')
 T parseJsonTo<T>(
   dynamic json, [
   dynamic arg0,
