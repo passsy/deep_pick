@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 
 void main() {
   group('parse objects', () {
-    test('prase json object 3 levels deep', () {
+    test('parse json object 3 levels deep', () {
       final json = {
         'level1': {
           'level2': {
