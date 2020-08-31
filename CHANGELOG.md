@@ -36,6 +36,8 @@ and `context` has been added.
 + RequiredPick(this.value, {this.path = const [], Map<String, dynamic> context})
 ```
 
+- The `path` is now correctly forwarded after `Pick#call` or `Pick#asListOrEmpty` and always shows the full path since origin 
+
 ## 0.4.3
 
 - Fix error reporting for `asMapOr[Empty|Null]` and don't swallow parsing errors
