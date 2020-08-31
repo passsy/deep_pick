@@ -141,7 +141,7 @@ class PickException implements Exception {
 
   @override
   String toString() {
-    return 'PickException{message: $message}';
+    return 'PickException($message)';
   }
 }
 
