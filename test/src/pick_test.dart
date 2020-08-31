@@ -12,7 +12,8 @@ void main() {
 
     test('toString() prints value and path', () {
       // ignore: deprecated_member_use_from_same_package
-      expect(Pick('a', ['b', 0]).toString(), 'Pick(value=a, path=[b, 0])');
+      expect(
+          Pick('a', path: ['b', 0]).toString(), 'Pick(value=a, path=[b, 0])');
     });
 
     test(
@@ -40,13 +41,26 @@ void main() {
       expect(picked.value, {'name': 'John Snow'});
 
       // pick further
-      expect(picked('name').required().asString(), 'John Snow');
+      expect(picked.call('name').required().asString(), 'John Snow');
     });
 
     test('pick deeper than data structure returns null pick', () {
       final p = pick([], 'a', 'b');
       expect(p.path, ['a', 'b']);
       expect(p.value, isNull);
+    });
+
+    test('call() carries over the location for good stacktraces', () {
+      final data = [
+        {'name': 'John Snow'},
+        {'name': 'Daenerys Targaryen'},
+      ];
+
+      final level1Pick = pick(data, 0);
+      expect(level1Pick.path, [0]);
+
+      final level2Pick = level1Pick.call('name');
+      expect(level2Pick.path, [0, 'name']);
     });
   });
 
@@ -289,6 +303,68 @@ void main() {
     test('unknown property in map returns null', () {
       final data = {'name': 'John Snow'};
       expect(pick(data, 'birthday').value, isNull);
+    });
+  });
+
+  group('context API', () {
+    test('add and read from context', () {
+      final data = [
+        {'name': 'John Snow'},
+        {'name': 'Daenerys Targaryen'},
+      ];
+      final root = pick(data);
+      root.context['lang'] = 'de';
+      expect(root.context, {'lang': 'de'});
+    });
+
+    test('copy into required()', () {
+      final data = [
+        {'name': 'John Snow'},
+        {'name': 'Daenerys Targaryen'},
+      ];
+      final root = pick(data);
+      root.context['lang'] = 'de';
+      expect(root.context, {'lang': 'de'});
+
+      final requiredPick = root.required();
+      expect(requiredPick.context, {'lang': 'de'});
+
+      root.context['hello'] = 'world';
+      expect(root.context, {'lang': 'de', 'hello': 'world'});
+      expect(requiredPick.context, {'lang': 'de'});
+    });
+
+    test('copy into asList()', () {
+      final data = [
+        {'name': 'John Snow'},
+        {'name': 'Daenerys Targaryen'},
+      ];
+      final root = pick(data);
+      root.context['lang'] = 'de';
+      expect(root.context, {'lang': 'de'});
+
+      final contexts = root.asListOrNull((pick) => pick.context);
+      expect(contexts, [
+        {'lang': 'de'},
+        {'lang': 'de'}
+      ]);
+    });
+
+    test('copy into call() pick', () {
+      final data = [
+        {'name': 'John Snow'},
+        {'name': 'Daenerys Targaryen'},
+      ];
+      final root = pick(data);
+      root.context['lang'] = 'de';
+      expect(root.context, {'lang': 'de'});
+
+      final afterCall = root.call(1, 'name');
+      expect(afterCall.context, {'lang': 'de'});
+
+      root.context['hello'] = 'world';
+      expect(root.context, {'lang': 'de', 'hello': 'world'});
+      expect(afterCall.context, {'lang': 'de'});
     });
   });
 }

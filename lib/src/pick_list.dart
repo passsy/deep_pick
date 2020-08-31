@@ -8,7 +8,7 @@ extension ListPick on RequiredPick {
       } else {
         var i = 0;
         return (value as List<dynamic>)
-            .map((it) => map(Pick(it, [...path, i++])))
+            .map((it) => map(Pick(it, path: [...path, i++], context: context)))
             .toList(growable: false);
       }
     } else {
