@@ -21,10 +21,18 @@ Pick pick(
           // null is a sign for unused 'varargs'
           .where((dynamic it) => it != null)
           .toList(growable: false);
+  return _drillDown(json, selectors);
+}
 
+Pick _drillDown(dynamic json, List<dynamic> selectors,
+    {List<dynamic> parentPath = const [], Map<String, dynamic> context}) {
+  assert(selectors != null);
+  assert(parentPath != null);
+  final newPath = [...parentPath, ...selectors];
   // no data, nothing to pick
-  if (json == null) return Pick(null, selectors);
+  if (json == null) return Pick(null, path: newPath, context: context);
 
+  assert(json != null);
   final path = <dynamic>[];
   dynamic data = json;
   for (final selector in selectors) {
@@ -36,7 +44,7 @@ Pick pick(
           continue;
         } catch (_) {
           // out of range, value not found at index selector
-          return Pick(null, selectors);
+          return Pick(null, path: newPath, context: context);
         }
       }
     }
@@ -47,7 +55,7 @@ Pick pick(
         continue;
       } else {
         // no value mapped to selector
-        return Pick(null, selectors);
+        return Pick(null, path: newPath, context: context);
       }
     }
     if (data is Set && selector is int) {
@@ -56,14 +64,15 @@ Pick pick(
           "It's not possible to pick a value by using a index ($selector)");
     }
     // can't drill down any more to find the exact location.
-    return Pick(null, selectors);
+    return Pick(null, path: newPath, context: context);
   }
-  return Pick(data, selectors);
+  return Pick(data, path: newPath, context: context);
 }
 
 /// A picked object holding the [value] and giving access to useful parsing functions
-class Pick with PickLocation {
-  Pick(this.value, [this.path = const []]);
+class Pick with PickLocation, PickContext {
+  Pick(this.value, {this.path = const [], Map<String, dynamic> context})
+      : _context = context != null ? Map.of(context) : {};
 
   /// The picked value, might be `null`
   Object /*?*/ value;
@@ -83,8 +92,19 @@ class Pick with PickLocation {
     dynamic arg7,
     dynamic arg8,
     dynamic arg9,
-  ]) =>
-      pick(value, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+  ]) {
+    final selectors =
+        <dynamic>[arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9]
+            // null is a sign for unused 'varargs'
+            .where((dynamic it) => it != null)
+            .toList(growable: false);
+
+    return _drillDown(value, selectors, parentPath: path, context: context);
+  }
+
+  @override
+  Map<String, dynamic> get context => _context;
+  final Map<String, dynamic> _context;
 
   /// Converts the picked values to a non-nullable type [RequiredPick].
   ///
@@ -93,7 +113,7 @@ class Pick with PickLocation {
     if (value == null) {
       throw PickException('required value at location ${location()} is null');
     }
-    return RequiredPick(value, path);
+    return RequiredPick(value, path: path, context: _context);
   }
 
   @override
@@ -101,8 +121,9 @@ class Pick with PickLocation {
   String toString() => 'Pick(value=$value, path=$path)';
 }
 
-class RequiredPick with PickLocation {
-  RequiredPick(this.value, [this.path = const []]) {
+class RequiredPick with PickLocation, PickContext {
+  RequiredPick(this.value, {this.path = const [], Map<String, dynamic> context})
+      : _context = context != null ? Map.of(context) : {} {
     if (value == null) {
       throw StateError("value can't be null");
     }
@@ -126,8 +147,19 @@ class RequiredPick with PickLocation {
     dynamic arg7,
     dynamic arg8,
     dynamic arg9,
-  ]) =>
-      pick(value, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+  ]) {
+    final selectors =
+        <dynamic>[arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9]
+            // null is a sign for unused 'varargs'
+            .where((dynamic it) => it != null)
+            .toList(growable: false);
+
+    return _drillDown(value, selectors, parentPath: path, context: context);
+  }
+
+  @override
+  Map<String, dynamic> get context => _context ?? const {};
+  final Map<String, dynamic> _context;
 
   @override
   @Deprecated('Use asStringOrNull() to pick a String value')
@@ -143,6 +175,12 @@ class PickException implements Exception {
   String toString() {
     return 'PickException($message)';
   }
+}
+
+mixin PickContext {
+  /// Attaches additional information which can be used during parsing.
+  /// i.e the HTTP request/response including headers
+  Map<String, dynamic> get context;
 }
 
 mixin PickLocation {

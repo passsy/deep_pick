@@ -11,7 +11,7 @@ void main() {
     });
 
     test('toString() works as expected', () {
-      expect(RequiredPick('a', ['b', 0]).toString(),
+      expect(RequiredPick('a', path: ['b', 0]).toString(),
           'RequiredPick(value=a, path=[b, 0])');
     });
 
@@ -50,6 +50,32 @@ void main() {
             'not a List or Map',
             '{a: b}'
           ])));
+    });
+
+    test('call()', () {
+      final data = [
+        {'name': 'John Snow'},
+        {'name': 'Daenerys Targaryen'},
+      ];
+
+      final RequiredPick picked = pick(data, 0).required();
+      expect(picked.value, {'name': 'John Snow'});
+
+      // pick further
+      expect(picked.call('name').required().asString(), 'John Snow');
+    });
+
+    test('call() carries over the location for good stacktraces', () {
+      final data = [
+        {'name': 'John Snow'},
+        {'name': 'Daenerys Targaryen'},
+      ];
+
+      final RequiredPick level1Pick = pick(data, 0).required();
+      expect(level1Pick.path, [0]);
+
+      final level2Pick = level1Pick.call('name');
+      expect(level2Pick.path, [0, 'name']);
     });
 
     test('asMap()', () {
