@@ -317,6 +317,15 @@ void main() {
       expect(root.context, {'lang': 'de'});
     });
 
+    test('add and read from context with syntax sugar', () {
+      final data = [
+        {'name': 'John Snow'},
+        {'name': 'Daenerys Targaryen'},
+      ];
+      final root = pick(data).addContext('lang', 'de');
+      expect(root.fromContext('lang').asMapOrNull(), {'lang': 'de'});
+    });
+
     test('copy into required()', () {
       final data = [
         {'name': 'John Snow'},

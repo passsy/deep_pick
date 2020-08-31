@@ -219,4 +219,58 @@ void main() {
           throwsA(pickException(containing: ['unknownKey', 'null', 'List'])));
     });
   });
+
+  group('context API', () {
+    test('add and read from context', () {
+      final data = [
+        {'name': 'John Snow'},
+        {'name': 'Daenerys Targaryen'},
+      ];
+      final root = pick(data).required();
+      root.context['lang'] = 'de';
+      expect(root.context, {'lang': 'de'});
+    });
+
+    test('add and read from context with syntax sugar', () {
+      final data = [
+        {'name': 'John Snow'},
+        {'name': 'Daenerys Targaryen'},
+      ];
+      final root = pick(data).required().addContext('lang', 'de');
+      expect(root.fromContext('lang').asMapOrNull(), {'lang': 'de'});
+    });
+
+    test('copy into asList()', () {
+      final data = [
+        {'name': 'John Snow'},
+        {'name': 'Daenerys Targaryen'},
+      ];
+      final root = pick(data).required();
+      root.context['lang'] = 'de';
+      expect(root.context, {'lang': 'de'});
+
+      final contexts = root.asList((pick) => pick.context);
+      expect(contexts, [
+        {'lang': 'de'},
+        {'lang': 'de'}
+      ]);
+    });
+
+    test('copy into call() pick', () {
+      final data = [
+        {'name': 'John Snow'},
+        {'name': 'Daenerys Targaryen'},
+      ];
+      final root = pick(data).required();
+      root.context['lang'] = 'de';
+      expect(root.context, {'lang': 'de'});
+
+      final afterCall = root.call(1, 'name').required();
+      expect(afterCall.context, {'lang': 'de'});
+
+      root.context['hello'] = 'world';
+      expect(root.context, {'lang': 'de', 'hello': 'world'});
+      expect(afterCall.context, {'lang': 'de'});
+    });
+  });
 }
