@@ -1,3 +1,41 @@
+## 0.5.0
+
+- New context API. You can now attach relevant additional information for parsing directly to the `Pick` object. This allows passing information into `fromPick` constructors without adding new parameters to all constructors in between.
+
+```dart
+// Add context
+final shoes = pick(json, 'shoes')
+    .addContext('apiVersion', "2.3.0")
+    .addContext('lang', "en-US")
+    .asListOrEmpty((p) => Shoe.fromPick(p.required()));
+``` 
+
+```dart
+import 'package:version/version.dart';
+
+// Read context
+factory Shoe.fromPick(RequiredPick pick) {
+  // read context API
+  final version = pick.fromContext('newApi').required().let((pick) => Version(pick.asString()));
+  return Shoe(
+    id: pick('id').required().asString(),
+    name: pick('name').required().asString(),
+    // manufacturer is a required field in the new API
+    manufacturer: version >= Version(2, 3, 0)
+        ? pick('manufacturer').required().asString()
+        : pick('manufacturer').asStringOrNull(),
+    tags: pick('tags').asListOrEmpty(),
+  );
+}
+```
+- Breaking: `Pick` and `RequiredPick` have chained their constructor signature. `path` is now a named argument 
+and `context` has been added.
+
+```diff
+- RequiredPick(this.value, [this.path = const []])
++ RequiredPick(this.value, {this.path = const [], Map<String, dynamic> context})
+```
+
 ## 0.4.3
 
 - Fix error reporting for `asMapOr[Empty|Null]` and don't swallow parsing errors
