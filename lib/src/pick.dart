@@ -163,7 +163,7 @@ class RequiredPick with PickLocation, PickContext<RequiredPick> {
   }
 
   @override
-  Map<String, dynamic> get context => _context ?? const {};
+  Map<String, dynamic> get context => _context;
   final Map<String, dynamic> _context;
 
   @override
