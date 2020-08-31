@@ -70,9 +70,10 @@ Pick _drillDown(dynamic json, List<dynamic> selectors,
 }
 
 /// A picked object holding the [value] and giving access to useful parsing functions
-class Pick with PickLocation, PickContext {
+class Pick with PickLocation, PickContext<Pick> {
   Pick(this.value, {this.path = const [], Map<String, dynamic> context})
-      : _context = context != null ? Map.of(context) : {};
+      : _context = context != null ? Map.of(context) : {},
+        assert(path != null);
 
   /// The picked value, might be `null`
   Object /*?*/ value;
@@ -119,11 +120,15 @@ class Pick with PickLocation, PickContext {
   @override
   @Deprecated('Use asStringOrNull() to pick a String value')
   String toString() => 'Pick(value=$value, path=$path)';
+
+  @override
+  Pick get _builder => this;
 }
 
-class RequiredPick with PickLocation, PickContext {
+class RequiredPick with PickLocation, PickContext<RequiredPick> {
   RequiredPick(this.value, {this.path = const [], Map<String, dynamic> context})
-      : _context = context != null ? Map.of(context) : {} {
+      : _context = context != null ? Map.of(context) : {},
+        assert(path != null) {
     if (value == null) {
       throw StateError("value can't be null");
     }
@@ -164,6 +169,9 @@ class RequiredPick with PickLocation, PickContext {
   @override
   @Deprecated('Use asStringOrNull() to pick a String value')
   String toString() => 'RequiredPick(value=$value, path=$path)';
+
+  @override
+  RequiredPick get _builder => this;
 }
 
 class PickException implements Exception {
@@ -177,10 +185,31 @@ class PickException implements Exception {
   }
 }
 
-mixin PickContext {
+/// Context API allows storing additional information in a [Map]
+mixin PickContext<T> {
   /// Attaches additional information which can be used during parsing.
   /// i.e the HTTP request/response including headers
   Map<String, dynamic> get context;
+
+  /// Reference to mixer class
+  T get _builder;
+
+  /// Attaches additional information which can be used during parsing.
+  /// i.e the HTTP request/response including headers
+  ///
+  /// Use this method to chain methods. It's pure syntax sugar.
+  /// The alternative cascade operator often requires additional parenthesis
+  T addContext(String key, dynamic value) {
+    context[key] = value;
+    return _builder;
+  }
+
+  /// Pick values from the context using the [Pick] API
+  ///
+  /// `pick.fromContext('apiVersion').asIntOrNull();`
+  Pick fromContext(String key) {
+    return pick(context);
+  }
 }
 
 mixin PickLocation {

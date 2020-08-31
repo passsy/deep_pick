@@ -68,7 +68,8 @@ void main() {
 
   // Use the Context API to pass contextual information down to parsing
   // without adding new arguments
-  final newShoes = (pick(json, 'shoes')..context['newApi'] = true)
+  final newShoes = pick(json, 'shoes')
+      .addContext('newApi', true)
       .asListOrEmpty((p) => Shoe.fromPick(p.required()));
   print(newShoes);
 }
@@ -88,7 +89,7 @@ class Shoe {
 
   factory Shoe.fromPick(RequiredPick pick) {
     // read context API
-    final newApi = pick.context.containsKey('newApi');
+    final newApi = pick.fromContext('newApi').asBoolOrFalse();
     return Shoe(
       id: pick('id').required().asString(),
       name: pick('name').required().asString(),
