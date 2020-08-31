@@ -58,7 +58,7 @@ void main() {
         {'name': 'Daenerys Targaryen'},
       ];
 
-      final RequiredPick picked = pick(data, 0).required();
+      final picked = pick(data, 0).required();
       expect(picked.value, {'name': 'John Snow'});
 
       // pick further
@@ -71,7 +71,7 @@ void main() {
         {'name': 'Daenerys Targaryen'},
       ];
 
-      final RequiredPick level1Pick = pick(data, 0).required();
+      final level1Pick = pick(data, 0).required();
       expect(level1Pick.path, [0]);
 
       final level2Pick = level1Pick.call('name');

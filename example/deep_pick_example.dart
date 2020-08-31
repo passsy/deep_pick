@@ -10,6 +10,7 @@ void main() {
      { 
        "id": "421",
        "name": "Nike Zoom Fly 3",
+       "manufacturer": "nike",
        "tags": ["nike", "JustDoIt"]
      },
      { 
@@ -64,6 +65,12 @@ void main() {
   //   Shoe{id: 421, name: Nike Zoom Fly 3, tags: [nike, JustDoIt]},
   //   Shoe{id: 532, name: adidas Ultraboost, tags: [adidas, ImpossibleIsNothing]}
   // ]
+
+  // Use the Context API to pass contextual information down to parsing
+  // without adding new arguments
+  final newShoes = (pick(json, 'shoes')..context['newApi'] = true)
+      .asListOrEmpty((p) => Shoe.fromPick(p.required()));
+  print(newShoes);
 }
 
 /// A data class representing a shoe model
@@ -80,10 +87,15 @@ class Shoe {
         assert(tags != null);
 
   factory Shoe.fromPick(RequiredPick pick) {
+    // read context API
+    final newApi = pick.context.containsKey('newApi');
     return Shoe(
       id: pick('id').required().asString(),
       name: pick('name').required().asString(),
-      manufacturer: pick('manufacturer').asStringOrNull(),
+      // manufacturer is a required field in the new API
+      manufacturer: newApi
+          ? pick('manufacturer').required().asString()
+          : pick('manufacturer').asStringOrNull(),
       tags: pick('tags').asListOrEmpty(),
     );
   }
