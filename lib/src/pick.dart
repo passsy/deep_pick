@@ -233,9 +233,35 @@ mixin PickContext<T> {
 
   /// Pick values from the context using the [Pick] API
   ///
-  /// `pick.fromContext('apiVersion').asIntOrNull();`
-  Pick fromContext(String key) {
-    return pick(context);
+  /// ```
+  /// pick.fromContext('apiVersion').asIntOrNull();
+  /// ```
+  Pick fromContext(
+    String key, [
+    dynamic arg0,
+    dynamic arg1,
+    dynamic arg2,
+    dynamic arg3,
+    dynamic arg4,
+    dynamic arg5,
+    dynamic arg6,
+    dynamic arg7,
+    dynamic arg8,
+    dynamic arg9,
+  ]) {
+    return pick(
+      context,
+      key,
+      arg0,
+      arg1,
+      arg2,
+      arg3,
+      arg4,
+      arg5,
+      arg6,
+      arg7,
+      arg8,
+    );
   }
 }
 
