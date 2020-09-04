@@ -228,7 +228,7 @@ mixin PickContext<T> {
   }
 
   // Has been removed in 0.5.0
-  @Deprecated("Use withContext")
+  @Deprecated('Use withContext')
   T Function(String key, dynamic value) get addContext => withContext;
 
   /// Pick values from the context using the [Pick] API
