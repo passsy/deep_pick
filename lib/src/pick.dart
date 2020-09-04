@@ -199,10 +199,37 @@ mixin PickContext<T> {
   ///
   /// Use this method to chain methods. It's pure syntax sugar.
   /// The alternative cascade operator often requires additional parenthesis
-  T addContext(String key, dynamic value) {
+  ///
+  /// Add context at the top
+  /// ```
+  /// pick(json)
+  ///   .withContext('apiVersion', response.getApiVersion())
+  ///   .let((pick) => Response.fromPick(pick));
+  /// ```
+  ///
+  /// Read it where required
+  /// ```
+  /// factory Item.fromPick(RequiredPick pick) {
+  ///     final Version apiVersion = pick.fromContext('apiVersion').asVersion();
+  ///     if (apiVersion >= Version(0, 2, 0)) {
+  ///       return Item(
+  ///         color: pick("detail", "color").required().asString(),
+  ///       );
+  ///     } else {
+  ///       return Item(
+  ///         color: pick("meta-data", "variant", 0, "color").required().asString(),
+  ///       );
+  ///     }
+  ///   }
+  /// ```
+  T withContext(String key, dynamic value) {
     context[key] = value;
     return _builder;
   }
+
+  // Has been removed in 0.5.0
+  @Deprecated("Use withContext")
+  T Function(String key, dynamic value) get addContext => withContext;
 
   /// Pick values from the context using the [Pick] API
   ///

@@ -69,7 +69,7 @@ void main() {
   // Use the Context API to pass contextual information down to parsing
   // without adding new arguments
   final newShoes = pick(json, 'shoes')
-      .addContext('newApi', true)
+      .withContext('newApi', true)
       .asListOrEmpty((p) => Shoe.fromPick(p.required()));
   print(newShoes);
 }
