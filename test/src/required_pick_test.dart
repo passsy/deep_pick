@@ -232,12 +232,13 @@ void main() {
     });
 
     test('add and read from context with syntax sugar', () {
-      final data = [
-        {'name': 'John Snow'},
-        {'name': 'Daenerys Targaryen'},
-      ];
-      final root = pick(data).required().addContext('lang', 'de');
-      expect(root.fromContext('lang').asMapOrNull(), {'lang': 'de'});
+      final root = pick([]).required().addContext('lang', 'de');
+      expect(root.fromContext('lang').asStringOrNull(), 'de');
+    });
+
+    test('read from deep nested context', () {
+      final root = pick([]).required().withContext('user', {'id': '1234'});
+      expect(root.fromContext('user', 'id').asStringOrNull(), '1234');
     });
 
     test('copy into asList()', () {
