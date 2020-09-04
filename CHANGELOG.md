@@ -1,3 +1,8 @@
+## 0.5.1
+- Rename `Pick.addContext` to `Pick.withContext` using deprecation
+- `Pick.fromContext` now accepts 10 arguments for nested structures
+- Fix `Pick.fromContext` always returning `context` not the value for `key` in context `Map`
+
 ## 0.5.0
 
 - New context API. You can now attach relevant additional information for parsing directly to the `Pick` object. This allows passing information into `fromPick` constructors without adding new parameters to all constructors in between.
