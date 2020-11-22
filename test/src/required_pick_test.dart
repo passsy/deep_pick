@@ -30,8 +30,10 @@ void main() {
       expect(picked('adam').asString(), 'adam');
       expect(picked(1).asString(), '1');
       expect(picked(2.0).asString(), '2.0');
-      expect(() => nullPick().asString(),
-          throwsA(pickException(containing: ['unknownKey', 'null', 'String'])));
+      expect(
+          () => nullPick().asString(),
+          throwsA(pickException(
+              containing: ['unknownKey', 'null', 'String', 'asStringOrNull'])));
     });
 
     test("asString() doesn't transform Maps and Lists with toString", () {

@@ -1,6 +1,13 @@
 import 'package:deep_pick/src/pick.dart';
 
 extension IntPick on RequiredPick {
+  /// Returns the picked [value] as [int]
+  ///
+  /// {@template Pick.asInt}
+  /// Parses the picked value as [int]. Other types are parsable as well
+  /// - [String] is gets parsed via [int.tryParse]
+  /// - [double] is gets converted to [int] via [num.toInt()]
+  /// {@endtemplate}
   int asInt() {
     if (value is int) {
       return value as int;
@@ -18,6 +25,8 @@ extension IntPick on RequiredPick {
 }
 
 extension NullableIntPick on Pick {
+  // This deprecation is used to promote the `.required()` in auto-completion.
+  // Therefore it is not intended to be ever removed
   @Deprecated(
       'By default values are optional and can only be converted when a fallback is provided '
       'i.e. .asIntOrNUll() which falls back to `null`. '
@@ -31,6 +40,10 @@ extension NullableIntPick on Pick {
     return required().asInt();
   }
 
+  /// Returns the picked [value] as [int?] or returns `null` when the picked
+  /// value is absent
+  ///
+  /// {@macro Pick.asInt}
   int? asIntOrNull() {
     if (value == null) return null;
     try {
