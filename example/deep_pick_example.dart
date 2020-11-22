@@ -79,13 +79,11 @@ void main() {
 /// PODO - plain old dart object
 class Shoe {
   const Shoe({
-    this.id,
-    this.name,
+    required this.id,
+    required this.name,
     this.manufacturer,
-    this.tags,
-  })  : assert(id != null),
-        assert(name != null),
-        assert(tags != null);
+    required this.tags,
+  });
 
   factory Shoe.fromPick(RequiredPick pick) {
     // read context API
@@ -108,7 +106,7 @@ class Shoe {
   final String name;
 
   /// optional
-  final String /*?*/ manufacturer;
+  final String? manufacturer;
 
   /// never null, falls back to empty list
   final List<String> tags;

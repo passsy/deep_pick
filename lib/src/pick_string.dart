@@ -30,7 +30,7 @@ extension NullableStringPick on Pick {
     return required().asString();
   }
 
-  String /*?*/ asStringOrNull() {
+  String? asStringOrNull() {
     if (value == null) return null;
     try {
       return required().asString();

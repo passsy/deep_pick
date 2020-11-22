@@ -31,7 +31,7 @@ extension NullableIntPick on Pick {
     return required().asInt();
   }
 
-  int /*?*/ asIntOrNull() {
+  int? asIntOrNull() {
     if (value == null) return null;
     try {
       return required().asInt();

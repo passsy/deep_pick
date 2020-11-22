@@ -1,7 +1,7 @@
 import 'package:deep_pick/src/pick.dart';
 
 extension ListPick on RequiredPick {
-  List<T> asList<T>([T Function(Pick) map]) {
+  List<T> asList<T>([T Function(Pick)? map]) {
     if (value is List) {
       if (map == null) {
         return (value as List<dynamic>).cast<T>();
@@ -24,7 +24,7 @@ extension NullableListPick on Pick {
       'i.e. .asListOrNull() which falls back to `null`. '
       'Use .required().asList() in cases the value is mandatory. '
       "It will crash when the value couldn't be picked.")
-  List<T> asList<T>([T Function(Pick) map]) {
+  List<T> asList<T>([T Function(Pick)? map]) {
     if (value == null) {
       throw PickException(
           'value at location ${location()} is null and not an instance of List<$T>');
@@ -32,13 +32,13 @@ extension NullableListPick on Pick {
     return required().asList(map);
   }
 
-  List<T> asListOrEmpty<T>([T Function(Pick) map]) {
+  List<T> asListOrEmpty<T>([T Function(Pick)? map]) {
     if (value == null) return <T>[];
     if (value is! List) return <T>[];
     return required().asList(map);
   }
 
-  List<T> /*?*/ asListOrNull<T>([T Function(Pick) map]) {
+  List<T>? asListOrNull<T>([T Function(Pick)? map]) {
     if (value == null) return null;
     if (value is! List) return null;
     return required().asList(map);
