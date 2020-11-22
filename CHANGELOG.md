@@ -1,3 +1,9 @@
+## 0.6.0-nullsafety.0
+
+- Migrate to nullsafety (required Dart >=2.12)
+- Remove deprecated long deprecated `parseJsonTo*` methods. Use the `pick(json, args*)` api
+- Improve dartdoc
+
 ## 0.5.1
 - Rename `Pick.addContext` to `Pick.withContext` using deprecation
 - `Pick.fromContext` now accepts 10 arguments for nested structures
