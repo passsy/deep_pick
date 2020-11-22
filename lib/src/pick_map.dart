@@ -34,7 +34,7 @@ extension NullableMapPick on Pick {
     return required().asMap();
   }
 
-  Map<RK, RV> /*?*/ asMapOrNull<RK, RV>() {
+  Map<RK, RV>? asMapOrNull<RK, RV>() {
     if (value == null) return null;
     if (value is! Map) return null;
     return required().asMap();

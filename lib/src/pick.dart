@@ -25,14 +25,11 @@ Pick pick(
 }
 
 Pick _drillDown(dynamic json, List<dynamic> selectors,
-    {List<dynamic> parentPath = const [], Map<String, dynamic> context}) {
-  assert(selectors != null);
-  assert(parentPath != null);
+    {List<dynamic> parentPath = const [], Map<String, dynamic>? context}) {
   final newPath = [...parentPath, ...selectors];
   // no data, nothing to pick
   if (json == null) return Pick(null, path: newPath, context: context);
 
-  assert(json != null);
   final path = <dynamic>[];
   dynamic data = json;
   for (final selector in selectors) {
@@ -71,12 +68,11 @@ Pick _drillDown(dynamic json, List<dynamic> selectors,
 
 /// A picked object holding the [value] and giving access to useful parsing functions
 class Pick with PickLocation, PickContext<Pick> {
-  Pick(this.value, {this.path = const [], Map<String, dynamic> context})
-      : _context = context != null ? Map.of(context) : {},
-        assert(path != null);
+  Pick(this.value, {this.path = const [], Map<String, dynamic>? context})
+      : _context = context != null ? Map.of(context) : {};
 
   /// The picked value, might be `null`
-  Object /*?*/ value;
+  Object? value;
 
   @override
   List<dynamic> path;
@@ -114,7 +110,7 @@ class Pick with PickLocation, PickContext<Pick> {
     if (value == null) {
       throw PickException('required value at location ${location()} is null');
     }
-    return RequiredPick(value, path: path, context: _context);
+    return RequiredPick(value!, path: path, context: _context);
   }
 
   @override
@@ -126,13 +122,9 @@ class Pick with PickLocation, PickContext<Pick> {
 }
 
 class RequiredPick with PickLocation, PickContext<RequiredPick> {
-  RequiredPick(this.value, {this.path = const [], Map<String, dynamic> context})
-      : _context = context != null ? Map.of(context) : {},
-        assert(path != null) {
-    if (value == null) {
-      throw StateError("value can't be null");
-    }
-  }
+  RequiredPick(this.value,
+      {this.path = const [], Map<String, dynamic>? context})
+      : _context = context != null ? Map.of(context) : {};
 
   /// The picked value, never `null`
   Object value;

@@ -6,10 +6,6 @@ import 'pick_test.dart';
 
 void main() {
   group('RequiredPick', () {
-    test("can't have null value", () {
-      expect(() => RequiredPick(null), throwsA(isA<StateError>()));
-    });
-
     test('toString() works as expected', () {
       expect(RequiredPick('a', path: ['b', 0]).toString(),
           'RequiredPick(value=a, path=[b, 0])');

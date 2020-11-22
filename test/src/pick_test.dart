@@ -11,7 +11,6 @@ void main() {
     });
 
     test('toString() prints value and path', () {
-      // ignore: deprecated_member_use_from_same_package
       expect(
           Pick('a', path: ['b', 0]).toString(), 'Pick(value=a, path=[b, 0])');
     });
@@ -387,7 +386,7 @@ Pick nullPick() {
   return pick(<String, dynamic>{}, 'unknownKey');
 }
 
-Matcher pickException({List<String> containing}) {
+Matcher pickException({required List<String> containing}) {
   return const TypeMatcher<PickException>()
       .having((e) => e.message, 'message', stringContainsInOrder(containing));
 }
@@ -395,8 +394,8 @@ Matcher pickException({List<String> containing}) {
 class Person {
   Person({
     // ignore: always_require_non_null_named_parameters
-    this.name,
-  }) : assert(name != null);
+    required this.name,
+  });
 
   factory Person.fromJson(Map<String, dynamic> data) {
     return Person(

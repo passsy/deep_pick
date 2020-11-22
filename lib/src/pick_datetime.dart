@@ -56,7 +56,7 @@ extension NullableDateTimePick on Pick {
   /// - `'2012-02-27T14+00:00'`
   /// - `'-123450101 00:00:00 Z'`: in the year -12345.
   /// - `'2002-02-27T14:00:00-0500'`: Same as `'2002-02-27T19:00:00Z'`
-  DateTime /*?*/ asDateTimeOrNull() {
+  DateTime? asDateTimeOrNull() {
     if (value == null) return null;
     try {
       return required().asDateTime();
