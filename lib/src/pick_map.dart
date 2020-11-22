@@ -15,6 +15,8 @@ extension MapPick on RequiredPick {
 }
 
 extension NullableMapPick on Pick {
+  // This deprecation is used to promote the `.required()` in auto-completion.
+  // Therefore it is not intended to be ever removed
   @Deprecated(
       'By default values are optional and can only be converted when a fallback is provided '
       'i.e. .asMapOrNull() which falls back to `null`. '
