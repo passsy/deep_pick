@@ -10,8 +10,9 @@ extension StringPick on RequiredPick {
   /// values such as a [List] or [Map]
   /// {@endtemplate}
   String asString() {
+    final value = this.value;
     if (value is String) {
-      return value as String;
+      return value;
     }
     if (value is List || value is Map) {
       throw PickException(
