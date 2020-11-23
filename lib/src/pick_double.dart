@@ -2,14 +2,15 @@ import 'package:deep_pick/src/pick.dart';
 
 extension DoublePick on RequiredPick {
   double asDouble() {
+    final value = this.value;
     if (value is double) {
-      return value as double;
+      return value;
     }
     if (value is num) {
-      return (value as num).toDouble();
+      return value.toDouble();
     }
     if (value is String) {
-      final parsed = double.tryParse(value as String);
+      final parsed = double.tryParse(value);
       if (parsed != null) {
         return parsed;
       }

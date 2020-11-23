@@ -15,11 +15,12 @@ extension DateTimePick on RequiredPick {
   /// - `'-123450101 00:00:00 Z'`: in the year -12345.
   /// - `'2002-02-27T14:00:00-0500'`: Same as `'2002-02-27T19:00:00Z'`
   DateTime asDateTime() {
+    final value = this.value;
     if (value is DateTime) {
-      return value as DateTime;
+      return value;
     }
     if (value is String) {
-      final dateTime = DateTime.tryParse(value as String);
+      final dateTime = DateTime.tryParse(value);
       if (dateTime != null) {
         return dateTime;
       }
