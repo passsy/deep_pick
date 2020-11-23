@@ -107,10 +107,11 @@ class Pick with PickLocation, PickContext<Pick> {
   ///
   /// Crashes when the the value is `null`.
   RequiredPick required() {
+    final value = this.value;
     if (value == null) {
       throw PickException('required value at location ${location()} is null');
     }
-    return RequiredPick(value!, path: path, context: _context);
+    return RequiredPick(value, path: path, context: _context);
   }
 
   @override
