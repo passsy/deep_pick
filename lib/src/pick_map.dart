@@ -2,8 +2,9 @@ import 'package:deep_pick/src/pick.dart';
 
 extension MapPick on RequiredPick {
   Map<RK, RV> asMap<RK, RV>() {
+    final value = this.value;
     if (value is Map) {
-      final view = (value as Map<dynamic, dynamic>).cast<RK, RV>();
+      final view = value.cast<RK, RV>();
       // create copy of casted view so all items are type checked here
       // and not lazily type checked when accessing them
       return Map.of(view);
