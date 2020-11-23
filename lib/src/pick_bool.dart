@@ -4,10 +4,13 @@ extension BoolPick on RequiredPick {
   bool asBool() {
     if (value is bool) {
       return value as bool;
-    } else {
-      throw PickException(
-          "value $value of type ${value.runtimeType} at location ${location()} can't be casted to bool");
     }
+    if (value is String) {
+      if (value == 'true') return true;
+      if (value == 'false') return false;
+    }
+    throw PickException(
+        "value $value of type ${value.runtimeType} at location ${location()} can't be casted to bool");
   }
 }
 

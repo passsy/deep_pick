@@ -144,6 +144,8 @@ void main() {
 
     test('asBool()', () {
       expect(picked(true).asBool(), isTrue);
+      expect(picked('true').asBool(), isTrue);
+      expect(picked('false').asBool(), isFalse);
       expect(() => picked('Bubblegum').asBool(),
           throwsA(pickException(containing: ['Bubblegum', 'String', 'bool'])));
       expect(() => nullPick().asBool(),
