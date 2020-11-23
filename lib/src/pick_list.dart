@@ -2,12 +2,13 @@ import 'package:deep_pick/src/pick.dart';
 
 extension ListPick on RequiredPick {
   List<T> asList<T>([T Function(Pick)? map]) {
+    final value = this.value;
     if (value is List) {
       if (map == null) {
-        return (value as List<dynamic>).cast<T>();
+        return value.cast<T>();
       }
       var i = 0;
-      return (value as List<dynamic>)
+      return value
           .map((it) => map(Pick(it, path: [...path, i++], context: context)))
           .toList(growable: false);
     }
