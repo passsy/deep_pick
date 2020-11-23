@@ -2,8 +2,9 @@ import 'package:deep_pick/src/pick.dart';
 
 extension BoolPick on RequiredPick {
   bool asBool() {
+    final value = this.value;
     if (value is bool) {
-      return value as bool;
+      return value;
     }
     if (value is String) {
       if (value == 'true') return true;
