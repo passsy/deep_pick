@@ -4,9 +4,11 @@ extension DoublePick on RequiredPick {
   double asDouble() {
     if (value is double) {
       return value as double;
-    } else if (value is num) {
+    }
+    if (value is num) {
       return (value as num).toDouble();
-    } else if (value is String) {
+    }
+    if (value is String) {
       final parsed = double.tryParse(value as String);
       if (parsed != null) {
         return parsed;

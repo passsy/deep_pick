@@ -11,9 +11,11 @@ extension IntPick on RequiredPick {
   int asInt() {
     if (value is int) {
       return value as int;
-    } else if (value is num) {
+    }
+    if (value is num) {
       return (value as num).toInt();
-    } else if (value is String) {
+    }
+    if (value is String) {
       final parsed = int.tryParse(value as String);
       if (parsed != null) {
         return parsed;

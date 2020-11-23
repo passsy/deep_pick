@@ -5,16 +5,14 @@ extension ListPick on RequiredPick {
     if (value is List) {
       if (map == null) {
         return (value as List<dynamic>).cast<T>();
-      } else {
-        var i = 0;
-        return (value as List<dynamic>)
-            .map((it) => map(Pick(it, path: [...path, i++], context: context)))
-            .toList(growable: false);
       }
-    } else {
-      throw PickException(
-          "value $value of type ${value.runtimeType} at location ${location()} can't be casted to List<dynamic>");
+      var i = 0;
+      return (value as List<dynamic>)
+          .map((it) => map(Pick(it, path: [...path, i++], context: context)))
+          .toList(growable: false);
     }
+    throw PickException(
+        "value $value of type ${value.runtimeType} at location ${location()} can't be casted to List<dynamic>");
   }
 }
 

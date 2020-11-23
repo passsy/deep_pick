@@ -12,15 +12,14 @@ extension StringPick on RequiredPick {
   String asString() {
     if (value is String) {
       return value as String;
-    } else {
-      if (value is List || value is Map) {
-        throw PickException(
-            'value at location ${location()} is of type ${value.runtimeType}. '
-            'Drill further down to a value which is not a List or Map. '
-            'value: $value');
-      }
-      return value.toString();
     }
+    if (value is List || value is Map) {
+      throw PickException(
+          'value at location ${location()} is of type ${value.runtimeType}. '
+          'Drill further down to a value which is not a List or Map. '
+          'value: $value');
+    }
+    return value.toString();
   }
 }
 
