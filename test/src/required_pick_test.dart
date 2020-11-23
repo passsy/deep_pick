@@ -17,19 +17,19 @@ void main() {
         {'name': 'Daenerys Targaryen'},
       ];
 
-      final picked = pick(data, 0).required();
-      expect(picked.value, {'name': 'John Snow'});
+      final first = pick(data, 0).required();
+      expect(first.value, {'name': 'John Snow'});
 
       // pick further
-      expect(picked('name').required().asString(), 'John Snow');
+      expect(first('name').required().asString(), 'John Snow');
     });
   });
 
   group('parsing .required()', () {
     test('asString()', () {
-      expect(picked('adam').asString(), 'adam');
-      expect(picked(1).asString(), '1');
-      expect(picked(2.0).asString(), '2.0');
+      expect(pick('adam').asString(), 'adam');
+      expect(pick(1).asString(), '1');
+      expect(pick(2.0).asString(), '2.0');
       expect(
           () => nullPick().asString(),
           throwsA(pickException(
@@ -38,11 +38,11 @@ void main() {
 
     test("asString() doesn't transform Maps and Lists with toString", () {
       expect(
-          () => picked(['a', 'b']).asString(),
+          () => pick(['a', 'b']).asString(),
           throwsA(pickException(
               containing: ['List<String>', 'not a List or Map', '[a, b]'])));
       expect(
-          () => picked({'a': 'b'}).asString(),
+          () => pick({'a': 'b'}).asString(),
           throwsA(pickException(containing: [
             'Map<String, String>',
             'not a List or Map',
@@ -56,11 +56,11 @@ void main() {
         {'name': 'Daenerys Targaryen'},
       ];
 
-      final picked = pick(data, 0).required();
-      expect(picked.value, {'name': 'John Snow'});
+      final first = pick(data, 0).required();
+      expect(first.value, {'name': 'John Snow'});
 
       // pick further
-      expect(picked.call('name').required().asString(), 'John Snow');
+      expect(first.call('name').required().asString(), 'John Snow');
     });
 
     test('call() carries over the location for good stacktraces', () {
@@ -77,9 +77,9 @@ void main() {
     });
 
     test('asMap()', () {
-      expect(picked({'ab': 'cd'}).asMap(), {'ab': 'cd'});
+      expect(pick({'ab': 'cd'}).asMap(), {'ab': 'cd'});
       expect(
-          () => picked('Bubblegum').asMap(),
+          () => pick('Bubblegum').asMap(),
           throwsA(pickException(
               containing: ['Bubblegum', 'String', 'Map<dynamic, dynamic>'])));
       expect(
@@ -94,7 +94,7 @@ void main() {
       };
 
       try {
-        final parsed = picked(data).asMap<String, bool>();
+        final parsed = pick(data).asMap<String, bool>();
         fail('casted map without verifying the types. '
             'Expected Map<String, bool> but was ${parsed.runtimeType}');
         // ignore: avoid_catching_errors
@@ -126,10 +126,10 @@ void main() {
     });
 
     test('asList()', () {
-      expect(picked(['a', 'b', 'c']).asList(), ['a', 'b', 'c']);
-      expect(picked([1, 2, 3]).asList<int>(), [1, 2, 3]);
+      expect(pick(['a', 'b', 'c']).asList(), ['a', 'b', 'c']);
+      expect(pick([1, 2, 3]).asList<int>(), [1, 2, 3]);
       expect(
-          () => picked('Bubblegum').asList(),
+          () => pick('Bubblegum').asList(),
           throwsA(pickException(
               containing: ['Bubblegum', 'String', 'List<dynamic>'])));
       expect(
@@ -143,31 +143,31 @@ void main() {
     });
 
     test('asBool()', () {
-      expect(picked(true).asBool(), isTrue);
-      expect(picked('true').asBool(), isTrue);
-      expect(picked('false').asBool(), isFalse);
-      expect(() => picked('Bubblegum').asBool(),
+      expect(pick(true).asBool(), isTrue);
+      expect(pick('true').asBool(), isTrue);
+      expect(pick('false').asBool(), isFalse);
+      expect(() => pick('Bubblegum').asBool(),
           throwsA(pickException(containing: ['Bubblegum', 'String', 'bool'])));
       expect(() => nullPick().asBool(),
           throwsA(pickException(containing: ['unknownKey', 'null', 'bool'])));
     });
 
     test('asInt()', () {
-      expect(picked(1).asInt(), 1);
-      expect(picked(1.0).asInt(), 1);
-      expect(picked('1').asInt(), 1);
-      expect(() => picked('Bubblegum').asInt(),
+      expect(pick(1).asInt(), 1);
+      expect(pick(1.0).asInt(), 1);
+      expect(pick('1').asInt(), 1);
+      expect(() => pick('Bubblegum').asInt(),
           throwsA(pickException(containing: ['Bubblegum', 'String', 'int'])));
       expect(() => nullPick().asInt(),
           throwsA(pickException(containing: ['unknownKey', 'null', 'int'])));
     });
 
     test('asDouble()', () {
-      expect(picked(1).asDouble(), 1.0);
-      expect(picked(2.0).asDouble(), 2.0);
-      expect(picked('3.0').asDouble(), 3.0);
+      expect(pick(1).asDouble(), 1.0);
+      expect(pick(2.0).asDouble(), 2.0);
+      expect(pick('3.0').asDouble(), 3.0);
       expect(
-          () => picked('Bubblegum').asDouble(),
+          () => pick('Bubblegum').asDouble(),
           throwsA(
               pickException(containing: ['Bubblegum', 'String', 'double'])));
       expect(() => nullPick().asDouble(),
@@ -175,10 +175,10 @@ void main() {
     });
 
     test('asDateTime()', () {
-      expect(picked('2012-02-27 13:27:00,123456z').asDateTime(),
+      expect(pick('2012-02-27 13:27:00,123456z').asDateTime(),
           DateTime.utc(2012, 2, 27, 13, 27, 0, 123, 456));
       expect(
-          () => picked('Bubblegum').asDateTime(),
+          () => pick('Bubblegum').asDateTime(),
           throwsA(
               pickException(containing: ['Bubblegum', 'String', 'DateTime'])));
       expect(
@@ -189,12 +189,12 @@ void main() {
 
     test('let()', () {
       expect(
-          picked({'name': 'John Snow'})
+          pick({'name': 'John Snow'})
               .required()
               .let((pick) => Person.fromJson(pick.asMap())),
           Person(name: 'John Snow'));
       expect(
-          picked({'name': 'John Snow'})
+          pick({'name': 'John Snow'})
               .required()
               .let((pick) => Person.fromJson(pick.asMap())),
           Person(name: 'John Snow'));
@@ -210,11 +210,11 @@ void main() {
         {'name': 'John Snow'},
         {'name': 'Daenerys Targaryen'},
       ];
-      expect(picked(data).asList((pick) => Person.fromJson(pick.asMap())), [
+      expect(pick(data).asList((pick) => Person.fromJson(pick.asMap())), [
         Person(name: 'John Snow'),
         Person(name: 'Daenerys Targaryen'),
       ]);
-      expect(picked([]).asList((pick) => Person.fromJson(pick.asMap())), []);
+      expect(pick([]).asList((pick) => Person.fromJson(pick.asMap())), []);
       expect(() => nullPick().asList((pick) => Person.fromJson(pick.asMap())),
           throwsA(pickException(containing: ['unknownKey', 'null', 'List'])));
     });

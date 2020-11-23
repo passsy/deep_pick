@@ -263,5 +263,8 @@ mixin PickLocation {
   /// I.e. ['shoes', 0, 'name']
   List<dynamic> get path;
 
-  String location() => path.map((it) => '`$it`').join(',');
+  String location() {
+    if (path.isEmpty) return '`<root>`';
+    return path.map((it) => '`$it`').join(',');
+  }
 }
