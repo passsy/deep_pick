@@ -9,14 +9,15 @@ extension IntPick on RequiredPick {
   /// - [double] is gets converted to [int] via [num.toInt()]
   /// {@endtemplate}
   int asInt() {
+    final value = this.value;
     if (value is int) {
-      return value as int;
+      return value;
     }
     if (value is num) {
-      return (value as num).toInt();
+      return value.toInt();
     }
     if (value is String) {
-      final parsed = int.tryParse(value as String);
+      final parsed = int.tryParse(value);
       if (parsed != null) {
         return parsed;
       }
