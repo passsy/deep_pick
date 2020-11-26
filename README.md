@@ -26,16 +26,15 @@ dependencies:
 ### Write less when parsing JSON API responses
 Example of parsing an `issue` object of the [GitHub v3 API](https://developer.github.com/v3/issues/#get-an-issue).
 
-Parsing Dart Maps is easy but error prone. The following code would **crash** when a value is `null` or the structure doesn't match.
+Parsing Dart Maps is easy but error prone. Forgetting a `?` may cause a crash.
 ```dart
 final json = jsonDecode(response.data);
-final milestoneCreator = json['milestone']['creator']['login'] as String;
+final milestoneCreator = json?['milestone']?['creator']?['login'] as String?;
 print(milestoneCreator); // octocat  
 ```
 
-A safe version is way longer, hard to read and not fun to write.
+Before Dart 2.12 you had to write even more code to be save!
 ```dart
-// The save version is huge and not fun to write!
 String milestoneCreator;
 final milestone = json['milestore'];
 if (milestone != null) {
@@ -50,7 +49,7 @@ if (milestone != null) {
 print(milestoneCreator); // octocat
 ```
 
-With `deep_pick` parsing becomes short again while being type-safe. This code will never crash!
+With `deep_pick` parsing becomes short again while being type-safe
 ```dart
 final milestoneCreator = pick(json, 'milestone', 'creator', 'login').asStringOrNull();
 print(milestoneCreator); // octocat  
