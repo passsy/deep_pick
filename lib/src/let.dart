@@ -21,6 +21,16 @@ extension Let on RequiredPick {
 }
 
 extension NullableLet on Pick {
+
+  R letOrThrow<R>(R Function(RequiredPick pick) block) {
+    if (value == null) {
+      throw PickException(
+          'value at location ${location()} is null and not a String. '
+              'Use asStringOrNull() when null is a valid value (String?)');
+    }
+    return block(required());
+  }
+
   /// Maps the pick if [value] != null and returns the result.
   ///
   /// This methods allows mapping of optional values in a single line

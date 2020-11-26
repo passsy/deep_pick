@@ -1,6 +1,6 @@
 import 'package:deep_pick/src/pick.dart';
 
-typedef T WhenNullMapper<T>(int index, Map<String, dynamic> context);
+typedef WhenNullMapper<T> = T Function(int index, Map<String, dynamic> context);
 
 extension ListPick on RequiredPick {
   List<T> asList<T>(T Function(RequiredPick) map,
@@ -25,7 +25,9 @@ extension ListPick on RequiredPick {
           result.add(whenNull(index, context));
           continue;
         } catch (e) {
-          print('whenNull at location ${location()} index: $index crashed instead of returning a $T');
+          // ignore: avoid_print
+          print(
+              'whenNull at location ${location()} index: $index crashed instead of returning a $T');
           rethrow;
         }
       }
@@ -37,14 +39,12 @@ extension ListPick on RequiredPick {
 }
 
 extension NullableListPick on Pick {
-  // This deprecation is used to promote the `.required()` in auto-completion.
-  // Therefore it is not intended to be ever removed
-  @Deprecated(
-      'By default values are optional and can only be converted when a fallback is provided '
-      'i.e. .asListOrNull() which falls back to `null`. '
-      'Use .required().asList() in cases the value is mandatory. '
-      "It will crash when the value couldn't be picked.")
-  List<T> asList<T>(T Function(RequiredPick) map) {
+  @Deprecated('Use .asListOrThrow()')
+  List<T> asList<T>(T Function(Pick) map) {
+    return asListOrThrow((it) => map(it.toPick()));
+  }
+
+  List<T> asListOrThrow<T>(T Function(RequiredPick) map) {
     if (value == null) {
       throw PickException(
           'value at location ${location()} is null and not an instance of List<$T>');

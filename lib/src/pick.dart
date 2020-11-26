@@ -165,6 +165,8 @@ class RequiredPick with PickLocation, PickContext<RequiredPick> {
 
   @override
   RequiredPick get _builder => this;
+
+  Pick toPick() => Pick(value, path: path, context: context);
 }
 
 class PickException implements Exception {
@@ -265,7 +267,10 @@ mixin PickLocation {
   List<dynamic> get path;
 
   String location() {
-    if (path.isEmpty) return '`<root>`';
-    return path.map((it) => '`$it`').join(',');
+    final access = path.map((it) {
+      if (it is int) return it;
+      return '"$it"';
+    }).join(', ');
+    return "pick(json, $access)";
   }
 }

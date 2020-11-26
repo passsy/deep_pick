@@ -31,14 +31,11 @@ extension DateTimePick on RequiredPick {
 }
 
 extension NullableDateTimePick on Pick {
-  // This deprecation is used to promote the `.required()` in auto-completion.
-  // Therefore it is not intended to be ever removed
-  @Deprecated(
-      'By default values are optional and can only be converted when a fallback is provided '
-      'i.e. .asDateTimeOrNull() which falls back to `null`. '
-      'Use .required().asDateTime() in cases the value is mandatory. '
-      "It will crash when the value couldn't be picked.")
-  DateTime asDateTime() {
+
+  @Deprecated('Use .asDateTimeOrThrow()')
+  DateTime Function() get asDateTime => asDateTimeOrThrow;
+
+  DateTime asDateTimeOrThrow() {
     if (value == null) {
       throw PickException(
           'value at location ${location()} is null and not an instance of DateTime');

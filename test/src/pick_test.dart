@@ -1,4 +1,3 @@
-// ignore_for_file: deprecated_member_use_from_same_package
 import 'package:deep_pick/deep_pick.dart';
 import 'package:test/test.dart';
 
@@ -12,7 +11,9 @@ void main() {
 
     test('toString() prints value and path', () {
       expect(
-          Pick('a', path: ['b', 0]).toString(), 'Pick(value=a, path=[b, 0])');
+          // ignore: deprecated_member_use_from_same_package
+          Pick('a', path: ['b', 0]).toString(),
+          'Pick(value=a, path=[b, 0])');
     });
 
     test(
@@ -268,14 +269,16 @@ void main() {
           throwsA(isA<PickException>().having(
             (e) => e.message,
             'message',
-            contains(
-                "value a of type String at location `<root>` can't be casted to Map<dynamic, dynamic>"),
+            contains('required value at location pick(json, "name") is null'),
           )));
       expect(
           () => pick({'asdf': 'John Snow'})
               .letOrNull((pick) => Person.fromJson(pick)),
-          throwsA(isA<PickException>().having((e) => e.message, 'message',
-              contains('required value at location `name` is null'))));
+          throwsA(isA<PickException>().having(
+            (e) => e.message,
+            'message',
+            contains('required value at location pick(json, "name") is null'),
+          )));
     });
 
     test('asListOrEmpty(Pick -> T)', () {
@@ -287,7 +290,7 @@ void main() {
         Person(name: 'John Snow'),
         Person(name: 'Daenerys Targaryen'),
       ]);
-      expect(pick([]).asList((pick) => Person.fromJson(pick)), []);
+      expect(pick([]).asListOrThrow((pick) => Person.fromJson(pick)), []);
       expect(nullPick().asListOrEmpty((pick) => Person.fromJson(pick)), []);
     });
 
@@ -298,8 +301,11 @@ void main() {
       ];
       expect(
           () => pick(data).asListOrEmpty((pick) => Person.fromJson(pick)),
-          throwsA(isA<PickException>().having((e) => e.message, 'message',
-              contains('required value at location `name` is null'))));
+          throwsA(isA<PickException>().having(
+              (e) => e.message,
+              'message',
+              contains(
+                  'required value at location pick(json, 2, "name") is null'))));
     });
 
     test('asListOrNull(Pick -> T)', () {
@@ -322,8 +328,11 @@ void main() {
       ];
       expect(
           () => pick(data).asListOrNull((pick) => Person.fromJson(pick)),
-          throwsA(isA<PickException>().having((e) => e.message, 'message',
-              contains('required value at location `name` is null'))));
+          throwsA(isA<PickException>().having(
+              (e) => e.message,
+              'message',
+              contains(
+                  'required value at location pick(json, 2, "name") is null'))));
     });
   });
 
@@ -354,6 +363,7 @@ void main() {
     });
 
     test('add and read from context with syntax sugar', () {
+      // ignore: deprecated_member_use_from_same_package
       final root = pick([]).addContext('lang', 'de');
       expect(root.fromContext('lang').asStringOrNull(), 'de');
     });

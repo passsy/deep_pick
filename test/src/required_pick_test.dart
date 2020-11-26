@@ -1,4 +1,3 @@
-// ignore_for_file: deprecated_member_use_from_same_package
 import 'package:deep_pick/deep_pick.dart';
 import 'package:test/test.dart';
 
@@ -7,6 +6,7 @@ import 'pick_test.dart';
 void main() {
   group('RequiredPick', () {
     test('toString() works as expected', () {
+      // ignore: deprecated_member_use_from_same_package
       expect(RequiredPick('a', path: ['b', 0]).toString(),
           'RequiredPick(value=a, path=[b, 0])');
     });
@@ -27,22 +27,22 @@ void main() {
 
   group('parsing .required()', () {
     test('asString()', () {
-      expect(pick('adam').asString(), 'adam');
-      expect(pick(1).asString(), '1');
-      expect(pick(2.0).asString(), '2.0');
+      expect(pick('adam').asStringOrThrow(), 'adam');
+      expect(pick(1).asStringOrThrow(), '1');
+      expect(pick(2.0).asStringOrThrow(), '2.0');
       expect(
-          () => nullPick().asString(),
+          () => nullPick().asStringOrThrow(),
           throwsA(pickException(
               containing: ['unknownKey', 'null', 'String', 'asStringOrNull'])));
     });
 
     test("asString() doesn't transform Maps and Lists with toString", () {
       expect(
-          () => pick(['a', 'b']).asString(),
+          () => pick(['a', 'b']).asStringOrThrow(),
           throwsA(pickException(
               containing: ['List<String>', 'not a List or Map', '[a, b]'])));
       expect(
-          () => pick({'a': 'b'}).asString(),
+          () => pick({'a': 'b'}).asStringOrThrow(),
           throwsA(pickException(containing: [
             'Map<String, String>',
             'not a List or Map',
@@ -77,13 +77,13 @@ void main() {
     });
 
     test('asMap()', () {
-      expect(pick({'ab': 'cd'}).asMap(), {'ab': 'cd'});
+      expect(pick({'ab': 'cd'}).asMapOrThrow(), {'ab': 'cd'});
       expect(
-          () => pick('Bubblegum').asMap(),
+          () => pick('Bubblegum').asMapOrThrow(),
           throwsA(pickException(
               containing: ['Bubblegum', 'String', 'Map<dynamic, dynamic>'])));
       expect(
-          () => nullPick().asMap(),
+          () => nullPick().asMapOrThrow(),
           throwsA(pickException(
               containing: ['unknownKey', 'null', 'Map<dynamic, dynamic>'])));
     });
@@ -94,7 +94,7 @@ void main() {
       };
 
       try {
-        final parsed = pick(data).asMap<String, bool>();
+        final parsed = pick(data).asMapOrThrow<String, bool>();
         fail('casted map without verifying the types. '
             'Expected Map<String, bool> but was ${parsed.runtimeType}');
         // ignore: avoid_catching_errors
@@ -126,63 +126,86 @@ void main() {
     });
 
     test('asList()', () {
+      // ignore: deprecated_member_use_from_same_package
+      expect(pick(['a', 'b', 'c']).asList((it) => it.asStringOrThrow()),
+          ['a', 'b', 'c']);
+      // ignore: deprecated_member_use_from_same_package
+      expect(pick([1, 2, 3]).asList((it) => it.asIntOrThrow()), [1, 2, 3]);
       expect(
-          pick(['a', 'b', 'c']).asList((it) => it.asString()), ['a', 'b', 'c']);
-      expect(pick([1, 2, 3]).asList((it) => it.asInt()), [1, 2, 3]);
-      expect(
-          () => pick('Bubblegum').asList((it) => it.asString()),
+          // ignore: deprecated_member_use_from_same_package
+          () => pick('Bubblegum').asList((it) => it.asStringOrThrow()),
           throwsA(pickException(
               containing: ['Bubblegum', 'String', 'List<dynamic>'])));
       expect(
-          () => nullPick().asList((it) => it.asString()),
+          // ignore: deprecated_member_use_from_same_package
+          () => nullPick().asList((it) => it.asStringOrThrow()),
           throwsA(pickException(
               containing: ['unknownKey', 'null', 'List<String>'])));
       expect(
-          () => nullPick().asList((it) => it.asString()),
+          // ignore: deprecated_member_use_from_same_package
+          () => nullPick().asList((it) => it.asStringOrThrow()),
           throwsA(pickException(
               containing: ['unknownKey', 'null', 'List<String>'])));
     });
 
-    test('asBool()', () {
-      expect(pick(true).asBool(), isTrue);
-      expect(pick('true').asBool(), isTrue);
-      expect(pick('false').asBool(), isFalse);
-      expect(() => pick('Bubblegum').asBool(),
+    test('asList()', () {
+      expect(pick(['a', 'b', 'c']).asListOrThrow((it) => it.asString()),
+          ['a', 'b', 'c']);
+      expect(pick([1, 2, 3]).asListOrThrow((it) => it.asInt()), [1, 2, 3]);
+      expect(
+          () => pick('Bubblegum').asListOrThrow((it) => it.asString()),
+          throwsA(pickException(
+              containing: ['Bubblegum', 'String', 'List<dynamic>'])));
+      expect(
+          () => nullPick().asListOrThrow((it) => it.asString()),
+          throwsA(pickException(
+              containing: ['unknownKey', 'null', 'List<String>'])));
+      expect(
+          () => nullPick().asListOrThrow((it) => it.asString()),
+          throwsA(pickException(
+              containing: ['unknownKey', 'null', 'List<String>'])));
+    });
+
+    test('asBoolOrThrow()', () {
+      expect(pick(true).asBoolOrThrow(), isTrue);
+      expect(pick('true').asBoolOrThrow(), isTrue);
+      expect(pick('false').asBoolOrThrow(), isFalse);
+      expect(() => pick('Bubblegum').asBoolOrThrow(),
           throwsA(pickException(containing: ['Bubblegum', 'String', 'bool'])));
-      expect(() => nullPick().asBool(),
+      expect(() => nullPick().asBoolOrThrow(),
           throwsA(pickException(containing: ['unknownKey', 'null', 'bool'])));
     });
 
     test('asInt()', () {
-      expect(pick(1).asInt(), 1);
-      expect(pick('1').asInt(), 1);
-      expect(() => pick('Bubblegum').asInt(),
+      expect(pick(1).asIntOrThrow(), 1);
+      expect(pick('1').asIntOrThrow(), 1);
+      expect(() => pick('Bubblegum').asIntOrThrow(),
           throwsA(pickException(containing: ['Bubblegum', 'String', 'int'])));
-      expect(() => nullPick().asInt(),
+      expect(() => nullPick().asIntOrThrow(),
           throwsA(pickException(containing: ['unknownKey', 'null', 'int'])));
     });
 
     test('asDouble()', () {
-      expect(pick(1).asDouble(), 1.0);
-      expect(pick(2.0).asDouble(), 2.0);
-      expect(pick('3.0').asDouble(), 3.0);
+      expect(pick(1).asDoubleOrThrow(), 1.0);
+      expect(pick(2.0).asDoubleOrThrow(), 2.0);
+      expect(pick('3.0').asDoubleOrThrow(), 3.0);
       expect(
-          () => pick('Bubblegum').asDouble(),
+          () => pick('Bubblegum').asDoubleOrThrow(),
           throwsA(
               pickException(containing: ['Bubblegum', 'String', 'double'])));
-      expect(() => nullPick().asDouble(),
+      expect(() => nullPick().asDoubleOrThrow(),
           throwsA(pickException(containing: ['unknownKey', 'null', 'double'])));
     });
 
     test('asDateTime()', () {
-      expect(pick('2012-02-27 13:27:00,123456z').asDateTime(),
+      expect(pick('2012-02-27 13:27:00,123456z').asDateTimeOrThrow(),
           DateTime.utc(2012, 2, 27, 13, 27, 0, 123, 456));
       expect(
-          () => pick('Bubblegum').asDateTime(),
+          () => pick('Bubblegum').asDateTimeOrThrow(),
           throwsA(
               pickException(containing: ['Bubblegum', 'String', 'DateTime'])));
       expect(
-          () => nullPick().asDateTime(),
+          () => nullPick().asDateTimeOrThrow(),
           throwsA(
               pickException(containing: ['unknownKey', 'null', 'DateTime'])));
     });
@@ -207,12 +230,30 @@ void main() {
         {'name': 'John Snow'},
         {'name': 'Daenerys Targaryen'},
       ];
-      expect(pick(data).asList((pick) => Person.fromJson(pick)), [
+      // ignore: deprecated_member_use_from_same_package
+      expect(pick(data).asList((pick) => Person.fromJson(pick.required())), [
         Person(name: 'John Snow'),
         Person(name: 'Daenerys Targaryen'),
       ]);
-      expect(pick([]).asList((pick) => Person.fromJson(pick)), []);
-      expect(() => nullPick().asList((pick) => Person.fromJson(pick)),
+      // ignore: deprecated_member_use_from_same_package
+      expect(pick([]).asList((pick) => Person.fromJson(pick.required())), []);
+      expect(
+          // ignore: deprecated_member_use_from_same_package
+          () => nullPick().asList((pick) => Person.fromJson(pick.required())),
+          throwsA(pickException(containing: ['unknownKey', 'null', 'List'])));
+    });
+
+    test('asListOrThrow(Pick -> T)', () {
+      final data = [
+        {'name': 'John Snow'},
+        {'name': 'Daenerys Targaryen'},
+      ];
+      expect(pick(data).asListOrThrow((pick) => Person.fromJson(pick)), [
+        Person(name: 'John Snow'),
+        Person(name: 'Daenerys Targaryen'),
+      ]);
+      expect(pick([]).asListOrThrow((pick) => Person.fromJson(pick)), []);
+      expect(() => nullPick().asListOrThrow((pick) => Person.fromJson(pick)),
           throwsA(pickException(containing: ['unknownKey', 'null', 'List'])));
     });
   });
@@ -229,6 +270,7 @@ void main() {
     });
 
     test('add and read from context with syntax sugar', () {
+      // ignore: deprecated_member_use_from_same_package
       final root = pick([]).required().addContext('lang', 'de');
       expect(root.fromContext('lang').asStringOrNull(), 'de');
     });
