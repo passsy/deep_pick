@@ -7,13 +7,19 @@
 
 # deep_pick
 
-Simplifies manual JSON parsing with a type-safe API. No `null` checks, no `dynamic` and manual casting, all in a single line.
+Simplifies manual JSON parsing with a type-safe API. 
+- No `null` checks
+- No `dynamic` and manual casting
+- single line null-aware mapping
 
-## Write less when parsing JSON API responses
+`pick(json, 'parsing', 'is', 'fun').asBool(); // true`
+
+### Write less when parsing JSON API responses
 Example of parsing an `issue` object of the [GitHub v3 API](https://developer.github.com/v3/issues/#get-an-issue).
 
 Parsing Dart Maps is easy but error prone. The following code would **crash** when a value is `null` or the structure doesn't match.
 ```dart
+final json = jsonDecode(response.data);
 final milestoneCreator = json['milestone']['creator']['login'] as String;
 print(milestoneCreator); // octocat  
 ```
@@ -43,8 +49,7 @@ print(milestoneCreator); // octocat
 
 `deep_pick` is especially useful when the JSON response in deeply nested and only a few values needs to be parsed.
 
-
-## Make values required and non-nullable
+### Make values required and non-nullable
 `deep_pick` is perfect when working with Firestore `DocumentSnapshot`. 
 Usually it's too much effort to map it to an actual Object (because you don't need all fields).
 Instead, parse the values in place while staying type-safe. 
@@ -64,8 +69,7 @@ final String? level = pick(data, 'level').asIntOrNull();
 
 ## Supported types
 
-### Primitives (`String`, `int`, `double`, `bool`)
-#### String
+### String
 Returns the picked `Object` as String representation.
 It doesn't matter if the value is actually a `int`, `double`, `bool` or any other Object.
 `pick` calls the objects `toString` method.
@@ -78,7 +82,7 @@ pick(true).asStringOrNull(); // "true"
 pick(User(name: "Jason")).asStringOrNull(); // User{name: Jason}
 ```
 
-#### `int` & `double`
+### `int` & `double`
 `pick` tries to parse Strings with `int.tryParse` and `double.tryParse`.
 A `int` can be parsed as `double` (no precision loss) but not vice versa because it could lead to mistakes.
 
@@ -88,7 +92,7 @@ pick("2.7").asDoubleOrNull(); // 2.7
 pick("3").asIntOrNull(); // 3
 ```
 
-#### `bool`
+### `bool`
 
 Parsing a bool is easy. Use any of the self-explaining methods
 ```dart
@@ -131,12 +135,6 @@ List<Person> persons = pick(users).asListOrEmpty((pick) {
     name: pick('name').required().asString(),
   );
 });
-```
-
-Extract the mapper function and using it as a reference allows to write it in a single line again :smile:
-
-```dart
-List<Person> persons = pick(users).asListOrEmpty(Person.fromPick);
 
 class Person {
   final String name;
@@ -151,6 +149,12 @@ class Person {
 }
 ```
 
+Extract the mapper function and using it as a reference allows to write it in a single line again :smile:
+
+```dart
+List<Person> persons = pick(users).asListOrEmpty(Person.fromPick);
+```
+
 Replacing the static function with a factory constructor doesn't work.
 Constructors cannot be referenced as functions, yet ([dart-lang/language/issues/216](https://github.com/dart-lang/language/issues/216)).
 Meanwhile, use `.asListOrEmpty((it) => Person.fromPick(it))` when using a factory constructor.
@@ -159,11 +163,11 @@ Meanwhile, use `.asListOrEmpty((it) => Person.fromPick(it))` when using a factor
 ### `Map`
 
 
-### Custom parsers
+## Custom parsers
 
-#### let
+### let
 
-#### extension functions
+### extension functions
 
 
 ## License
