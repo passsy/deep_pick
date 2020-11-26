@@ -1,82 +1,170 @@
+[![Pub](https://img.shields.io/pub/v/deep_pick)](https://pub.dartlang.org/packages/deep_pick)
+[![Pub](https://img.shields.io/pub/v/deep_pick?include_prereleases)](https://pub.dartlang.org/packages/deep_pick)
+[![style: lint](https://img.shields.io/badge/style-lint-4BC0F5.svg)](https://pub.dev/packages/lint)
+![License](https://img.shields.io/github/license/passsy/deep_pick)
+[![likes](https://badges.bar/deep_pick/likes)](https://pub.dev/packages/deep_pick/score)
+![Build](https://img.shields.io/github/workflow/status/passsy/deep_pick/Dart%20CI)
+
 # deep_pick
 
-[![Pub](https://img.shields.io/pub/v/deep_pick.svg)](https://pub.dartlang.org/packages/deep_pick)
+Simplifies manual JSON parsing with a type-safe API. No `null` checks, no `dynamic` and manual casting, all in a single line.
 
-A library to access deep nested values inside of dart data structures (nested Lists and Maps).
- - json parsed with `dart:convert` `dynamic jsonDecode(String source)`
- - `DocumentSnapshot`s in Firebase Firestore
+## Write less when parsing JSON API responses
+Example of parsing an `issue` object of the [GitHub v3 API](https://developer.github.com/v3/issues/#get-an-issue).
 
-## Example
+Parsing Dart Maps is easy but error prone. The following code would **crash** when a value is `null` or the structure doesn't match.
+```dart
+final milestoneCreator = json['milestone']['creator']['login'] as String;
+print(milestoneCreator); // octocat  
+```
 
+A safe version is way longer, hard to read and not fun to write.
+```dart
+// The save version is huge and not fun to write!
+String milestoneCreator;
+final milestone = json['milestore'];
+if (milestone != null) {
+  final creator = json['creator'];
+  if (creator != null) {
+    final login = creator['login'];
+    if (login is String) {
+      milestoneCreator = login;
+    }
+  }
+}
+print(milestoneCreator); // octocat
+```
+
+With `deep_pick` parsing becomes short again while being type-safe. This code will never crash!
+```dart
+final milestoneCreator = pick(json, 'milestone', 'creator', 'login').asStringOrNull();
+print(milestoneCreator); // octocat  
+```
+
+`deep_pick` is especially useful when the JSON response in deeply nested and only a few values needs to be parsed.
+
+
+## Make values required and non-nullable
+`deep_pick` is perfect when working with Firestore `DocumentSnapshot`. 
+Usually it's too much effort to map it to an actual Object (because you don't need all fields).
+Instead, parse the values in place while staying type-safe. 
+
+Use `.required()` when your 100% confident the value is never `null` and **always** exists. 
+The return type then becomes non-nullable (`String` instead of `String?`).
+When the `data` doesn't contain the `full_name` field (against your assumption) it would crash throwing a `PickException`.
 
 ```dart
-import 'dart:convert';
+final DocumentSnapshot userDoc = 
+    await FirebaseFirestore.instance.collection('users').doc(userId).get();
+final data = userDoc.data();
+final String fullName = pick(data, 'full_name').required().asString();
+final String? level = pick(data, 'level').asIntOrNull();
+```
 
-import 'package:deep_pick/deep_pick.dart';
 
-void main() {
-  final json = jsonDecode('''
-{
-  "shoes": [
-     { 
-       "id": "421",
-       "name": "Nike Zoom Fly 3",
-       "tags": ["nike", "JustDoIt"]
-     },
-     { 
-       "id": "532",
-       "name": "adidas Ultraboost",
-       "manufacturer": "adidas",
-       "tags": ["adidas", "ImpossibleIsNothing"]
-     }
-  ]
-}
-''');
-  // pick a value deep down the json structure
-  final firstTag = pick(json, 'shoes', 1, 'tags', 0).asStringOrNull();
-  print(firstTag); // adidas
+## Supported types
 
-  // fallback to null if it couldn't be found
-  final manufacturer = pick(json, 'shoes', 0, 'manufacturer').asStringOrNull();
-  print(manufacturer); // null
+### Primitives (`String`, `int`, `double`, `bool`)
+#### String
+Returns the picked `Object` as String representation.
+It doesn't matter if the value is actually a `int`, `double`, `bool` or any other Object.
+`pick` calls the objects `toString` method.
 
-  // use required() to crash if a object doesn't exist
-  final name = pick(json, 'shoes', 0, 'name').required().asString();
-  print(name); // Nike Zoom Fly 3
+```dart
+pick('a').asStringOrNull(); // "a"
+pick(1).asStringOrNull(); // "1"
+pick(1.0).asStringOrNull(); // "1.0"
+pick(true).asStringOrNull(); // "true"
+pick(User(name: "Jason")).asStringOrNull(); // User{name: Jason}
+```
 
-  // you decide which type you want
-  final id = pick(json, 'shoes', 0, 'id');
-  print(id.asIntOrNull()); // 421
-  print(id.asDoubleOrNull()); // 421.0
-  print(id.asStringOrNull()); // "421"
+#### `int` & `double`
+`pick` tries to parse Strings with `int.tryParse` and `double.tryParse`.
+A `int` can be parsed as `double` (no precision loss) but not vice versa because it could lead to mistakes.
 
-  // pick lists
-  final tags = pick(json, 'shoes', 0, 'tags').asListOrEmpty<String>();
-  print(tags); // [nike, JustDoIt]
+```dart
+pick(1).asDoubleOrNull(); // 1.0
+pick("2.7").asDoubleOrNull(); // 2.7
+pick("3").asIntOrNull(); // 3
+```
 
-  // pick maps
-  final shoe = pick(json, 'shoes', 0).required().asMap();
-  print(shoe); // {id: 421, name: Nike Zoom Fly 3, tags: [nike, JustDoIt]}
+#### `bool`
 
-  // easily pick and map objects to dart objects
-  final firstShoe = pick(json, 'shoes', 0).letOrNull((p) => Shoe.fromPick(p));
-  print(firstShoe);
-  // Shoe{id: 421, name: Nike Zoom Fly 3, tags: [nike, JustDoIt]}
+Parsing a bool is easy. Use any of the self-explaining methods
+```dart
+pick(true).required().asBool(); // true
+pick(false).required().asBool(); // true
+pick(null).asBoolOrTrue(); // true
+pick(null).asBoolOrFalse(); // false
+pick(null).asBoolOrNull(); // null
+pick('true').asBoolOrNull(); // true;
+pick('false').asBoolOrNull(); // false;
+```
 
-  // falls back to null when the value couldn't be picked
-  final thirdShoe = pick(json, 'shoes', 2).letOrNull((p) => Shoe.fromPick(p));
-  print(thirdShoe); // null
+`deep_pick` does not treat the `int` values `0` and `1` as `bool` as some other languages do.
+Write your own logic using `.let` instead.
 
-  // map list of picks to dart objects
-  final shoes =
-      pick(json, 'shoes').asListOrEmpty((p) => Shoe.fromPick(p.required()));
-  print(shoes);
-  // [
-  //   Shoe{id: 421, name: Nike Zoom Fly 3, tags: [nike, JustDoIt]},
-  //   Shoe{id: 532, name: adidas Ultraboost, tags: [adidas, ImpossibleIsNothing]}
-  // ]
+```dart
+pick(1).asBoolOrNull(); // null
+pick(1).letOrNull((pick) => pick.value == 1 ? true : pick.value == 0 ? false : null); // true 
+```
+
+### `DateTime`
+
+Accepts most common date formats such as `ISO 8601`. For more supported formats see [`DateTime.parse`](https://api.dart.dev/stable/1.24.2/dart-core/DateTime/parse.html).
+
+```dart
+pick('2020-03-01T13:00:00Z').asDateTimeOrNull(); // a valid DateTime object
+```
+
+### `List`
+
+When the JSON object contains a List of items that List can be mapped to a `List<T>` of objects (`T`).
+
+```dart
+final users = [
+  {'name': 'John Snow'},
+  {'name': 'Daenerys Targaryen'},
+];
+List<Person> persons = pick(users).asListOrEmpty((pick) {
+  return Person(
+    name: pick('name').required().asString(),
+  );
+});
+```
+
+Extract the mapper function and using it as a reference allows to write it in a single line again :smile:
+
+```dart
+List<Person> persons = pick(users).asListOrEmpty(Person.fromPick);
+
+class Person {
+  final String name;
+
+  Person({required this.name});
+
+  static Person fromPick(RequiredPick pick) {
+    return Person(
+      name: pick('name').required().asString(),
+    );
+  }
 }
 ```
+
+Replacing the static function with a factory constructor doesn't work.
+Constructors cannot be referenced as functions, yet ([dart-lang/language/issues/216](https://github.com/dart-lang/language/issues/216)).
+Meanwhile, use `.asListOrEmpty((it) => Person.fromPick(it))` when using a factory constructor.
+ 
+
+### `Map`
+
+
+### Custom parsers
+
+#### let
+
+#### extension functions
+
 
 ## License
 
