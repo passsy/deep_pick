@@ -288,18 +288,46 @@ void main() {
     });
   });
 
-  group('invalid pick', () {
+  group('isAbsent', () {
     test('out of range in list returns null pick', () {
       final data = [
         {'name': 'John Snow'},
         {'name': 'Daenerys Targaryen'},
       ];
       expect(pick(data, 10).value, isNull);
+      expect(pick(data, 10).isAbsent(), true);
     });
 
     test('unknown property in map returns null', () {
       final data = {'name': 'John Snow'};
       expect(pick(data, 'birthday').value, isNull);
+      expect(pick(data, 'birthday').isAbsent(), true);
+    });
+
+    test('documentation example Map', (){
+      final pa = pick({"a": null}, "a");
+      expect(pa.value, isNull);
+      expect(pa.isAbsent(), false);
+
+      final pb = pick({"a": null}, "b");
+      expect(pb.value, isNull);
+      expect(pb.isAbsent(), true);
+    });
+
+    test('documentation example List', (){
+      final p0 = pick([null], 0);
+      expect(p0.value, isNull);
+      expect(p0.isAbsent(), false);
+
+      final p2 = pick([], 2);
+      expect(p2.value, isNull);
+      expect(p2.isAbsent(), true);
+    });
+
+    test('Map key for list', (){
+      final p = pick([], 'a');
+      expect(p.value, isNull);
+      expect(p.isAbsent(), true);
     });
   });
 
