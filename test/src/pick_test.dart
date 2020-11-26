@@ -69,6 +69,7 @@ void main() {
       expect(pick(1).asStringOrNull(), '1');
       expect(pick(DateTime(2000)).asStringOrNull(), '2000-01-01 00:00:00.000');
       expect(nullPick().asStringOrNull(), isNull);
+      expect(pick([]).asStringOrNull(), isNull);
     });
 
     test('asMapOrNull()', () {
@@ -158,15 +159,54 @@ void main() {
     });
 
     test('asListOrNull()', () {
-      expect(pick([1, 2, 3]).asListOrNull<int>(), [1, 2, 3]);
-      expect(pick('john').asListOrNull<int>(), isNull);
-      expect(nullPick().asListOrNull<int>(), isNull);
+      expect(pick([1, 2, 3]).asListOrNull((it) => it.asInt()), [1, 2, 3]);
+      expect(pick('john').asListOrNull((it) => it.asInt()), isNull);
+      expect(nullPick().asListOrNull((it) => it.asInt()), isNull);
+    });
+
+    test('asListOrNull() ignores null values', () {
+      expect(pick([1, null, 3]).asListOrNull((it) => it.asInt()), [1, 3]);
+    });
+
+    test('asListOrNull(whenNull:)', () {
+      expect(
+          pick([1, null, 3]).asListOrNull((it) => it.asInt(),
+              whenNull: (index, context) => 25),
+          [1, 25, 3]);
+      expect(
+          pick([1, null, 3]).asListOrNull((it) => it.asInt(),
+              whenNull: (index, context) => null),
+          [1, null, 3]);
+      expect(
+          pick(nullPick()).asListOrNull((it) => it.asInt(),
+              whenNull: (index, context) => null),
+          null);
     });
 
     test('asListOrEmpty()', () {
-      expect(pick([1, 2, 3]).asListOrEmpty<int>(), [1, 2, 3]);
-      expect(pick('a').asListOrEmpty<int>(), []);
-      expect(nullPick().asListOrEmpty<int>(), []);
+      expect(pick([1, 2, 3]).asListOrEmpty((it) => it.asInt()), [1, 2, 3]);
+      expect(pick('a').asListOrEmpty((it) => it.asInt()), []);
+      expect(nullPick().asListOrEmpty((it) => it.asInt()), []);
+    });
+
+    test('asListOrEmpty() ignores null values', () {
+      expect(pick([1, null, 3]).asListOrEmpty((it) => it.asInt()), [1, 3]);
+    });
+
+    test('asListOrEmpty(whenNull:)', () {
+      expect(
+          pick([1, null, 3]).asListOrEmpty((it) => it.asInt(),
+              whenNull: (index, context) => 25),
+          [1, 25, 3]);
+      expect(
+          pick([1, null, 3]).asListOrEmpty((it) => it.asInt(),
+              whenNull: (index, context) => null),
+          [1, null, 3]);
+
+      expect(
+          pick(nullPick()).asListOrEmpty((it) => it.asInt(),
+              whenNull: (index, context) => null),
+          []);
     });
 
     test('asBoolOrNull()', () {
@@ -195,6 +235,11 @@ void main() {
       expect(nullPick().asIntOrNull(), isNull);
     });
 
+    test('asIntOrNull() does not parse doubles as it would loose information',
+        () {
+      expect(pick(1.9).asIntOrNull(), null);
+    });
+
     test('asDoubleOrNull()', () {
       expect(pick(1).asDoubleOrNull(), 1.0);
       expect(pick(2.0).asDoubleOrNull(), 2.0);
@@ -215,12 +260,11 @@ void main() {
     test('letOrNull()', () {
       expect(
           pick({'name': 'John Snow'})
-              .letOrNull((pick) => Person.fromJson(pick.asMap())),
+              .letOrNull((pick) => Person.fromJson(pick)),
           Person(name: 'John Snow'));
-      expect(nullPick().letOrNull((pick) => Person.fromJson(pick.asMap())),
-          isNull);
+      expect(nullPick().letOrNull((pick) => Person.fromJson(pick)), isNull);
       expect(
-          () => pick('a').letOrNull((pick) => Person.fromJson(pick.asMap())),
+          () => pick('a').letOrNull((pick) => Person.fromJson(pick)),
           throwsA(isA<PickException>().having(
             (e) => e.message,
             'message',
@@ -229,7 +273,7 @@ void main() {
           )));
       expect(
           () => pick({'asdf': 'John Snow'})
-              .letOrNull((pick) => Person.fromJson(pick.asMap())),
+              .letOrNull((pick) => Person.fromJson(pick)),
           throwsA(isA<PickException>().having((e) => e.message, 'message',
               contains('required value at location `name` is null'))));
     });
@@ -239,13 +283,12 @@ void main() {
         {'name': 'John Snow'},
         {'name': 'Daenerys Targaryen'},
       ];
-      expect(pick(data).asListOrEmpty((it) => Person.fromJson(it.asMap())), [
+      expect(pick(data).asListOrEmpty((it) => Person.fromJson(it)), [
         Person(name: 'John Snow'),
         Person(name: 'Daenerys Targaryen'),
       ]);
-      expect(pick([]).asList((pick) => Person.fromJson(pick.asMap())), []);
-      expect(nullPick().asListOrEmpty((pick) => Person.fromJson(pick.asMap())),
-          []);
+      expect(pick([]).asList((pick) => Person.fromJson(pick)), []);
+      expect(nullPick().asListOrEmpty((pick) => Person.fromJson(pick)), []);
     });
 
     test('asListOrEmpty(Pick -> T) reports item parsing errors', () {
@@ -254,8 +297,7 @@ void main() {
         {'asdf': 'Daenerys Targaryen'}, // <-- wrong key
       ];
       expect(
-          () =>
-              pick(data).asListOrEmpty((pick) => Person.fromJson(pick.asMap())),
+          () => pick(data).asListOrEmpty((pick) => Person.fromJson(pick)),
           throwsA(isA<PickException>().having((e) => e.message, 'message',
               contains('required value at location `name` is null'))));
     });
@@ -265,14 +307,12 @@ void main() {
         {'name': 'John Snow'},
         {'name': 'Daenerys Targaryen'},
       ];
-      expect(pick(data).asListOrNull((pick) => Person.fromJson(pick.asMap())), [
+      expect(pick(data).asListOrNull((pick) => Person.fromJson(pick)), [
         Person(name: 'John Snow'),
         Person(name: 'Daenerys Targaryen'),
       ]);
-      expect(
-          pick([]).asListOrNull((pick) => Person.fromJson(pick.asMap())), []);
-      expect(nullPick().asListOrNull((pick) => Person.fromJson(pick.asMap())),
-          null);
+      expect(pick([]).asListOrNull((pick) => Person.fromJson(pick)), []);
+      expect(nullPick().asListOrNull((pick) => Person.fromJson(pick)), null);
     });
 
     test('asListOrNull(Pick -> T) reports item parsing errors', () {
@@ -281,8 +321,7 @@ void main() {
         {'asdf': 'Daenerys Targaryen'}, // <-- wrong key
       ];
       expect(
-          () =>
-              pick(data).asListOrNull((pick) => Person.fromJson(pick.asMap())),
+          () => pick(data).asListOrNull((pick) => Person.fromJson(pick)),
           throwsA(isA<PickException>().having((e) => e.message, 'message',
               contains('required value at location `name` is null'))));
     });
@@ -386,18 +425,15 @@ Matcher pickException({required List<String> containing}) {
 }
 
 class Person {
-  Person({
-    // ignore: always_require_non_null_named_parameters
-    required this.name,
-  });
+  final String name;
 
-  factory Person.fromJson(Map<String, dynamic> data) {
+  Person({required this.name});
+
+  factory Person.fromJson(RequiredPick pick) {
     return Person(
-      name: pick(data, 'name').required().asString(),
+      name: pick('name').required().asString(),
     );
   }
-
-  final String name;
 
   @override
   bool operator ==(Object other) =>

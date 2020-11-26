@@ -126,18 +126,19 @@ void main() {
     });
 
     test('asList()', () {
-      expect(pick(['a', 'b', 'c']).asList(), ['a', 'b', 'c']);
-      expect(pick([1, 2, 3]).asList<int>(), [1, 2, 3]);
       expect(
-          () => pick('Bubblegum').asList(),
+          pick(['a', 'b', 'c']).asList((it) => it.asString()), ['a', 'b', 'c']);
+      expect(pick([1, 2, 3]).asList((it) => it.asInt()), [1, 2, 3]);
+      expect(
+          () => pick('Bubblegum').asList((it) => it.asString()),
           throwsA(pickException(
               containing: ['Bubblegum', 'String', 'List<dynamic>'])));
       expect(
-          () => nullPick().asList(),
+          () => nullPick().asList((it) => it.asString()),
           throwsA(pickException(
-              containing: ['unknownKey', 'null', 'List<dynamic>'])));
+              containing: ['unknownKey', 'null', 'List<String>'])));
       expect(
-          () => nullPick().asList<String>(),
+          () => nullPick().asList((it) => it.asString()),
           throwsA(pickException(
               containing: ['unknownKey', 'null', 'List<String>'])));
     });
@@ -190,17 +191,14 @@ void main() {
       expect(
           pick({'name': 'John Snow'})
               .required()
-              .let((pick) => Person.fromJson(pick.asMap())),
+              .let((pick) => Person.fromJson(pick)),
           Person(name: 'John Snow'));
       expect(
           pick({'name': 'John Snow'})
               .required()
-              .let((pick) => Person.fromJson(pick.asMap())),
+              .let((pick) => Person.fromJson(pick)),
           Person(name: 'John Snow'));
-      expect(
-          () => nullPick()
-              .required()
-              .let((pick) => Person.fromJson(pick.asMap())),
+      expect(() => nullPick().required().let((pick) => Person.fromJson(pick)),
           throwsA(pickException(containing: ['unknownKey', 'null'])));
     });
 
@@ -209,12 +207,12 @@ void main() {
         {'name': 'John Snow'},
         {'name': 'Daenerys Targaryen'},
       ];
-      expect(pick(data).asList((pick) => Person.fromJson(pick.asMap())), [
+      expect(pick(data).asList((pick) => Person.fromJson(pick)), [
         Person(name: 'John Snow'),
         Person(name: 'Daenerys Targaryen'),
       ]);
-      expect(pick([]).asList((pick) => Person.fromJson(pick.asMap())), []);
-      expect(() => nullPick().asList((pick) => Person.fromJson(pick.asMap())),
+      expect(pick([]).asList((pick) => Person.fromJson(pick)), []);
+      expect(() => nullPick().asList((pick) => Person.fromJson(pick)),
           throwsA(pickException(containing: ['unknownKey', 'null', 'List'])));
     });
   });

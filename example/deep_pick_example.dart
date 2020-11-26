@@ -41,7 +41,8 @@ void main() {
   print(id.asStringOrNull()); // "421"
 
   // pick lists
-  final tags = pick(json, 'shoes', 0, 'tags').asListOrEmpty<String>();
+  final tags =
+      pick(json, 'shoes', 0, 'tags').asListOrEmpty((it) => it.asString());
   print(tags); // [nike, JustDoIt]
 
   // pick maps
@@ -58,8 +59,7 @@ void main() {
   print(thirdShoe); // null
 
   // map list of picks to dart objects
-  final shoes =
-      pick(json, 'shoes').asListOrEmpty((p) => Shoe.fromPick(p.required()));
+  final shoes = pick(json, 'shoes').asListOrEmpty((p) => Shoe.fromPick(p));
   print(shoes);
   // [
   //   Shoe{id: 421, name: Nike Zoom Fly 3, tags: [nike, JustDoIt]},
@@ -70,7 +70,7 @@ void main() {
   // without adding new arguments
   final newShoes = pick(json, 'shoes')
       .withContext('newApi', true)
-      .asListOrEmpty((p) => Shoe.fromPick(p.required()));
+      .asListOrEmpty((p) => Shoe.fromPick(p));
   print(newShoes);
 }
 
@@ -95,7 +95,7 @@ class Shoe {
       manufacturer: newApi
           ? pick('manufacturer').required().asString()
           : pick('manufacturer').asStringOrNull(),
-      tags: pick('tags').asListOrEmpty(),
+      tags: pick('tags').asListOrEmpty((it) => it.asString()),
     );
   }
 
