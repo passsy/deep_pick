@@ -4,17 +4,13 @@ extension IntPick on RequiredPick {
   /// Returns the picked [value] as [int]
   ///
   /// {@template Pick.asInt}
-  /// Parses the picked value as [int]. Other types are parsable as well
-  /// - [String] is gets parsed via [int.tryParse]
-  /// - [double] is gets converted to [int] via [num.toInt()]
+  /// Parses the picked value as [int]. Also tries to parse [String] as [int]
+  /// via [int.tryParse]
   /// {@endtemplate}
   int asInt() {
     final value = this.value;
     if (value is int) {
       return value;
-    }
-    if (value is num) {
-      return value.toInt();
     }
     if (value is String) {
       final parsed = int.tryParse(value);

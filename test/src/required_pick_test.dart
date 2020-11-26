@@ -154,7 +154,6 @@ void main() {
 
     test('asInt()', () {
       expect(pick(1).asInt(), 1);
-      expect(pick(1.0).asInt(), 1);
       expect(pick('1').asInt(), 1);
       expect(() => pick('Bubblegum').asInt(),
           throwsA(pickException(containing: ['Bubblegum', 'String', 'int'])));
