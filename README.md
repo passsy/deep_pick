@@ -12,7 +12,16 @@ Simplifies manual JSON parsing with a type-safe API.
 - No `dynamic` and manual casting
 - single line null-aware mapping
 
-`pick(json, 'parsing', 'is', 'fun').asBool(); // true`
+```dart
+import 'package:deep_pick/deep_pick.dart';
+
+pick(json, 'parsing', 'is', 'fun').asBool(); // true
+```
+
+```yaml
+dependencies:
+  deep_pick: ^0.6.0
+```
 
 ### Write less when parsing JSON API responses
 Example of parsing an `issue` object of the [GitHub v3 API](https://developer.github.com/v3/issues/#get-an-issue).
