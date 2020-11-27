@@ -8,9 +8,9 @@
 ![Build](https://img.shields.io/github/workflow/status/passsy/deep_pick/Dart%20CI)
 
 Simplifies manual JSON parsing with a type-safe API. 
-- No `dynamic`
-- No manual casting
-- Flexible typed inputs, fix typed outputs
+- No `dynamic`, no manual casting
+- Flexible inputs types, fixed output types
+- Useful parsing error messages
 
 ```dart
 import 'package:deep_pick/deep_pick.dart';
@@ -76,27 +76,61 @@ pick(42).asDoubleOrNull(); // 42.0
 pick('true').asBoolOrFalse(); // true
 ```
 
-### 2. RangeError
-Even using the `?[]` operator doesn't help when accessing a list item by `index` greater than the list length 
+### 2. No RangeError for Lists
+Even using the `?[]` operator doesn't help when accessing a list item by `index` outside of the available range.
+You can't access index 23 when the `List` has only 10 items.
 
 ```dart
 json['shoes']?[23]?['id'] as String?;
 
 // Unhandled exception:
-// RangeError (index): Invalid value: Not in inclusive range 0..1: 23
+// RangeError (index): Invalid value: Not in inclusive range 0..10: 23
 ```
 
-`pick` return `null` in that case
+`pick` returns `null` when accessing outside the index.
 
 ```dart
 pick(json, 'shoes', 23, 'id').asStringOrNull(); // null
 ```
 
-### 2. Nullable by default
+### 3. Useful error message
 
-It's so easy to accidentally cast a value to `String` instead of `String?`.
+Vanilla Dart returns a type error because `null` is not a `String`.
+There is no information available which part is `null` or missing. 
+
+```dart
+final milestoneCreator = json?['milestone']?['creator']?['login'] as String;
+
+// Unhandled exception:
+// type 'Null' is not a subtype of type 'String' in type cast
+```
+
+`deep_pick` shows the exact location where parsing failed, making it easy to report errors to the API team.
+
+Notice the distinction between "absent" and "null" when you see such errors.
+- `"absent"` means the key isn't found in a Map or a List has no item at the requested index
+- `"null"` means the value at that position is actually `null`
+
+```dart
+final milestoneCreator = pick(json, 'milestone', 'creator', 'login').asStringOrThrow();
+
+// Unhandled exception:
+// PickException(
+//   required value at location "milestone" in pick(json, "milestone" (absent), "creator", "login") is absent. 
+//   Use asStringOrNull() when the value may be null at some point (String?).
+// )
+```
+
+### 4. Null by default, crash intentional
+
+Parsing objects from external systems isn't type-safe. 
+API changes happen, and it is up to the consumer to decide how to handle them.
+Consumer always have to assume the worst, such as missing values.
+
+It's so easy to accidentally cast a value to `String` in the happy path instead of `String?` accounting for all possible cases.
 Easy to write, easy to miss in code reviews.
-Forgetting that `null` could be a valid return type results in:
+
+Forgetting that `null` could be a valid return type results in a type error:
 
 ```dart
 json?['milestone']?['creator']?['login'] as String;
@@ -105,32 +139,22 @@ json?['milestone']?['creator']?['login'] as String;
 // type 'Null' is not a subtype of type 'String' in type cast
 ``` 
 
-With `deep_pick`, all methods have `null` in mind.
+With `deep_pick`, all casting methods have `null` in mind.
 For each type you have to choose between at least two ways to deal with `null`.
 
 ```dart
 pick(json, ...).asStringOrNull();
 pick(json, ...).asStringOrThrow();
+
+pick(json, ...).asBoolOrFalse();
+pick(json, ...).asListOrNull(SomeClass.fromPick);
 ```
 
-Having "throw" and "null" in the method name, clearly indicates about the possible outcome in case the values couldn't be picked.
+Having "throw" and "null" in the method name, clearly indicates the possible outcome in case the values couldn't be picked.
+Throwing is not a bad habit, some properties are essential for the business logic.
+But throwing should be done intentional.
 
-### 3. Useful error message
-
-```dart
-final milestoneCreator = json?['milestone']?['creator']?['login'] as String;
-
-// Unhandled exception:
-// type 'Null' is not a subtype of type 'String' in type cast
-```
-```dart
-final milestoneCreator = pick(json, 'milestone', 'creator', 'login').asStringOrThrow();
-
-// Unhandled exception:
-// PickException(value at location pick(json, "milestone", "creator", "login") is null and not a String. Use asStringOrNull() when null is a valid value (String?))
-```
-
-### 4. Map objects with let
+### 5. Map Objects with let
 
 Even with the new `?[]` operator, mapping that value to a new Object can't be done in a single line
 

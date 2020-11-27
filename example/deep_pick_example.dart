@@ -24,20 +24,13 @@ void main() {
 }
 ''');
 
-  final firstT = pick(json, 'shoes', 1, 'typo', 0).asStringOrThrow();
-
-  // final milestoneCreator = json?['milestone']?['creator']?['login'] as String;
-  final milestoneCreator = pick(json, 'milestone', 'creator', 'login').asStringOrThrow();
-  print(milestoneCreator);
-
   // pick a value deep down the json structure
   final firstTag = pick(json, 'shoes', 1, 'tags', 0).asStringOrThrow();
   print(firstTag); // adidas
 
-
-  final firstTag2 = json['shoes']?[23]?['id'] as String?;
+  // The unsafe vanilla way
+  final firstTag2 = json['shoes']?[1]?['tags'][0] as String?;
   print(firstTag2); // adidas
-
 
   // fallback to null if it couldn't be found
   final manufacturer = pick(json, 'shoes', 0, 'manufacturer').asStringOrNull();
