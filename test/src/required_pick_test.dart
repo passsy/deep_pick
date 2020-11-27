@@ -70,10 +70,10 @@ void main() {
       ];
 
       final level1Pick = pick(data, 0).required();
-      expect(level1Pick.path, [0]);
+      expect(level1Pick.fullPath, [0]);
 
       final level2Pick = level1Pick.call('name');
-      expect(level2Pick.path, [0, 'name']);
+      expect(level2Pick.fullPath, [0, 'name']);
     });
 
     test('asMap()', () {
@@ -132,7 +132,7 @@ void main() {
             (e) => e.toString(),
             'message',
             stringContainsInOrder(
-                ['pick(json, "unknownKey")', 'null', 'Map<String, bool>']))),
+                ['pick(json, "unknownKey" (absent))', 'null', 'Map<String, bool>']))),
       );
     });
 
@@ -233,7 +233,7 @@ void main() {
               .let((pick) => Person.fromJson(pick)),
           Person(name: 'John Snow'));
       expect(() => nullPick().required().let((pick) => Person.fromJson(pick)),
-          throwsA(pickException(containing: ['unknownKey', 'null'])));
+          throwsA(pickException(containing: ['unknownKey', 'absent'])));
     });
 
     test('asList(Pick -> T)', () {

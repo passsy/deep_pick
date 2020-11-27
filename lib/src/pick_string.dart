@@ -16,7 +16,7 @@ extension StringPick on RequiredPick {
     }
     if (value is List || value is Map) {
       throw PickException(
-          'value at location ${location()} is of type ${value.runtimeType}. '
+          'value at location ${location(false)} is of type ${value.runtimeType}. '
           'Drill further down to a value which is not a List or Map. '
           'value: $value');
     }
@@ -31,7 +31,7 @@ extension NullableStringPick on Pick {
   String asStringOrThrow() {
     if (value == null) {
       throw PickException(
-          'value at location ${location()} is null and not a String. '
+          'value at location ${location(isAbsent())} is null and not a String. '
           'Use asStringOrNull() when null is a valid value (String?)');
     }
     return required().asString();

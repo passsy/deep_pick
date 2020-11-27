@@ -17,7 +17,8 @@ void main() {
        "id": "532",
        "name": "adidas Ultraboost",
        "manufacturer": "adidas",
-       "tags": ["adidas", "ImpossibleIsNothing"]
+       "tags": ["adidas", "ImpossibleIsNothing"],
+       "price": null
      }
   ]
 }
@@ -33,7 +34,7 @@ void main() {
   print(firstTag); // adidas
 
 
-  final firstTag2 = json['shoes']?[1]?['id'] as String?;
+  final firstTag2 = json['shoes']?[23]?['id'] as String?;
   print(firstTag2); // adidas
 
 
@@ -83,6 +84,15 @@ void main() {
       .withContext('newApi', true)
       .asListOrEmpty((p) => Shoe.fromPick(p));
   print(newShoes);
+
+  // access value out of range
+  final puma = pick(
+    json,
+    'shoes',
+    1,
+  );
+  print(puma.isAbsent()); // true;
+  print(puma.value); // null
 }
 
 /// A data class representing a shoe model
@@ -94,11 +104,13 @@ class Shoe {
     required this.name,
     this.manufacturer,
     required this.tags,
+    required this.price,
   });
 
   factory Shoe.fromPick(RequiredPick pick) {
     // read context API
     final newApi = pick.fromContext('newApi').asBoolOrFalse();
+    final pricePick = pick('price');
     return Shoe(
       id: pick('id').required().asString(),
       name: pick('name').required().asString(),
@@ -107,6 +119,11 @@ class Shoe {
           ? pick('manufacturer').required().asString()
           : pick('manufacturer').asStringOrNull(),
       tags: pick('tags').asListOrEmpty((it) => it.asString()),
+      price: () {
+        // when server doesn't send the price field the shoe is not available
+        if (pricePick.isAbsent()) return 'Not for sale';
+        return pricePick.asStringOrNull() ?? 'Price available soon';
+      }(),
     );
   }
 
@@ -122,9 +139,12 @@ class Shoe {
   /// never null, falls back to empty list
   final List<String> tags;
 
+  /// what to display as price
+  final String price;
+
   @override
   String toString() {
-    return 'Shoe{id: $id, name: $name, tags: $tags}';
+    return 'Shoe{id: $id, name: "$name", price: "$price", tags: $tags}';
   }
 
   @override

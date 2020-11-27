@@ -26,9 +26,9 @@ Pick pick(
 
 Pick _drillDown(dynamic json, List<dynamic> selectors,
     {List<dynamic> parentPath = const [], Map<String, dynamic>? context}) {
-  final newPath = [...parentPath, ...selectors];
+  final fullPath = [...parentPath, ...selectors];
   // no data, nothing to pick
-  if (json == null) return Pick(null, path: newPath, context: context);
+  // if (json == null) return Pick(null, fullPath: fullPath, context: context);
 
   final path = <dynamic>[];
   dynamic data = json;
@@ -38,22 +38,31 @@ Pick _drillDown(dynamic json, List<dynamic> selectors,
       if (selector is int) {
         try {
           data = data[selector];
+          if (data == null) {
+            return Pick(null, fullPath: fullPath, context: context);
+          }
+          // found a value, continue drill down
           continue;
-        } catch (_) {
+          // ignore: avoid_catching_errors
+        } on RangeError catch (_) {
           // out of range, value not found at index selector
-          return Pick(null, path: newPath, context: context);
+          return Pick.absent(path.length - 1,
+              fullPath: fullPath, context: context);
         }
       }
     }
     if (data is Map) {
-      final picked = data[selector];
-      if (picked != null) {
-        data = picked;
-        continue;
-      } else {
-        // no value mapped to selector
-        return Pick(null, path: newPath, context: context);
+      if (!data.containsKey(selector)) {
+        return Pick.absent(path.length - 1,
+            fullPath: fullPath, context: context);
       }
+      final picked = data[selector];
+      if (picked == null) {
+        // no value mapped to selector
+        return Pick(null, fullPath: fullPath, context: context);
+      }
+      data = picked;
+      continue;
     }
     if (data is Set && selector is int) {
       throw PickException(
@@ -61,21 +70,62 @@ Pick _drillDown(dynamic json, List<dynamic> selectors,
           "It's not possible to pick a value by using a index ($selector)");
     }
     // can't drill down any more to find the exact location.
-    return Pick(null, path: newPath, context: context);
+    return Pick.absent(path.length - 1, fullPath: fullPath, context: context);
   }
-  return Pick(data, path: newPath, context: context);
+  return Pick(data, fullPath: fullPath, context: context);
 }
 
 /// A picked object holding the [value] and giving access to useful parsing functions
 class Pick with PickLocation, PickContext<Pick> {
-  Pick(this.value, {this.path = const [], Map<String, dynamic>? context})
-      : _context = context != null ? Map.of(context) : {};
+  Pick(
+    this.value, {
+    this.fullPath = const [],
+    Map<String, dynamic>? context,
+  }) : _context = context != null ? Map.of(context) : {};
+
+  Pick.absent(
+    int missingValueAtIndex, {
+    this.fullPath = const [],
+    Map<String, dynamic>? context,
+  })  : _missingValueAtIndex = missingValueAtIndex,
+        _context = context != null ? Map.of(context) : {};
 
   /// The picked value, might be `null`
   Object? value;
 
+  /// Allows the distinction between the actual [value] `null` and the value not
+  /// being available
+  ///
+  /// Usually it doesn't matter, but for rare cases it does this method can be
+  /// used to check if a [Map] contains `null` for a key or the key being absent
+  ///
+  /// Not available could mean:
+  /// - Accessing a key which doesn't exists in a
+  /// - Reading the value from [List] when the index is greater than the length
+  /// - Trying to access a key in a [Map] but the found data structure is a [List]
+  ///
+  /// ```
+  /// pick({"a": null}, "a").isAbsent(); // false
+  /// pick({"a": null}, "b").isAbsent(); // true
+  ///
+  /// pick([null], 0).isAbsent(); // false
+  /// pick([], 2).isAbsent(); // true
+  ///
+  /// pick([], "a").isAbsent(); // true
+  /// ```
+  bool isAbsent() => missingValueAtIndex != null;
+
   @override
-  List<dynamic> path;
+  List<dynamic> fullPath;
+
+  @override
+  List get path =>
+      fullPath.take(_missingValueAtIndex ?? fullPath.length).toList();
+
+  /// When the picked value is unavailable ([Pick..absent]) the index in
+  /// [fullPath] which couldn't be found
+  int? get missingValueAtIndex => _missingValueAtIndex;
+  int? _missingValueAtIndex;
 
   // Pick even further
   Pick call([
@@ -96,7 +146,7 @@ class Pick with PickLocation, PickContext<Pick> {
             .where((dynamic it) => it != null)
             .toList(growable: false);
 
-    return _drillDown(value, selectors, parentPath: path, context: context);
+    return _drillDown(value, selectors, parentPath: fullPath, context: context);
   }
 
   @override
@@ -109,14 +159,15 @@ class Pick with PickLocation, PickContext<Pick> {
   RequiredPick required() {
     final value = this.value;
     if (value == null) {
-      throw PickException('required value at location ${location()} is null');
+      throw PickException('required value at location ${location(isAbsent())} '
+          'is ${isAbsent() ? 'absent' : 'null'}');
     }
-    return RequiredPick(value, path: path, context: _context);
+    return RequiredPick(value, path: fullPath, context: _context);
   }
 
   @override
   @Deprecated('Use asStringOrNull() to pick a String value')
-  String toString() => 'Pick(value=$value, path=$path)';
+  String toString() => 'Pick(value=$value, path=$fullPath)';
 
   @override
   Pick get _builder => this;
@@ -124,14 +175,18 @@ class Pick with PickLocation, PickContext<Pick> {
 
 class RequiredPick with PickLocation, PickContext<RequiredPick> {
   RequiredPick(this.value,
-      {this.path = const [], Map<String, dynamic>? context})
-      : _context = context != null ? Map.of(context) : {};
+      {List<dynamic> path = const [], Map<String, dynamic>? context})
+      : _context = context != null ? Map.of(context) : {},
+        fullPath = path;
 
   /// The picked value, never `null`
   Object value;
 
   @override
-  List<dynamic> path;
+  List<dynamic> fullPath;
+
+  @override
+  List get path => fullPath;
 
   // Pick even further
   Pick call([
@@ -152,7 +207,7 @@ class RequiredPick with PickLocation, PickContext<RequiredPick> {
             .where((dynamic it) => it != null)
             .toList(growable: false);
 
-    return _drillDown(value, selectors, parentPath: path, context: context);
+    return _drillDown(value, selectors, parentPath: fullPath, context: context);
   }
 
   @override
@@ -161,13 +216,13 @@ class RequiredPick with PickLocation, PickContext<RequiredPick> {
 
   @override
   @Deprecated('Use asStringOrNull() to pick a String value')
-  String toString() => 'RequiredPick(value=$value, path=$path)';
+  String toString() => 'RequiredPick(value=$value, path=$fullPath)';
 
   @override
   RequiredPick get _builder => this;
 
   /// Converts the picked value to a nullable type [Pick]
-  Pick nullable() => Pick(value, path: path, context: context);
+  Pick nullable() => Pick(value, fullPath: fullPath, context: context);
 }
 
 class PickException implements Exception {
@@ -262,16 +317,41 @@ mixin PickContext<T> {
 }
 
 mixin PickLocation {
-  /// The path to [value] inside of the object
+  /// The full path to [value] inside of the object
   ///
   /// I.e. ['shoes', 0, 'name']
+  List<dynamic> get fullPath;
+
+  /// The path segments containing non-null values
+  ///
+  /// I.e. ['shoes'] for an empty shoes list
   List<dynamic> get path;
 
-  String location() {
-    final access = path.map((it) {
-      if (it is int) return it;
-      return '"$it"';
-    }).join(', ');
-    return "pick(json, $access)";
+  String location(bool isAbsent) {
+    final access = <String>[];
+    for (var i = 0; i < fullPath.length; i++) {
+      final full = fullPath[i];
+      final part = path.length > i ? path[i] : null;
+      final nullPart = () {
+        if (part == null) {
+          return ' (absent)';
+        }
+        return '';
+      }();
+
+      if (full is int) {
+        access.add('$full$nullPart');
+      } else {
+        access.add('"$full"$nullPart');
+      }
+    }
+
+    final firstMissing = fullPath.isEmpty
+        ? '<root>'
+        : fullPath[path.isEmpty ? 0 : path.length - 1];
+    final formattedMissing =
+        firstMissing is int ? 'index $firstMissing' : '"$firstMissing"';
+
+    return "$formattedMissing in pick(json, ${access.join(', ')})";
   }
 }

@@ -5,14 +5,58 @@ void main() {
   group('Pick', () {
     test('pick from null returns null Pick with full location', () {
       final p = pick(null, 'some', 'path');
-      expect(p.path, ['some', 'path']);
+      expect(p.fullPath, ['some', 'path']);
       expect(p.value, null);
+    });
+
+    test('required pick from null show good error message', () {
+      expect(
+          () => pick(null).required(),
+          throwsA(isA<PickException>().having(
+            (e) => e.message,
+            'message',
+            contains(
+                'required value at location "<root>" in pick(json, ) is null'),
+          )));
+    });
+
+    test('pick null but require - show good error message', () {
+      expect(
+          () => pick([null], 0).required(),
+          throwsA(isA<PickException>().having(
+            (e) => e.message,
+            'message',
+            contains(
+                'required value at location index 0 in pick(json, 0) is null'),
+          )));
+    });
+
+    test('required pick from null with args show good error message', () {
+      expect(
+          () => pick(null, 'some', 'path').required(),
+          throwsA(isA<PickException>().having(
+            (e) => e.message,
+            'message',
+            contains(
+                'required value at location "some" in pick(json, "some" (absent), "path" (absent)) is absent'),
+          )));
+    });
+
+    test('not matching required pick show good error message', () {
+      expect(
+          () => pick('a', 'some', 'path').required(),
+          throwsA(isA<PickException>().having(
+            (e) => e.message,
+            'message',
+            contains(
+                'required value at location "some" in pick(json, "some" (absent), "path" (absent)) is absent'),
+          )));
     });
 
     test('toString() prints value and path', () {
       expect(
           // ignore: deprecated_member_use_from_same_package
-          Pick('a', path: ['b', 0]).toString(),
+          Pick('a', fullPath: ['b', 0]).toString(),
           'Pick(value=a, path=[b, 0])');
     });
 
@@ -46,7 +90,7 @@ void main() {
 
     test('pick deeper than data structure returns null pick', () {
       final p = pick([], 'a', 'b');
-      expect(p.path, ['a', 'b']);
+      expect(p.fullPath, ['a', 'b']);
       expect(p.value, isNull);
     });
 
@@ -57,10 +101,10 @@ void main() {
       ];
 
       final level1Pick = pick(data, 0);
-      expect(level1Pick.path, [0]);
+      expect(level1Pick.fullPath, [0]);
 
       final level2Pick = level1Pick.call('name');
-      expect(level2Pick.path, [0, 'name']);
+      expect(level2Pick.fullPath, [0, 'name']);
     });
   });
 
@@ -269,7 +313,8 @@ void main() {
           throwsA(isA<PickException>().having(
             (e) => e.message,
             'message',
-            contains('required value at location pick(json, "name") is null'),
+            contains(
+                'required value at location "name" in pick(json, "name" (absent)) is absent'),
           )));
       expect(
           () => pick({'asdf': 'John Snow'})
@@ -277,7 +322,7 @@ void main() {
           throwsA(isA<PickException>().having(
             (e) => e.message,
             'message',
-            contains('required value at location pick(json, "name") is null'),
+            contains('required value at location "name" in pick(json, "name" (absent)) is absent'),
           )));
     });
 
@@ -305,7 +350,7 @@ void main() {
               (e) => e.message,
               'message',
               contains(
-                  'required value at location pick(json, 2, "name") is null'))));
+                  'required value at location index 2 in pick(json, 2 (absent), "name" (absent)) is absent'))));
     });
 
     test('asListOrNull(Pick -> T)', () {
@@ -332,22 +377,50 @@ void main() {
               (e) => e.message,
               'message',
               contains(
-                  'required value at location pick(json, 2, "name") is null'))));
+                  'required value at location index 2 in pick(json, 2 (absent), "name" (absent)) is absent'))));
     });
   });
 
-  group('invalid pick', () {
+  group('isAbsent', () {
     test('out of range in list returns null pick', () {
       final data = [
         {'name': 'John Snow'},
         {'name': 'Daenerys Targaryen'},
       ];
       expect(pick(data, 10).value, isNull);
+      expect(pick(data, 10).isAbsent(), true);
     });
 
     test('unknown property in map returns null', () {
       final data = {'name': 'John Snow'};
       expect(pick(data, 'birthday').value, isNull);
+      expect(pick(data, 'birthday').isAbsent(), true);
+    });
+
+    test('documentation example Map', () {
+      final pa = pick({'a': null}, 'a');
+      expect(pa.value, isNull);
+      expect(pa.isAbsent(), false);
+
+      final pb = pick({'a': null}, 'b');
+      expect(pb.value, isNull);
+      expect(pb.isAbsent(), true);
+    });
+
+    test('documentation example List', () {
+      final p0 = pick([null], 0);
+      expect(p0.value, isNull);
+      expect(p0.isAbsent(), false);
+
+      final p2 = pick([], 2);
+      expect(p2.value, isNull);
+      expect(p2.isAbsent(), true);
+    });
+
+    test('Map key for list', () {
+      final p = pick([], 'a');
+      expect(p.value, isNull);
+      expect(p.isAbsent(), true);
     });
   });
 

@@ -76,6 +76,22 @@ pick(42).asDoubleOrNull(); // 42.0
 pick('true').asBoolOrFalse(); // true
 ```
 
+### 2. RangeError
+Even using the `?[]` operator doesn't help when accessing a list item by `index` greater than the list length 
+
+```dart
+json['shoes']?[23]?['id'] as String?;
+
+// Unhandled exception:
+// RangeError (index): Invalid value: Not in inclusive range 0..1: 23
+```
+
+`pick` return `null` in that case
+
+```dart
+pick(json, 'shoes', 23, 'id').asStringOrNull(); // null
+```
+
 ### 2. Nullable by default
 
 It's so easy to accidentally cast a value to `String` instead of `String?`.

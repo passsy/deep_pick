@@ -24,7 +24,7 @@ extension NullableLet on Pick {
   R letOrThrow<R>(R Function(RequiredPick pick) block) {
     if (value == null) {
       throw PickException(
-          'value at location ${location()} is null and not a String. '
+          'value at location ${location(isAbsent())} is null and not a String. '
           'Use asStringOrNull() when null is a valid value (String?)');
     }
     return block(required());

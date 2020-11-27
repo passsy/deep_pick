@@ -19,7 +19,7 @@ extension IntPick on RequiredPick {
       }
     }
     throw PickException(
-        "value $value of type ${value.runtimeType} at location ${location()} can't be casted to int");
+        "value $value of type ${value.runtimeType} at location ${location(false)} can't be casted to int");
   }
 }
 
@@ -30,7 +30,7 @@ extension NullableIntPick on Pick {
   int asIntOrThrow() {
     if (value == null) {
       throw PickException(
-          'value at location ${location()} is null and not an instance of int');
+          'value at location ${location(isAbsent())} is null and not an instance of int');
     }
     return required().asInt();
   }
