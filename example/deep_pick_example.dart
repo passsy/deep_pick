@@ -24,7 +24,8 @@ void main() {
 ''');
 
 
-  final milestoneCreator = json?['milestone']?['creator']?['login'] as String?;
+  // final milestoneCreator = json?['milestone']?['creator']?['login'] as String;
+  final milestoneCreator = pick(json, 'milestone', 'creator', 'login').asStringOrThrow();
   print(milestoneCreator);
 
   // pick a value deep down the json structure

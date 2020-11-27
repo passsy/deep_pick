@@ -101,6 +101,19 @@ Having "throw" and "null" in the method name, clearly indicates about the possib
 
 ### 3. Useful error message
 
+```dart
+final milestoneCreator = json?['milestone']?['creator']?['login'] as String;
+
+// Unhandled exception:
+// type 'Null' is not a subtype of type 'String' in type cast
+```
+```dart
+final milestoneCreator = pick(json, 'milestone', 'creator', 'login').asStringOrThrow();
+
+// Unhandled exception:
+// PickException(value at location pick(json, "milestone", "creator", "login") is null and not a String. Use asStringOrNull() when null is a valid value (String?))
+```
+
 ### 4. Map objects with let
 
 Even with the new `?[]` operator, mapping that value to a new Object can't be done in a single line
@@ -229,7 +242,7 @@ pick(json)('shoes')(1)('tags')(0).asStringOrThrow();
 
 #### whenNull
 
-To simplify the API the `asList` functions ignore `null` values in the `List`.
+To simplify the API the `asList` functions ignores `null` values in the `List`.
 This allows the usage of `RequiredPick` over `Pick` in the `map` function.
 
 When `null` is important for you logic you can process the `null` value by providing an optional `whenNull` mapper function.
