@@ -32,7 +32,7 @@ extension NullableStringPick on Pick {
     if (value == null) {
       throw PickException(
           'value at location ${location()} is null and not a String. '
-              'Use asStringOrNull() when null is a valid value (String?)');
+          'Use asStringOrNull() when null is a valid value (String?)');
     }
     return required().asString();
   }

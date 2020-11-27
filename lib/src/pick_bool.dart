@@ -16,7 +16,6 @@ extension BoolPick on RequiredPick {
 }
 
 extension NullableBoolPick on Pick {
-
   @Deprecated('Use .asBoolOrThrow()')
   bool Function() get asBool => asBoolOrThrow;
 

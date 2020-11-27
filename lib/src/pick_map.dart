@@ -15,14 +15,13 @@ extension MapPick on RequiredPick {
 }
 
 extension NullableMapPick on Pick {
-
   @Deprecated('Use .asMapOrThrow()')
   Map<RK, RV> Function<RK, RV>() get asMap => asMapOrThrow;
 
   Map<RK, RV> asMapOrThrow<RK, RV>() {
     if (value == null) {
       throw PickException(
-          'value at location ${location()} is null and not an instance of Map<dynamic, dynamic>');
+          'value at location ${location()} is null and not an instance of Map<$RK, $RV>');
     }
     return required().asMap();
   }

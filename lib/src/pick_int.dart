@@ -24,7 +24,6 @@ extension IntPick on RequiredPick {
 }
 
 extension NullableIntPick on Pick {
-
   @Deprecated('Use .asIntOrThrow()')
   int Function() get asInt => asIntOrThrow;
 

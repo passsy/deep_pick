@@ -88,7 +88,7 @@ void main() {
               containing: ['unknownKey', 'null', 'Map<dynamic, dynamic>'])));
     });
 
-    test('asMap() throws for cast error', () {
+    test('asMapOrThrow() throws for cast error', () {
       final dynamic data = {
         'a': {'some': 'value'}
       };
@@ -123,6 +123,17 @@ void main() {
           ),
         );
       }
+    });
+
+    test('asMapOrThrow() throws when null', () {
+      expect(
+        () => nullPick().asMapOrThrow<String, bool>(),
+        throwsA(const TypeMatcher<PickException>().having(
+            (e) => e.toString(),
+            'message',
+            stringContainsInOrder(
+                ['pick(json, "unknownKey")', 'null', 'Map<String, bool>']))),
+      );
     });
 
     test('asList()', () {

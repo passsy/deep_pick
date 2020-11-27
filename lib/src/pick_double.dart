@@ -21,7 +21,6 @@ extension DoublePick on RequiredPick {
 }
 
 extension NullableDoublePick on Pick {
-
   @Deprecated('Use .asDoubleOrThrow()')
   double Function() get asDouble => asDoubleOrThrow;
 

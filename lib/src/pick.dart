@@ -166,7 +166,8 @@ class RequiredPick with PickLocation, PickContext<RequiredPick> {
   @override
   RequiredPick get _builder => this;
 
-  Pick toPick() => Pick(value, path: path, context: context);
+  /// Converts the picked value to a nullable type [Pick]
+  Pick nullable() => Pick(value, path: path, context: context);
 }
 
 class PickException implements Exception {
