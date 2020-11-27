@@ -72,7 +72,7 @@ Pick _drillDown(dynamic json, List<dynamic> selectors,
   return Pick(data, fullPath: fullPath, context: context);
 }
 
-/// A picked object holding the [value] and giving access to useful parsing functions
+/// A picked object holding the [value] (may be null) and giving access to useful parsing functions
 class Pick with PickLocation, PickContext<Pick> {
   Pick(
     this.value, {
@@ -172,6 +172,7 @@ class Pick with PickLocation, PickContext<Pick> {
   Pick get _builder => this;
 }
 
+/// A picked object holding the [value] (never null) and giving access to useful parsing functions
 class RequiredPick with PickLocation, PickContext<RequiredPick> {
   RequiredPick(this.value,
       {List<dynamic> path = const [], Map<String, dynamic>? context})
