@@ -309,14 +309,53 @@ pick(json).asMapOrEmpty<String, dynamic>();
 
 ## Custom parsers
 
+Parsers in `deep_pick` are based on extension functions on the classes `Pick` and `RequiredPick`.
+This makes it flexible and easy for 3rd-party types to add custom parers.
+
+This example parses a `int` as Firestore `Timestamp`. 
+```dart
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:deep_pick/src/pick.dart';
+
+extension TimestampPick on RequiredPick {
+  Timestamp asFirestoreTimeStamp() {
+    final value = this.value;
+    if (value is Timestamp) {
+      return value;
+    }
+    if (value is int) {
+      return Timestamp.fromMillisecondsSinceEpoch(value);
+    }
+    throw PickException(
+        "value $value of type ${value.runtimeType} at location ${location()} can't be casted to Timestamp");
+  }
+}
+
+extension NullableTimestampPick on Pick {
+  Timestamp asFirestoreTimeStampOrThrow() {
+    return required().asFirestoreTimeStamp();
+  }
+
+  Timestamp? asFirestoreTimeStampOrNull() {
+    if (value == null) return null;
+    try {
+      return required().asFirestoreTimeStamp();
+    } catch (_) {
+      return null;
+    }
+  }
+}
+```
+
 ### let
 
-### extension functions
+When using a custom type in only a few places it might be overkill to create all the extensions.
+For those cases use the [let function](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/let.html) borrowed from Kotlin to creating neat one-liners.
 
-
-
-## required() and toPick() 
-
+```dart
+final UserId id = pick(json, 'id').letOrNull((it) => UserId(it.asString()));
+final Timestamp timestamp = pick(json, 'time').letOrThrow((it) => Timestamp.fromMillisecondsSinceEpoch(it.asInt()));
+```
 
 ## Examples
 
