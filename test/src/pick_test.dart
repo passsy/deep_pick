@@ -322,7 +322,8 @@ void main() {
           throwsA(isA<PickException>().having(
             (e) => e.message,
             'message',
-            contains('required value at location "name" in pick(json, "name" (absent)) is absent'),
+            contains(
+                'required value at location "name" in pick(json, "name" (absent)) is absent'),
           )));
     });
 

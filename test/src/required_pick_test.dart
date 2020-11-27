@@ -131,8 +131,11 @@ void main() {
         throwsA(const TypeMatcher<PickException>().having(
             (e) => e.toString(),
             'message',
-            stringContainsInOrder(
-                ['pick(json, "unknownKey" (absent))', 'null', 'Map<String, bool>']))),
+            stringContainsInOrder([
+              'pick(json, "unknownKey" (absent))',
+              'null',
+              'Map<String, bool>'
+            ]))),
       );
     });
 

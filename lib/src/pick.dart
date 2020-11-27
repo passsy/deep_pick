@@ -27,9 +27,6 @@ Pick pick(
 Pick _drillDown(dynamic json, List<dynamic> selectors,
     {List<dynamic> parentPath = const [], Map<String, dynamic>? context}) {
   final fullPath = [...parentPath, ...selectors];
-  // no data, nothing to pick
-  // if (json == null) return Pick(null, fullPath: fullPath, context: context);
-
   final path = <dynamic>[];
   dynamic data = json;
   for (final selector in selectors) {
