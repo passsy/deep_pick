@@ -33,7 +33,7 @@ void main() {
       expect(
           () => nullPick().asStringOrThrow(),
           throwsA(pickException(
-              containing: ['unknownKey', 'null', 'String', 'asStringOrNull'])));
+              containing: ['unknownKey', 'absent', 'asStringOrNull'])));
     });
 
     test("asString() doesn't transform Maps and Lists with toString", () {

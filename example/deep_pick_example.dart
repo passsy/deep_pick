@@ -24,6 +24,7 @@ void main() {
 }
 ''');
 
+  final firstT = pick(json, 'shoes', 1, 'typo', 0).asStringOrThrow();
 
   // final milestoneCreator = json?['milestone']?['creator']?['login'] as String;
   final milestoneCreator = pick(json, 'milestone', 'creator', 'login').asStringOrThrow();

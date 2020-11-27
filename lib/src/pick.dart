@@ -159,8 +159,10 @@ class Pick with PickLocation, PickContext<Pick> {
   RequiredPick required() {
     final value = this.value;
     if (value == null) {
+      final more = fromContext(requiredPickErrorHintKey).value as String?;
+      final moreSegment = more == null ? '' : ' $more';
       throw PickException('required value at location ${location()} '
-          'is ${isAbsent() ? 'absent' : 'null'}');
+          'is ${isAbsent() ? 'absent' : 'null'}.$moreSegment');
     }
     return RequiredPick(value, path: fullPath, context: _context);
   }
@@ -224,6 +226,10 @@ class RequiredPick with PickLocation, PickContext<RequiredPick> {
   /// Converts the picked value to a nullable type [Pick]
   Pick nullable() => Pick(value, fullPath: fullPath, context: context);
 }
+
+/// Used internally with [PickContext.withContext] to add additional information
+/// to the error message
+const requiredPickErrorHintKey = '_required_pick_error_hint';
 
 class PickException implements Exception {
   PickException(this.message);
@@ -329,11 +335,21 @@ mixin PickLocation {
 
   String location() {
     final access = <String>[];
+    final path = this.path;
+    final fullPath = this.fullPath;
+    final isSet = path.length == fullPath.length;
+    var foundNullPart = false;
     for (var i = 0; i < fullPath.length; i++) {
       final full = fullPath[i];
       final part = path.length > i ? path[i] : null;
       final nullPart = () {
+        if (foundNullPart) return '';
+        if (isSet && i + 1 == fullPath.length) {
+          foundNullPart = true;
+          return ' (null)';
+        }
         if (part == null) {
+          foundNullPart = true;
           return ' (absent)';
         }
         return '';
@@ -350,8 +366,10 @@ mixin PickLocation {
         ? '<root>'
         : fullPath[path.isEmpty ? 0 : path.length - 1];
     final formattedMissing =
-        firstMissing is int ? 'index $firstMissing' : '"$firstMissing"';
+        firstMissing is int ? 'list index $firstMissing' : '"$firstMissing"';
 
-    return "$formattedMissing in pick(json, ${access.join(', ')})";
+    final params = access.isNotEmpty ? ', ${access.join(', ')}' : '';
+    final root = access.isEmpty ? '<root>' : 'json';
+    return '$formattedMissing in pick($root$params)';
   }
 }

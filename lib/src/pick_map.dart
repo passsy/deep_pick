@@ -19,10 +19,8 @@ extension NullableMapPick on Pick {
   Map<RK, RV> Function<RK, RV>() get asMap => asMapOrThrow;
 
   Map<RK, RV> asMapOrThrow<RK, RV>() {
-    if (value == null) {
-      throw PickException(
-          'value at location ${location()} is null and not an instance of Map<$RK, $RV>');
-    }
+    withContext(requiredPickErrorHintKey,
+        'Use asMapOrEmpty() when the value may be null at some point (Map<$RK, $RV>?).');
     return required().asMap();
   }
 

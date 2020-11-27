@@ -16,7 +16,7 @@ void main() {
             (e) => e.message,
             'message',
             contains(
-                'required value at location "<root>" in pick(json, ) is null'),
+                'required value at location "<root>" in pick(<root>) is null'),
           )));
     });
 
@@ -27,7 +27,7 @@ void main() {
             (e) => e.message,
             'message',
             contains(
-                'required value at location index 0 in pick(json, 0) is null'),
+                'required value at location list index 0 in pick(json, 0 (null)) is null'),
           )));
     });
 
@@ -38,7 +38,7 @@ void main() {
             (e) => e.message,
             'message',
             contains(
-                'required value at location "some" in pick(json, "some" (absent), "path" (absent)) is absent'),
+                'required value at location "some" in pick(json, "some" (absent), "path") is absent'),
           )));
     });
 
@@ -49,7 +49,7 @@ void main() {
             (e) => e.message,
             'message',
             contains(
-                'required value at location "some" in pick(json, "some" (absent), "path" (absent)) is absent'),
+                'required value at location "some" in pick(json, "some" (absent), "path") is absent'),
           )));
     });
 
@@ -350,7 +350,7 @@ void main() {
               (e) => e.message,
               'message',
               contains(
-                  'required value at location index 2 in pick(json, 2 (absent), "name" (absent)) is absent'))));
+                  'required value at location list index 1 in pick(json, 1 (absent), "name") is absent'))));
     });
 
     test('asListOrNull(Pick -> T)', () {
@@ -377,7 +377,7 @@ void main() {
               (e) => e.message,
               'message',
               contains(
-                  'required value at location index 2 in pick(json, 2 (absent), "name" (absent)) is absent'))));
+                  'required value at location list index 1 in pick(json, 1 (absent), "name") is absent'))));
     });
   });
 

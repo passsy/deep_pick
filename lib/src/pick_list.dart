@@ -13,7 +13,7 @@ extension ListPick on RequiredPick {
         index++;
         if (item != null) {
           final picked = RequiredPick(item as Object,
-              path: [...fullPath, index++], context: context);
+              path: [...fullPath, index], context: context);
           result.add(map(picked));
           continue;
         }
@@ -45,10 +45,8 @@ extension NullableListPick on Pick {
   }
 
   List<T> asListOrThrow<T>(T Function(RequiredPick) map) {
-    if (value == null) {
-      throw PickException(
-          'value at location ${location()} is null and not an instance of List<$T>');
-    }
+    withContext(requiredPickErrorHintKey,
+        'Use asListOrEmpty() when the value may be null at some point (List<$T>?).');
     return required().asList(map);
   }
 

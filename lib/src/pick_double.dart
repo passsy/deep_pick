@@ -25,10 +25,8 @@ extension NullableDoublePick on Pick {
   double Function() get asDouble => asDoubleOrThrow;
 
   double asDoubleOrThrow() {
-    if (value == null) {
-      throw PickException(
-          'value at location ${location()} is null and not an instance of double');
-    }
+    withContext(requiredPickErrorHintKey,
+        'Use asDoubleOrNull() when the value may be null at some point (double?).');
     return required().asDouble();
   }
 

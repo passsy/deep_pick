@@ -29,11 +29,8 @@ extension NullableStringPick on Pick {
   String Function() get asString => asStringOrThrow;
 
   String asStringOrThrow() {
-    if (value == null) {
-      throw PickException(
-          'value at location ${location()} is null and not a String. '
-          'Use asStringOrNull() when null is a valid value (String?)');
-    }
+    withContext(requiredPickErrorHintKey,
+        'Use asStringOrNull() when the value may be null at some point (String?).');
     return required().asString();
   }
 

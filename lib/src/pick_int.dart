@@ -28,10 +28,8 @@ extension NullableIntPick on Pick {
   int Function() get asInt => asIntOrThrow;
 
   int asIntOrThrow() {
-    if (value == null) {
-      throw PickException(
-          'value at location ${location()} is null and not an instance of int');
-    }
+    withContext(requiredPickErrorHintKey,
+        'Use asIntOrNull() when the value may be null at some point (int?).');
     return required().asInt();
   }
 

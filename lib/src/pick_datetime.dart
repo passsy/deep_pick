@@ -35,10 +35,8 @@ extension NullableDateTimePick on Pick {
   DateTime Function() get asDateTime => asDateTimeOrThrow;
 
   DateTime asDateTimeOrThrow() {
-    if (value == null) {
-      throw PickException(
-          'value at location ${location()} is null and not an instance of DateTime');
-    }
+    withContext(requiredPickErrorHintKey,
+        'Use asDateTimeOrNull() when the value may be null at some point (DateTime?).');
     return required().asDateTime();
   }
 

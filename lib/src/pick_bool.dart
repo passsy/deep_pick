@@ -20,10 +20,8 @@ extension NullableBoolPick on Pick {
   bool Function() get asBool => asBoolOrThrow;
 
   bool asBoolOrThrow() {
-    if (value == null) {
-      throw PickException(
-          'value at location ${location()} is null and not an instance of bool');
-    }
+    withContext(requiredPickErrorHintKey,
+        'Use asBoolOrNull() when the value may be null at some point (bool?).');
     return required().asBool();
   }
 
