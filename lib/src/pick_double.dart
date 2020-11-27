@@ -16,7 +16,7 @@ extension DoublePick on RequiredPick {
       }
     }
     throw PickException(
-        "value $value of type ${value.runtimeType} at location ${location(false)} can't be casted to double");
+        "value $value of type ${value.runtimeType} at location ${location()} can't be casted to double");
   }
 }
 
@@ -27,7 +27,7 @@ extension NullableDoublePick on Pick {
   double asDoubleOrThrow() {
     if (value == null) {
       throw PickException(
-          'value at location ${location(isAbsent())} is null and not an instance of double');
+          'value at location ${location()} is null and not an instance of double');
     }
     return required().asDouble();
   }

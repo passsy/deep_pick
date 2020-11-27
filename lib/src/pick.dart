@@ -159,7 +159,7 @@ class Pick with PickLocation, PickContext<Pick> {
   RequiredPick required() {
     final value = this.value;
     if (value == null) {
-      throw PickException('required value at location ${location(isAbsent())} '
+      throw PickException('required value at location ${location()} '
           'is ${isAbsent() ? 'absent' : 'null'}');
     }
     return RequiredPick(value, path: fullPath, context: _context);
@@ -327,7 +327,7 @@ mixin PickLocation {
   /// I.e. ['shoes'] for an empty shoes list
   List<dynamic> get path;
 
-  String location(bool isAbsent) {
+  String location() {
     final access = <String>[];
     for (var i = 0; i < fullPath.length; i++) {
       final full = fullPath[i];

@@ -26,7 +26,7 @@ extension DateTimePick on RequiredPick {
       }
     }
     throw PickException(
-        "value $value of type ${value.runtimeType} at location ${location(false)} can't be parsed as DateTime");
+        "value $value of type ${value.runtimeType} at location ${location()} can't be parsed as DateTime");
   }
 }
 
@@ -37,7 +37,7 @@ extension NullableDateTimePick on Pick {
   DateTime asDateTimeOrThrow() {
     if (value == null) {
       throw PickException(
-          'value at location ${location(isAbsent())} is null and not an instance of DateTime');
+          'value at location ${location()} is null and not an instance of DateTime');
     }
     return required().asDateTime();
   }

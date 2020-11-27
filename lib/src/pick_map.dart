@@ -10,7 +10,7 @@ extension MapPick on RequiredPick {
       return Map.of(view);
     }
     throw PickException(
-        "value $value of type ${value.runtimeType} at location ${location(false)} can't be casted to Map<dynamic, dynamic>");
+        "value $value of type ${value.runtimeType} at location ${location()} can't be casted to Map<dynamic, dynamic>");
   }
 }
 
@@ -21,7 +21,7 @@ extension NullableMapPick on Pick {
   Map<RK, RV> asMapOrThrow<RK, RV>() {
     if (value == null) {
       throw PickException(
-          'value at location ${location(isAbsent())} is null and not an instance of Map<$RK, $RV>');
+          'value at location ${location()} is null and not an instance of Map<$RK, $RV>');
     }
     return required().asMap();
   }

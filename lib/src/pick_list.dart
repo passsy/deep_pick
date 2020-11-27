@@ -27,14 +27,14 @@ extension ListPick on RequiredPick {
         } catch (e) {
           // ignore: avoid_print
           print(
-              'whenNull at location ${location(false)} index: $index crashed instead of returning a $T');
+              'whenNull at location ${location()} index: $index crashed instead of returning a $T');
           rethrow;
         }
       }
       return result;
     }
     throw PickException(
-        "value $value of type ${value.runtimeType} at location ${location(false)} can't be casted to List<dynamic>");
+        "value $value of type ${value.runtimeType} at location ${location()} can't be casted to List<dynamic>");
   }
 }
 
@@ -47,7 +47,7 @@ extension NullableListPick on Pick {
   List<T> asListOrThrow<T>(T Function(RequiredPick) map) {
     if (value == null) {
       throw PickException(
-          'value at location ${location(isAbsent())} is null and not an instance of List<$T>');
+          'value at location ${location()} is null and not an instance of List<$T>');
     }
     return required().asList(map);
   }
