@@ -72,12 +72,20 @@ Pick _drillDown(dynamic json, List<dynamic> selectors,
 
 /// A picked object holding the [value] and giving access to useful parsing functions
 class Pick with PickLocation, PickContext<Pick> {
+  /// Pick constructor when being able to drill down [path] all the way to reach
+  /// the value.
+  /// [value] may still be `null` but the structure was correct, therefore
+  /// [isAbsent] will always return `false`.
   Pick(
     this.value, {
     this.path = const [],
     Map<String, dynamic>? context,
   }) : _context = context != null ? Map.of(context) : {};
 
+  /// Pick of an absent value. While drilling down [path] the structure of the
+  /// data did not match the [path] and the value wasn't found.
+  ///
+  /// [value] will always return `null` and [isAbsent] always `true`.
   Pick.absent(
     int missingValueAtIndex, {
     this.path = const [],
