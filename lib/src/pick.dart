@@ -27,9 +27,6 @@ Pick pick(
 Pick _drillDown(dynamic json, List<dynamic> selectors,
     {List<dynamic> parentPath = const [], Map<String, dynamic>? context}) {
   final newPath = [...parentPath, ...selectors];
-  // no data, nothing to pick
-  if (json == null) return Pick(null, path: newPath, context: context);
-
   final path = <dynamic>[];
   dynamic data = json;
   for (final selector in selectors) {
@@ -43,15 +40,16 @@ Pick _drillDown(dynamic json, List<dynamic> selectors,
           }
           // found a value, continue drill down
           continue;
+          // ignore: avoid_catching_errors
         } on RangeError catch (_) {
           // out of range, value not found at index selector
-          return Pick.absent(path.length, path: newPath, context: context);
+          return Pick.absent(path.length - 1, path: newPath, context: context);
         }
       }
     }
     if (data is Map) {
       if (!data.containsKey(selector)) {
-        return Pick.absent(path.length, path: newPath, context: context);
+        return Pick.absent(path.length - 1, path: newPath, context: context);
       }
       final picked = data[selector];
       if (picked == null) {
@@ -67,7 +65,7 @@ Pick _drillDown(dynamic json, List<dynamic> selectors,
           "It's not possible to pick a value by using a index ($selector)");
     }
     // can't drill down any more to find the exact location.
-    return Pick.absent(path.length, path: newPath, context: context);
+    return Pick.absent(path.length - 1, path: newPath, context: context);
   }
   return Pick(data, path: newPath, context: context);
 }
@@ -85,7 +83,7 @@ class Pick with PickLocation, PickContext<Pick> {
     this.path = const [],
     Map<String, dynamic>? context,
   })  : _missingValueAtIndex = missingValueAtIndex,
-        _context = context != null ? Map.of(context) : {} {}
+        _context = context != null ? Map.of(context) : {};
 
   /// The picked value, might be `null`
   Object? value;

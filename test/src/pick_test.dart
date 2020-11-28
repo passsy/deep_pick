@@ -61,6 +61,29 @@ void main() {
       final level2Pick = level1Pick.call('name');
       expect(level2Pick.path, [0, 'name']);
     });
+
+    group('isAbsent()', () {
+      test('is not absent because value', () {
+        final p = pick("a");
+        expect(p.value, isNotNull);
+        expect(p.isAbsent(), isFalse);
+      });
+      test('is not absent but null', () {
+        final p = pick(null);
+        expect(p.value, isNull);
+        expect(p.isAbsent(), isFalse);
+      });
+      test('is not absent but null further down', () {
+        final p = pick({'a': null}, 'a');
+        expect(p.value, isNull);
+        expect(p.isAbsent(), isFalse);
+      });
+      test('is not absent, not null', () {
+        final p = pick({'a', 1}, 'b');
+        expect(p.value, isNull);
+        expect(p.isAbsent(), isTrue);
+      });
+    });
   });
 
   group('parsing', () {
@@ -304,7 +327,7 @@ void main() {
       expect(pick(data, 'birthday').isAbsent(), true);
     });
 
-    test('documentation example Map', (){
+    test('documentation example Map', () {
       final pa = pick({"a": null}, "a");
       expect(pa.value, isNull);
       expect(pa.isAbsent(), false);
@@ -314,7 +337,7 @@ void main() {
       expect(pb.isAbsent(), true);
     });
 
-    test('documentation example List', (){
+    test('documentation example List', () {
       final p0 = pick([null], 0);
       expect(p0.value, isNull);
       expect(p0.isAbsent(), false);
@@ -324,7 +347,7 @@ void main() {
       expect(p2.isAbsent(), true);
     });
 
-    test('Map key for list', (){
+    test('Map key for list', () {
       final p = pick([], 'a');
       expect(p.value, isNull);
       expect(p.isAbsent(), true);
