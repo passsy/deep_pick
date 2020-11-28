@@ -61,6 +61,42 @@ void main() {
       final level2Pick = level1Pick.call('name');
       expect(level2Pick.path, [0, 'name']);
     });
+
+    group('isAbsent()', () {
+      test('is not absent because value', () {
+        final p = pick("a");
+        expect(p.value, isNotNull);
+        expect(p.isAbsent(), isFalse);
+        expect(p.missingValueAtIndex, null);
+      });
+      test('is not absent but null', () {
+        final p = pick(null);
+        expect(p.value, isNull);
+        expect(p.isAbsent(), isFalse);
+        expect(p.missingValueAtIndex, null);
+      });
+      test('is not absent but null further down', () {
+        final p = pick({'a': null}, 'a');
+        expect(p.value, isNull);
+        expect(p.isAbsent(), isFalse);
+        expect(p.missingValueAtIndex, null);
+      });
+      test('is not absent, not null', () {
+        final p = pick({'a', 1}, 'b');
+        expect(p.value, isNull);
+        expect(p.isAbsent(), isTrue);
+        expect(p.missingValueAtIndex, 0);
+      });
+      test('is not absent, not null, further down', () {
+        final json = {
+          'a': {'b': 1}
+        };
+        final p = pick(json, 'a', 'x' /*absent*/);
+        expect(p.value, isNull);
+        expect(p.isAbsent(), isTrue);
+        expect(p.missingValueAtIndex, 1);
+      });
+    });
   });
 
   group('parsing', () {
@@ -288,18 +324,46 @@ void main() {
     });
   });
 
-  group('invalid pick', () {
+  group('isAbsent', () {
     test('out of range in list returns null pick', () {
       final data = [
         {'name': 'John Snow'},
         {'name': 'Daenerys Targaryen'},
       ];
       expect(pick(data, 10).value, isNull);
+      expect(pick(data, 10).isAbsent(), true);
     });
 
     test('unknown property in map returns null', () {
       final data = {'name': 'John Snow'};
       expect(pick(data, 'birthday').value, isNull);
+      expect(pick(data, 'birthday').isAbsent(), true);
+    });
+
+    test('documentation example Map', () {
+      final pa = pick({"a": null}, "a");
+      expect(pa.value, isNull);
+      expect(pa.isAbsent(), false);
+
+      final pb = pick({"a": null}, "b");
+      expect(pb.value, isNull);
+      expect(pb.isAbsent(), true);
+    });
+
+    test('documentation example List', () {
+      final p0 = pick([null], 0);
+      expect(p0.value, isNull);
+      expect(p0.isAbsent(), false);
+
+      final p2 = pick([], 2);
+      expect(p2.value, isNull);
+      expect(p2.isAbsent(), true);
+    });
+
+    test('Map key for list', () {
+      final p = pick([], 'a');
+      expect(p.value, isNull);
+      expect(p.isAbsent(), true);
     });
   });
 

@@ -27,9 +27,6 @@ Pick pick(
 Pick _drillDown(dynamic json, List<dynamic> selectors,
     {List<dynamic> parentPath = const [], Map<String, dynamic>? context}) {
   final newPath = [...parentPath, ...selectors];
-  // no data, nothing to pick
-  if (json == null) return Pick(null, path: newPath, context: context);
-
   final path = <dynamic>[];
   dynamic data = json;
   for (final selector in selectors) {
@@ -38,22 +35,29 @@ Pick _drillDown(dynamic json, List<dynamic> selectors,
       if (selector is int) {
         try {
           data = data[selector];
+          if (data == null) {
+            return Pick(null, path: newPath, context: context);
+          }
+          // found a value, continue drill down
           continue;
-        } catch (_) {
+          // ignore: avoid_catching_errors
+        } on RangeError catch (_) {
           // out of range, value not found at index selector
-          return Pick(null, path: newPath, context: context);
+          return Pick.absent(path.length - 1, path: newPath, context: context);
         }
       }
     }
     if (data is Map) {
+      if (!data.containsKey(selector)) {
+        return Pick.absent(path.length - 1, path: newPath, context: context);
+      }
       final picked = data[selector];
-      if (picked != null) {
-        data = picked;
-        continue;
-      } else {
+      if (picked == null) {
         // no value mapped to selector
         return Pick(null, path: newPath, context: context);
       }
+      data = picked;
+      continue;
     }
     if (data is Set && selector is int) {
       throw PickException(
@@ -61,21 +65,66 @@ Pick _drillDown(dynamic json, List<dynamic> selectors,
           "It's not possible to pick a value by using a index ($selector)");
     }
     // can't drill down any more to find the exact location.
-    return Pick(null, path: newPath, context: context);
+    return Pick.absent(path.length - 1, path: newPath, context: context);
   }
   return Pick(data, path: newPath, context: context);
 }
 
 /// A picked object holding the [value] and giving access to useful parsing functions
 class Pick with PickLocation, PickContext<Pick> {
-  Pick(this.value, {this.path = const [], Map<String, dynamic>? context})
-      : _context = context != null ? Map.of(context) : {};
+  /// Pick constructor when being able to drill down [path] all the way to reach
+  /// the value.
+  /// [value] may still be `null` but the structure was correct, therefore
+  /// [isAbsent] will always return `false`.
+  Pick(
+    this.value, {
+    this.path = const [],
+    Map<String, dynamic>? context,
+  }) : _context = context != null ? Map.of(context) : {};
+
+  /// Pick of an absent value. While drilling down [path] the structure of the
+  /// data did not match the [path] and the value wasn't found.
+  ///
+  /// [value] will always return `null` and [isAbsent] always `true`.
+  Pick.absent(
+    int missingValueAtIndex, {
+    this.path = const [],
+    Map<String, dynamic>? context,
+  })  : _missingValueAtIndex = missingValueAtIndex,
+        _context = context != null ? Map.of(context) : {};
 
   /// The picked value, might be `null`
   Object? value;
 
+  /// Allows the distinction between the actual [value] `null` and the value not
+  /// being available
+  ///
+  /// Usually, it doesn't matter, but for rare cases, it does this method can be
+  /// used to check if a [Map] contains `null` for a key or the key being absent
+  ///
+  /// Not available could mean:
+  /// - Accessing a key which doesn't exist in a
+  /// - Reading the value from [List] when the index is greater than the length
+  /// - Trying to access a key in a [Map] but the found data structure is a [List]
+  ///
+  /// ```
+  /// pick({"a": null}, "a").isAbsent(); // false
+  /// pick({"a": null}, "b").isAbsent(); // true
+  ///
+  /// pick([null], 0).isAbsent(); // false
+  /// pick([], 2).isAbsent(); // true
+  ///
+  /// pick([], "a").isAbsent(); // true
+  /// ```
+  bool isAbsent() => missingValueAtIndex != null;
+
   @override
   List<dynamic> path;
+
+  /// When the picked value is unavailable ([Pick..absent]) the index in
+  /// [path] which couldn't be found
+  int? get missingValueAtIndex => _missingValueAtIndex;
+  int? _missingValueAtIndex;
 
   // Pick even further
   Pick call([
