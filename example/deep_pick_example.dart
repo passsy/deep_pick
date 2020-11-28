@@ -80,11 +80,7 @@ void main() {
   print(newShoes);
 
   // access value out of range
-  final puma = pick(
-    json,
-    'shoes',
-    1,
-  );
+  final puma = pick(json, 'shoes', 1);
   print(puma.isAbsent()); // true;
   print(puma.value); // null
 }

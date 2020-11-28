@@ -74,12 +74,20 @@ Pick _drillDown(dynamic json, List<dynamic> selectors,
 
 /// A picked object holding the [value] (may be null) and giving access to useful parsing functions
 class Pick with PickLocation, PickContext<Pick> {
+  /// Pick constructor when being able to drill down [path] all the way to reach
+  /// the value.
+  /// [value] may still be `null` but the structure was correct, therefore
+  /// [isAbsent] will always return `false`.
   Pick(
     this.value, {
     this.fullPath = const [],
     Map<String, dynamic>? context,
   }) : _context = context != null ? Map.of(context) : {};
 
+  /// Pick of an absent value. While drilling down [path] the structure of the
+  /// data did not match the [path] and the value wasn't found.
+  ///
+  /// [value] will always return `null` and [isAbsent] always `true`.
   Pick.absent(
     int missingValueAtIndex, {
     this.fullPath = const [],
@@ -93,11 +101,11 @@ class Pick with PickLocation, PickContext<Pick> {
   /// Allows the distinction between the actual [value] `null` and the value not
   /// being available
   ///
-  /// Usually it doesn't matter, but for rare cases it does this method can be
+  /// Usually, it doesn't matter, but for rare cases, it does this method can be
   /// used to check if a [Map] contains `null` for a key or the key being absent
   ///
   /// Not available could mean:
-  /// - Accessing a key which doesn't exists in a
+  /// - Accessing a key which doesn't exist in a
   /// - Reading the value from [List] when the index is greater than the length
   /// - Trying to access a key in a [Map] but the found data structure is a [List]
   ///
