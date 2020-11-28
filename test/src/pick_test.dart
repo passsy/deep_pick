@@ -67,21 +67,34 @@ void main() {
         final p = pick("a");
         expect(p.value, isNotNull);
         expect(p.isAbsent(), isFalse);
+        expect(p.missingValueAtIndex, null);
       });
       test('is not absent but null', () {
         final p = pick(null);
         expect(p.value, isNull);
         expect(p.isAbsent(), isFalse);
+        expect(p.missingValueAtIndex, null);
       });
       test('is not absent but null further down', () {
         final p = pick({'a': null}, 'a');
         expect(p.value, isNull);
         expect(p.isAbsent(), isFalse);
+        expect(p.missingValueAtIndex, null);
       });
       test('is not absent, not null', () {
         final p = pick({'a', 1}, 'b');
         expect(p.value, isNull);
         expect(p.isAbsent(), isTrue);
+        expect(p.missingValueAtIndex, 0);
+      });
+      test('is not absent, not null, further down', () {
+        final json = {
+          'a': {'b': 1}
+        };
+        final p = pick(json, 'a', 'x' /*absent*/);
+        expect(p.value, isNull);
+        expect(p.isAbsent(), isTrue);
+        expect(p.missingValueAtIndex, 1);
       });
     });
   });

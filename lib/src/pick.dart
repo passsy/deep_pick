@@ -91,11 +91,11 @@ class Pick with PickLocation, PickContext<Pick> {
   /// Allows the distinction between the actual [value] `null` and the value not
   /// being available
   ///
-  /// Usually it doesn't matter, but for rare cases it does this method can be
+  /// Usually, it doesn't matter, but for rare cases, it does this method can be
   /// used to check if a [Map] contains `null` for a key or the key being absent
   ///
   /// Not available could mean:
-  /// - Accessing a key which doesn't exists in a
+  /// - Accessing a key which doesn't exist in a
   /// - Reading the value from [List] when the index is greater than the length
   /// - Trying to access a key in a [Map] but the found data structure is a [List]
   ///
