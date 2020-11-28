@@ -64,20 +64,26 @@ But even with the latest Dart version, `deep_pick` offers fantastic features ove
 ### 1. Flexible input types 
 
 Different languages and their JSON libraries generate different JSON. 
-Sometimes `id`s are `String`, sometimes `int`. Bools are provided as `true` or `"true"`. 
+Sometimes `id`s are `String`, sometimes `int`. Bools are provided as `true` or with quotes as String `"true"`. 
 The meaning is the same but from a type perspective they are not.
 
 `deep_pick` does the basic conversions automatically. 
-By requesting a specific return type, apps won't break when a "price" usually returns `double` but for whole numbers `int` (`1` instead of `1.0`).
+By requesting a specific return type, apps won't break when a "price" usually returns `double` (`0.99`) but for whole numbers `int` (`1` instead of `1.0`).
 
 ```dart
-pick('2').asIntOrNull(); // 2
-pick(42).asDoubleOrNull(); // 42.0
-pick('true').asBoolOrFalse(); // true
+pick(2).asIntOrNull(); // 2
+pick('2').asIntOrNull(); // 2 (Sting -> int)
+
+pick(42.0).asDoubleOrNull(); // 42.0
+pick(42).asDoubleOrNull(); // 42.0 (double -> int)
+
+pick(true).asBoolOrFalse(); // true
+pick('true').asBoolOrFalse(); // true (String -> bool) 
 ```
 
 ### 2. No RangeError for Lists
-Even using the `?[]` operator doesn't help when accessing a list item by `index` outside of the available range.
+Using the `?[]` operator can crash for Lists. 
+Accessing a list item by `index` outside of the available range causes a `RangeError`.
 You can't access index 23 when the `List` has only 10 items.
 
 ```dart
@@ -87,7 +93,7 @@ json['shoes']?[23]?['id'] as String?;
 // RangeError (index): Invalid value: Not in inclusive range 0..10: 23
 ```
 
-`pick` returns `null` when accessing outside the index.
+`pick` automatically catches the `RangeError` and returns `null`.
 
 ```dart
 pick(json, 'shoes', 23, 'id').asStringOrNull(); // null
@@ -107,10 +113,6 @@ final milestoneCreator = json?['milestone']?['creator']?['login'] as String;
 
 `deep_pick` shows the exact location where parsing failed, making it easy to report errors to the API team.
 
-Notice the distinction between "absent" and "null" when you see such errors.
-- `"absent"` means the key isn't found in a Map or a List has no item at the requested index
-- `"null"` means the value at that position is actually `null`
-
 ```dart
 final milestoneCreator = pick(json, 'milestone', 'creator', 'login').asStringOrThrow();
 
@@ -121,13 +123,17 @@ final milestoneCreator = pick(json, 'milestone', 'creator', 'login').asStringOrT
 // )
 ```
 
-### 4. Null by default, crash intentional
+Notice the distinction between "absent" and "null" when you see such errors.
+- `"absent"` means the key isn't found in a Map or a List has no item at the requested index
+- `"null"` means the value at that position is actually `null`
+
+### 4. Null is default, crashes intentional
 
 Parsing objects from external systems isn't type-safe. 
 API changes happen, and it is up to the consumer to decide how to handle them.
 Consumer always have to assume the worst, such as missing values.
 
-It's so easy to accidentally cast a value to `String` in the happy path instead of `String?` accounting for all possible cases.
+It's so easy to accidentally cast a value to `String` in the happy path, instead of `String?` accounting for all possible cases.
 Easy to write, easy to miss in code reviews.
 
 Forgetting that `null` could be a valid return type results in a type error:
@@ -139,24 +145,27 @@ json?['milestone']?['creator']?['login'] as String;
 // type 'Null' is not a subtype of type 'String' in type cast
 ``` 
 
-With `deep_pick`, all casting methods have `null` in mind.
+With `deep_pick`, all casting methods (`.as*()`) have `null` in mind.
 For each type you have to choose between at least two ways to deal with `null`.
 
 ```dart
 pick(json, ...).asStringOrNull();
 pick(json, ...).asStringOrThrow();
 
+pick(json, ...).asBoolOrNull();
 pick(json, ...).asBoolOrFalse();
+
 pick(json, ...).asListOrNull(SomeClass.fromPick);
+pick(json, ...).asListOrEmpty(SomeClass.fromPick);
 ```
 
-Having "throw" and "null" in the method name, clearly indicates the possible outcome in case the values couldn't be picked.
-Throwing is not a bad habit, some properties are essential for the business logic.
-But throwing should be done intentional.
+Having "Throw" and "Null" in the method name, clearly indicates the possible outcome in case the values couldn't be picked.
+Throwing is not a bad habit, some properties are essential for the business logic and throwing an error the correct handling.
+But throwing should be done intentional, not accidental.
 
 ### 5. Map Objects with let
 
-Even with the new `?[]` operator, mapping that value to a new Object can't be done in a single line
+Even with the new `?[]` operator, mapping a value to a new Object (i.e. when wrapping it in a domain Object) can't be done in a single line.
 
 ```dart
 final value = json?['id'] as String?;
@@ -312,7 +321,7 @@ pick(json).asMapOrEmpty<String, dynamic>();
 Parsers in `deep_pick` are based on extension functions on the classes `Pick` and `RequiredPick`.
 This makes it flexible and easy for 3rd-party types to add custom parers.
 
-This example parses a `int` as Firestore `Timestamp`. 
+This example parses a `int` as Firestore `Timestamp`.
 ```dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:deep_pick/src/pick.dart';
@@ -354,7 +363,8 @@ For those cases use the [let function](https://kotlinlang.org/api/latest/jvm/std
 
 ```dart
 final UserId id = pick(json, 'id').letOrNull((it) => UserId(it.asString()));
-final Timestamp timestamp = pick(json, 'time').letOrThrow((it) => Timestamp.fromMillisecondsSinceEpoch(it.asInt()));
+final Timestamp timestamp = pick(json, 'time')
+    .letOrThrow((it) => Timestamp.fromMillisecondsSinceEpoch(it.asInt()));
 ```
 
 ## Examples
