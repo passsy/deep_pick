@@ -251,17 +251,45 @@ void main() {
 
     test('asListOrNull(whenNull:)', () {
       expect(
-          pick([1, null, 3]).asListOrNull((it) => it.asInt(),
-              whenNull: (index, context) => 25),
+          pick([1, null, 3])
+              .asListOrNull((it) => it.asInt(), whenNull: (pick) => 25),
           [1, 25, 3]);
       expect(
-          pick([1, null, 3]).asListOrNull((it) => it.asInt(),
-              whenNull: (index, context) => null),
+          pick([1, null, 3])
+              .asListOrNull((it) => it.asInt(), whenNull: (pick) => null),
           [1, null, 3]);
       expect(
-          pick(nullPick()).asListOrNull((it) => it.asInt(),
-              whenNull: (index, context) => null),
+          pick(nullPick())
+              .asListOrNull((it) => it.asInt(), whenNull: (pick) => null),
           null);
+    });
+
+    test('whenNull pick has correct value/index/context #1', () {
+      int? whenNull(Pick pick) {
+        expect(pick.value, null);
+        expect(pick.fullPath, [1]);
+        expect(pick.fromContext('a').asStringOrThrow(), 'b');
+        return null;
+      }
+
+      final result = pick([1, null, 3])
+          .withContext('a', 'b')
+          .asListOrNull((it) => it.asInt(), whenNull: whenNull);
+      expect(result, [1, null, 3]);
+    });
+
+    test('whenNull pick has correct value/index/context #2', () {
+      int? whenNull(Pick pick) {
+        expect(pick.value, null);
+        expect(pick.fullPath, [2]);
+        expect(pick.fromContext('a').asStringOrThrow(), 'c');
+        return null;
+      }
+
+      final result = pick([1, 2, null])
+          .withContext('a', 'c')
+          .asListOrNull((it) => it.asInt(), whenNull: whenNull);
+      expect(result, [1, 2, null]);
     });
 
     test('asListOrEmpty()', () {
@@ -276,17 +304,17 @@ void main() {
 
     test('asListOrEmpty(whenNull:)', () {
       expect(
-          pick([1, null, 3]).asListOrEmpty((it) => it.asInt(),
-              whenNull: (index, context) => 25),
+          pick([1, null, 3])
+              .asListOrEmpty((it) => it.asInt(), whenNull: (pick) => 25),
           [1, 25, 3]);
       expect(
-          pick([1, null, 3]).asListOrEmpty((it) => it.asInt(),
-              whenNull: (index, context) => null),
+          pick([1, null, 3])
+              .asListOrEmpty((it) => it.asInt(), whenNull: (pick) => null),
           [1, null, 3]);
 
       expect(
-          pick(nullPick()).asListOrEmpty((it) => it.asInt(),
-              whenNull: (index, context) => null),
+          pick(nullPick())
+              .asListOrEmpty((it) => it.asInt(), whenNull: (pick) => null),
           []);
     });
 

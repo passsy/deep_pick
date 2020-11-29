@@ -299,9 +299,9 @@ When `null` is important for you logic you can process the `null` value by provi
 ```dart
 pick([1, null, 3]).asListOrNull(
   (it) => it.asInt(), 
-  whenNull: (int index, Map<String, dynamic> context) => 25 + index
+  whenNull: (Pick pick) => 25;
 ); 
-// [1, 26, 3]
+// [1, 25, 3]
 ``` 
 
 ### `Map`

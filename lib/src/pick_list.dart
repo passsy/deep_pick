@@ -1,10 +1,8 @@
 import 'package:deep_pick/src/pick.dart';
 
-typedef WhenNullMapper<T> = T Function(int index, Map<String, dynamic> context);
-
 extension ListPick on RequiredPick {
   List<T> asList<T>(T Function(RequiredPick) map,
-      {WhenNullMapper<T>? whenNull}) {
+      {T Function(Pick pick)? whenNull}) {
     final value = this.value;
     if (value is List) {
       final result = <T>[];
@@ -22,7 +20,9 @@ extension ListPick on RequiredPick {
           continue;
         }
         try {
-          result.add(whenNull(index, context));
+          final pick =
+              Pick(null, fullPath: [...fullPath, index], context: context);
+          result.add(whenNull(pick));
           continue;
         } catch (e) {
           // ignore: avoid_print
@@ -51,14 +51,14 @@ extension NullableListPick on Pick {
   }
 
   List<T> asListOrEmpty<T>(T Function(RequiredPick) map,
-      {WhenNullMapper<T>? whenNull}) {
+      {T Function(Pick pick)? whenNull}) {
     if (value == null) return <T>[];
     if (value is! List) return <T>[];
     return required().asList(map, whenNull: whenNull);
   }
 
   List<T>? asListOrNull<T>(T Function(RequiredPick) map,
-      {WhenNullMapper<T>? whenNull}) {
+      {T Function(Pick pick)? whenNull}) {
     if (value == null) return null;
     if (value is! List) return null;
     return required().asList(map, whenNull: whenNull);
