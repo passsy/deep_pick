@@ -10,9 +10,40 @@ extension DoublePick on RequiredPick {
       return value.toDouble();
     }
     if (value is String) {
-      final parsed = double.tryParse(value);
+      var parsed = double.tryParse(value);
       if (parsed != null) {
         return parsed;
+      }
+      // remove all spaces
+      final prepared = value.replaceAll(' ', '');
+
+      if (prepared.contains(',') && !prepared.contains('.')) {
+        // Germans use , instead of . as decimal separator
+        // 12,56 -> 12.56
+        parsed = double.tryParse(prepared.replaceAll(',', '.'));
+        if (parsed != null) {
+          return parsed;
+        }
+      }
+
+      // handle digit group separators
+      final firstDot = prepared.indexOf('.');
+      final firstComma = prepared.indexOf(',');
+
+      if (firstDot <= firstComma) {
+        // the germans again
+        // 10.000,00
+        parsed =
+            double.tryParse(prepared.replaceAll('.', '').replaceAll(',', '.'));
+        if (parsed != null) {
+          return parsed;
+        }
+      } else {
+        // 10,000.00
+        parsed = double.tryParse(prepared.replaceAll(',', ''));
+        if (parsed != null) {
+          return parsed;
+        }
       }
     }
     throw PickException('value $value of type ${value.runtimeType} '
