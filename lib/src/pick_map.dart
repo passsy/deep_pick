@@ -15,18 +15,12 @@ extension MapPick on RequiredPick {
 }
 
 extension NullableMapPick on Pick {
-  // This deprecation is used to promote the `.required()` in auto-completion.
-  // Therefore it is not intended to be ever removed
-  @Deprecated(
-      'By default values are optional and can only be converted when a fallback is provided '
-      'i.e. .asMapOrNull() which falls back to `null`. '
-      'Use .required().asMap() in cases the value is mandatory. '
-      "It will crash when the value couldn't be picked.")
-  Map<RK, RV> asMap<RK, RV>() {
-    if (value == null) {
-      throw PickException(
-          'value at location ${location()} is null and not an instance of Map<dynamic, dynamic>');
-    }
+  @Deprecated('Use .asMapOrThrow()')
+  Map<RK, RV> Function<RK, RV>() get asMap => asMapOrThrow;
+
+  Map<RK, RV> asMapOrThrow<RK, RV>() {
+    withContext(requiredPickErrorHintKey,
+        'Use asMapOrEmpty()/asMapOrNull() when the value may be null/absent at some point (Map<$RK, $RV>?).');
     return required().asMap();
   }
 
