@@ -64,7 +64,7 @@ void main() {
 
     group('isAbsent()', () {
       test('is not absent because value', () {
-        final p = pick("a");
+        final p = pick('a');
         expect(p.value, isNotNull);
         expect(p.isAbsent(), isFalse);
         expect(p.missingValueAtIndex, null);
@@ -248,28 +248,6 @@ void main() {
       expect(nullPick().asDateTimeOrNull(), isNull);
     });
 
-    test('letOrNull()', () {
-      expect(
-          pick({'name': 'John Snow'})
-              .letOrNull((pick) => Person.fromJson(pick.asMap())),
-          Person(name: 'John Snow'));
-      expect(nullPick().letOrNull((pick) => Person.fromJson(pick.asMap())),
-          isNull);
-      expect(
-          () => pick('a').letOrNull((pick) => Person.fromJson(pick.asMap())),
-          throwsA(isA<PickException>().having(
-            (e) => e.message,
-            'message',
-            contains(
-                "value a of type String at location `<root>` can't be casted to Map<dynamic, dynamic>"),
-          )));
-      expect(
-          () => pick({'asdf': 'John Snow'})
-              .letOrNull((pick) => Person.fromJson(pick.asMap())),
-          throwsA(isA<PickException>().having((e) => e.message, 'message',
-              contains('required value at location `name` is null'))));
-    });
-
     test('asListOrEmpty(Pick -> T)', () {
       final data = [
         {'name': 'John Snow'},
@@ -293,7 +271,7 @@ void main() {
           () =>
               pick(data).asListOrEmpty((pick) => Person.fromJson(pick.asMap())),
           throwsA(isA<PickException>().having((e) => e.message, 'message',
-              contains('required value at location `name` is null'))));
+              contains('required value at location `name` is absent'))));
     });
 
     test('asListOrNull(Pick -> T)', () {
@@ -320,7 +298,7 @@ void main() {
           () =>
               pick(data).asListOrNull((pick) => Person.fromJson(pick.asMap())),
           throwsA(isA<PickException>().having((e) => e.message, 'message',
-              contains('required value at location `name` is null'))));
+              contains('required value at location `name` is absent'))));
     });
   });
 
@@ -341,11 +319,11 @@ void main() {
     });
 
     test('documentation example Map', () {
-      final pa = pick({"a": null}, "a");
+      final pa = pick({'a': null}, 'a');
       expect(pa.value, isNull);
       expect(pa.isAbsent(), false);
 
-      final pb = pick({"a": null}, "b");
+      final pb = pick({'a': null}, 'b');
       expect(pb.value, isNull);
       expect(pb.isAbsent(), true);
     });

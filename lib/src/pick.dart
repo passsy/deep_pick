@@ -158,7 +158,10 @@ class Pick with PickLocation, PickContext<Pick> {
   RequiredPick required() {
     final value = this.value;
     if (value == null) {
-      throw PickException('required value at location ${location()} is null');
+      final more = fromContext(requiredPickErrorHintKey).value as String?;
+      final moreSegment = more == null ? '' : ' $more';
+      throw PickException('required value at location ${location()} '
+          'is ${isAbsent() ? 'absent' : 'null'}.$moreSegment');
     }
     return RequiredPick(value, path: path, context: _context);
   }
@@ -215,6 +218,10 @@ class RequiredPick with PickLocation, PickContext<RequiredPick> {
   @override
   RequiredPick get _builder => this;
 }
+
+/// Used internally with [PickContext.withContext] to add additional information
+/// to the error message
+const requiredPickErrorHintKey = '_required_pick_error_hint';
 
 class PickException implements Exception {
   PickException(this.message);
