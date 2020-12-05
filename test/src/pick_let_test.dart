@@ -53,7 +53,7 @@ void main() {
       expect(
         () => nullPick().letOrThrow((pick) => Person.fromJson(pick.asMap())),
         throwsA(pickException(containing: [
-          'required value at location `unknownKey` is absent. Use letOrNull() when the value may be null at some point.'
+          'required value at location `unknownKey` is absent. Use letOrNull() when the value may be null/absent at some point.'
         ])),
       );
       expect(

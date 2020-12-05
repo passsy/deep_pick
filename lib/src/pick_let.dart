@@ -36,7 +36,7 @@ extension NullableLet on Pick {
   /// ```
   R letOrThrow<R>(R Function(RequiredPick pick) block) {
     withContext(requiredPickErrorHintKey,
-        'Use letOrNull() when the value may be null at some point.');
+        'Use letOrNull() when the value may be null/absent at some point.');
     return block(required());
   }
 
