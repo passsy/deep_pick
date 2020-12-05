@@ -205,26 +205,6 @@ void main() {
       expect(nullPick().asListOrEmpty<int>(), []);
     });
 
-    test('asBoolOrNull()', () {
-      expect(pick(true).asBoolOrNull(), isTrue);
-      expect(pick('a').asBoolOrNull(), isNull);
-      expect(nullPick().asBoolOrNull(), isNull);
-    });
-
-    test('asBoolOrTrue()', () {
-      expect(pick(true).asBoolOrTrue(), isTrue);
-      expect(pick(false).asBoolOrTrue(), isFalse);
-      expect(pick('a').asBoolOrTrue(), isTrue);
-      expect(nullPick().asBoolOrTrue(), isTrue);
-    });
-
-    test('asBoolOrFalse()', () {
-      expect(pick(true).asBoolOrFalse(), isTrue);
-      expect(pick(false).asBoolOrFalse(), isFalse);
-      expect(pick('a').asBoolOrFalse(), isFalse);
-      expect(nullPick().asBoolOrFalse(), isFalse);
-    });
-
     test('asIntOrNull()', () {
       expect(pick(1).asIntOrNull(), 1);
       expect(pick('a').asIntOrNull(), isNull);
