@@ -202,7 +202,7 @@ void main() {
           () => nullPick()
               .required()
               .let((pick) => Person.fromJson(pick.asMap())),
-          throwsA(pickException(containing: ['unknownKey', 'null'])));
+          throwsA(pickException(containing: ['unknownKey', 'absent'])));
     });
 
     test('asList(Pick -> T)', () {
