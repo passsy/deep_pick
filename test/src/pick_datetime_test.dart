@@ -26,6 +26,12 @@ void main() {
             'required value at location `unknownKey` is absent. Use asDateTimeOrNull() when the value may be null/absent at some point (DateTime?).'
           ])),
         );
+
+        expect(
+          () => nullPick().asDateTimeOrThrow(),
+          throwsA(
+              pickException(containing: ['unknownKey', 'null', 'DateTime'])),
+        );
       });
 
       test('wrong type throws', () {
@@ -34,6 +40,11 @@ void main() {
           throwsA(pickException(containing: [
             "value Instance of 'Object' of type Object at location `<root>` can not be parsed as DateTime"
           ])),
+        );
+        expect(
+          () => pick('Bubblegum').asDateTimeOrThrow(),
+          throwsA(
+              pickException(containing: ['Bubblegum', 'String', 'DateTime'])),
         );
       });
     });
