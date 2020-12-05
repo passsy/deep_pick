@@ -23,7 +23,7 @@ void main() {
         expect(
           () => nullPick().asDateTimeOrThrow(),
           throwsA(pickException(containing: [
-            'required value at location `unknownKey` is absent. Use asDateTimeOrNull() when the value may be null at some point (DateTime?).'
+            'required value at location `unknownKey` is absent. Use asDateTimeOrNull() when the value may be null/absent at some point (DateTime?).'
           ])),
         );
       });
@@ -61,7 +61,7 @@ void main() {
           // ignore: deprecated_member_use_from_same_package
           () => nullPick().asDateTime(),
           throwsA(pickException(containing: [
-            'required value at location `unknownKey` is absent. Use asDateTimeOrNull() when the value may be null at some point (DateTime?).'
+            'required value at location `unknownKey` is absent. Use asDateTimeOrNull() when the value may be null/absent at some point (DateTime?).'
           ])),
         );
       });

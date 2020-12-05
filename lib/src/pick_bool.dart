@@ -21,7 +21,7 @@ extension NullableBoolPick on Pick {
 
   bool asBoolOrThrow() {
     withContext(requiredPickErrorHintKey,
-        'Use asBoolOrNull() when the value may be null at some point (bool?).');
+        'Use asBoolOrNull() when the value may be null/absent at some point (bool?).');
     return required().asBool();
   }
 
