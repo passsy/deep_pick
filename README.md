@@ -324,7 +324,7 @@ This makes it flexible and easy for 3rd-party types to add custom parers.
 This example parses a `int` as Firestore `Timestamp`.
 ```dart
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:deep_pick/src/pick.dart';
+import 'package:deep_pick/deep_pick.dart';
 
 extension TimestampPick on RequiredPick {
   Timestamp asFirestoreTimeStamp() {
