@@ -22,8 +22,8 @@ extension IntPick on RequiredPick {
         return parsed;
       }
     }
-    throw PickException(
-        "value $value of type ${value.runtimeType} at location ${location()} can't be casted to int");
+    throw PickException('value $value of type ${value.runtimeType} '
+        'at location ${location()} can not be casted to int');
   }
 }
 

@@ -9,8 +9,8 @@ extension MapPick on RequiredPick {
       // and not lazily type checked when accessing them
       return Map.of(view);
     }
-    throw PickException(
-        "value $value of type ${value.runtimeType} at location ${location()} can't be casted to Map<dynamic, dynamic>");
+    throw PickException('value $value of type ${value.runtimeType} '
+        'at location ${location()} can not be casted to Map<dynamic, dynamic>');
   }
 }
 
