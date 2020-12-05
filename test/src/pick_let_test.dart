@@ -36,7 +36,7 @@ void main() {
             (e) => e.message,
             'message',
             contains(
-                "value a of type String at location `<root>` can't be casted to Map<dynamic, dynamic>"),
+                'value a of type String at location `<root>` can not be casted to Map<dynamic, dynamic>'),
           )));
       expect(
           () => pick({'asdf': 'John Snow'})

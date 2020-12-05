@@ -12,8 +12,8 @@ extension ListPick on RequiredPick {
           .map((it) => map(Pick(it, path: [...path, i++], context: context)))
           .toList(growable: false);
     }
-    throw PickException(
-        "value $value of type ${value.runtimeType} at location ${location()} can't be casted to List<dynamic>");
+    throw PickException('value $value of type ${value.runtimeType} '
+        'at location ${location()} can not be casted to List<dynamic>');
   }
 }
 

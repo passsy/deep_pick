@@ -10,8 +10,8 @@ extension BoolPick on RequiredPick {
       if (value == 'true') return true;
       if (value == 'false') return false;
     }
-    throw PickException(
-        "value $value of type ${value.runtimeType} at location ${location()} can't be casted to bool");
+    throw PickException('value $value of type ${value.runtimeType} '
+        'at location ${location()} can not be casted to bool');
   }
 }
 

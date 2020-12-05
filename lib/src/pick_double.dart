@@ -15,8 +15,8 @@ extension DoublePick on RequiredPick {
         return parsed;
       }
     }
-    throw PickException(
-        "value $value of type ${value.runtimeType} at location ${location()} can't be casted to double");
+    throw PickException('value $value of type ${value.runtimeType} '
+        'at location ${location()} can not be casted to double');
   }
 }
 

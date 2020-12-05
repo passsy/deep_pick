@@ -25,8 +25,8 @@ extension DateTimePick on RequiredPick {
         return dateTime;
       }
     }
-    throw PickException(
-        "value $value of type ${value.runtimeType} at location ${location()} can't be parsed as DateTime");
+    throw PickException('value $value of type ${value.runtimeType} '
+        'at location ${location()} can not be parsed as DateTime');
   }
 }
 
