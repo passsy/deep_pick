@@ -1,4 +1,4 @@
-export 'package:deep_pick/src/pick.dart';
+export 'package:deep_pick/src/pick.dart' hide requiredPickErrorHintKey;
 export 'package:deep_pick/src/pick_bool.dart';
 export 'package:deep_pick/src/pick_datetime.dart';
 export 'package:deep_pick/src/pick_double.dart';
