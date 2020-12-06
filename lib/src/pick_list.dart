@@ -33,20 +33,20 @@ extension ListPick on RequiredPick {
       }
       return result;
     }
-    throw PickException(
-        "value $value of type ${value.runtimeType} at location ${location()} can't be casted to List<dynamic>");
+    throw PickException('value $value of type ${value.runtimeType} '
+        'at location ${location()} can not be casted to List<dynamic>');
   }
 }
 
 extension NullableListPick on Pick {
   @Deprecated('Use .asListOrThrow()')
-  List<T> asList<T>(T Function(Pick) map) {
+  List<T> asList<T>([T Function(Pick) map]) {
     return asListOrThrow((it) => map(it.nullable()));
   }
 
-  List<T> asListOrThrow<T>(T Function(RequiredPick) map) {
+  List<T> asListOrThrow<T>([T Function(RequiredPick) map]) {
     withContext(requiredPickErrorHintKey,
-        'Use asListOrEmpty() when the value may be null at some point (List<$T>?).');
+        'Use asListOrEmpty()/asListOrNull() when the value may be null/absent at some point (List<$T>?).');
     return required().asList(map);
   }
 

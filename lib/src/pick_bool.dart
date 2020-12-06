@@ -10,8 +10,8 @@ extension BoolPick on RequiredPick {
       if (value == 'true') return true;
       if (value == 'false') return false;
     }
-    throw PickException(
-        "value $value of type ${value.runtimeType} at location ${location()} can't be casted to bool");
+    throw PickException('value $value of type ${value.runtimeType} '
+        'at location ${location()} can not be casted to bool');
   }
 }
 
@@ -21,7 +21,7 @@ extension NullableBoolPick on Pick {
 
   bool asBoolOrThrow() {
     withContext(requiredPickErrorHintKey,
-        'Use asBoolOrNull() when the value may be null at some point (bool?).');
+        'Use asBoolOrNull() when the value may be null/absent at some point (bool?).');
     return required().asBool();
   }
 

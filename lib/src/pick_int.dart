@@ -18,8 +18,8 @@ extension IntPick on RequiredPick {
         return parsed;
       }
     }
-    throw PickException(
-        "value $value of type ${value.runtimeType} at location ${location()} can't be casted to int");
+    throw PickException('value $value of type ${value.runtimeType} '
+        'at location ${location()} can not be parsed as int');
   }
 }
 
@@ -27,9 +27,12 @@ extension NullableIntPick on Pick {
   @Deprecated('Use .asIntOrThrow()')
   int Function() get asInt => asIntOrThrow;
 
+  /// Returns the picked [value] as [int] or throws
+  ///
+  /// {@macro Pick.asInt}
   int asIntOrThrow() {
     withContext(requiredPickErrorHintKey,
-        'Use asIntOrNull() when the value may be null at some point (int?).');
+        'Use asIntOrNull() when the value may be null/absent at some point (int?).');
     return required().asInt();
   }
 

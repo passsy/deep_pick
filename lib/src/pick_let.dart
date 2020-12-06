@@ -21,9 +21,22 @@ extension Let on RequiredPick {
 }
 
 extension NullableLet on Pick {
+  /// Maps the non-null [value] and returns the result. Throws when [value] == null
+  ///
+  /// Shorthand for `.required().let(mapFn)`
+  ///
+  /// This methods allows mapping values in a single line
+  ///
+  /// Example:
+  ///
+  /// ```
+  /// // with letOrThrow
+  /// User user =
+  ///   pick(json, 'users', 0).letOrThrow((pick) => User.fromJson(pick.asMap()));
+  /// ```
   R letOrThrow<R>(R Function(RequiredPick pick) block) {
     withContext(requiredPickErrorHintKey,
-        'Use letOrNull() when the value may be null at some point.');
+        'Use letOrNull() when the value may be null/absent at some point.');
     return block(required());
   }
 

@@ -1,7 +1,8 @@
 import 'package:deep_pick/src/pick.dart';
 
 extension StringPick on RequiredPick {
-  /// Returns the picked [value] as String
+  /// Returns the picked [value] as String representation; only throws when
+  /// the value is `null`.
   ///
   /// {@template Pick.asString}
   /// Parses the picked value as String. If the value is not already a [String]
@@ -28,9 +29,13 @@ extension NullableStringPick on Pick {
   @Deprecated('Use .asStringOrThrow()')
   String Function() get asString => asStringOrThrow;
 
+  /// Returns the picked [value] as String representation; only throws when
+  /// the value is `null`.
+  ///
+  /// {@macro Pick.asString}
   String asStringOrThrow() {
     withContext(requiredPickErrorHintKey,
-        'Use asStringOrNull() when the value may be null at some point (String?).');
+        'Use asStringOrNull() when the value may be null/absent at some point (String?).');
     return required().asString();
   }
 

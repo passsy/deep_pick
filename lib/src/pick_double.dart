@@ -15,8 +15,8 @@ extension DoublePick on RequiredPick {
         return parsed;
       }
     }
-    throw PickException(
-        "value $value of type ${value.runtimeType} at location ${location()} can't be casted to double");
+    throw PickException('value $value of type ${value.runtimeType} '
+        'at location ${location()} can not be parsed as double');
   }
 }
 
@@ -26,7 +26,7 @@ extension NullableDoublePick on Pick {
 
   double asDoubleOrThrow() {
     withContext(requiredPickErrorHintKey,
-        'Use asDoubleOrNull() when the value may be null at some point (double?).');
+        'Use asDoubleOrNull() when the value may be null/absent at some point (double?).');
     return required().asDouble();
   }
 

@@ -158,9 +158,10 @@ class Pick with PickLocation, PickContext<Pick> {
   Map<String, dynamic> get context => _context;
   final Map<String, dynamic> _context;
 
-  /// Converts the picked values to a non-nullable type [RequiredPick].
+  /// Enter a "required" context which requires the picked value to be non-null
+  /// and parsable or a [PickException] is thrown.
   ///
-  /// Crashes when the the value is `null`.
+  /// Crashes when the the value is `null` or can't be parsed correctly with the asXyz() methods.
   RequiredPick required() {
     final value = this.value;
     if (value == null) {
