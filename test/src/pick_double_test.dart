@@ -54,8 +54,10 @@ void main() {
     });
 
     test('deprecated asDouble forwards to asDoubleOrThrow', () {
+      // ignore: deprecated_member_use_from_same_package
       expect(pick('1').asDouble(), 1.0);
       expect(
+        // ignore: deprecated_member_use_from_same_package
         () => pick(Object()).asDouble(),
         throwsA(pickException(containing: [
           "value Instance of 'Object' of type Object at location `<root>` can not be parsed as double"
