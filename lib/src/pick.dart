@@ -231,7 +231,9 @@ class RequiredPick with PickLocation, PickContext<RequiredPick> {
   RequiredPick get _builder => this;
 
   /// Converts the picked value to a nullable type [Pick]
-  Pick nullable() => Pick(value, fullPath: fullPath, context: context);
+  ///
+  /// Inverse of [Pick.required]
+  Pick nullable() => Pick(value, fullPath: path, context: context);
 }
 
 /// Used internally with [PickContext.withContext] to add additional information

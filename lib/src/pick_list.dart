@@ -40,11 +40,14 @@ extension ListPick on RequiredPick {
 
 extension NullableListPick on Pick {
   @Deprecated('Use .asListOrThrow()')
-  List<T> asList<T>([T Function(Pick) map]) {
-    return asListOrThrow((it) => map(it.nullable()));
+  List<T> asList<T>([T Function(Pick)? map]) {
+    return asListOrThrow((it) {
+      final mapFn = map ?? (Pick it) => it as T;
+      return mapFn(it.nullable());
+    });
   }
 
-  List<T> asListOrThrow<T>([T Function(RequiredPick) map]) {
+  List<T> asListOrThrow<T>(T Function(RequiredPick) map) {
     withContext(requiredPickErrorHintKey,
         'Use asListOrEmpty()/asListOrNull() when the value may be null/absent at some point (List<$T>?).');
     return required().asList(map);
