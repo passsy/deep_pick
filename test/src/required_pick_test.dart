@@ -32,10 +32,10 @@ void main() {
       ];
 
       final level1Pick = pick(data, 0).required();
-      expect(level1Pick.fullPath, [0]);
+      expect(level1Pick.path, [0]);
 
       final level2Pick = level1Pick.call('name');
-      expect(level2Pick.fullPath, [0, 'name']);
+      expect(level2Pick.path, [0, 'name']);
     });
   });
 

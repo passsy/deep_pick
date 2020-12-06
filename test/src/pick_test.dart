@@ -5,7 +5,7 @@ void main() {
   group('Pick', () {
     test('null pick carries full location', () {
       final p = pick(null, 'some', 'path');
-      expect(p.fullPath, ['some', 'path']);
+      expect(p.path, ['some', 'path']);
       expect(p.value, null);
     });
 
@@ -88,7 +88,7 @@ void main() {
 
     test('pick deeper than data structure returns null pick', () {
       final p = pick([], 'a', 'b');
-      expect(p.fullPath, ['a', 'b']);
+      expect(p.path, ['a', 'b']);
       expect(p.value, isNull);
     });
 
@@ -99,10 +99,10 @@ void main() {
       ];
 
       final level1Pick = pick(data, 0);
-      expect(level1Pick.fullPath, [0]);
+      expect(level1Pick.path, [0]);
 
       final level2Pick = level1Pick.call('name');
-      expect(level2Pick.fullPath, [0, 'name']);
+      expect(level2Pick.path, [0, 'name']);
     });
 
     group('isAbsent()', () {

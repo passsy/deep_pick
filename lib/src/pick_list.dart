@@ -11,7 +11,7 @@ extension ListPick on RequiredPick {
         index++;
         if (item != null) {
           final picked = RequiredPick(item as Object,
-              path: [...fullPath, index], context: context);
+              path: [...path, index], context: context);
           result.add(map(picked));
           continue;
         }
@@ -20,7 +20,7 @@ extension ListPick on RequiredPick {
           continue;
         }
         try {
-          final pick = Pick(null, path: [...fullPath, index], context: context);
+          final pick = Pick(null, path: [...path, index], context: context);
           result.add(whenNull(pick));
           continue;
         } catch (e) {

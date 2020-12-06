@@ -78,10 +78,9 @@ class Pick with PickLocation, PickContext<Pick> {
   /// [isAbsent] will always return `false`.
   Pick(
     this.value, {
-    List<dynamic> path = const [],
+    this.path = const [],
     Map<String, dynamic>? context,
-  })  : fullPath = path,
-        _context = context != null ? Map.of(context) : {};
+  }) : _context = context != null ? Map.of(context) : {};
 
   /// Pick of an absent value. While drilling down [path] the structure of the
   /// data did not match the [path] and the value wasn't found.
@@ -89,10 +88,9 @@ class Pick with PickLocation, PickContext<Pick> {
   /// [value] will always return `null` and [isAbsent] always `true`.
   Pick.absent(
     int missingValueAtIndex, {
-    List<dynamic> path = const [],
+    this.path = const [],
     Map<String, dynamic>? context,
-  })  : fullPath = path,
-        _missingValueAtIndex = missingValueAtIndex,
+  })  : _missingValueAtIndex = missingValueAtIndex,
         _context = context != null ? Map.of(context) : {};
 
   /// The picked value, might be `null`
@@ -121,14 +119,14 @@ class Pick with PickLocation, PickContext<Pick> {
   bool isAbsent() => missingValueAtIndex != null;
 
   @override
-  List<dynamic> fullPath;
+  List<dynamic> path;
 
   @override
-  List<dynamic> get path =>
-      fullPath.take(_missingValueAtIndex ?? fullPath.length).toList();
+  List<dynamic> get followablePath =>
+      path.take(_missingValueAtIndex ?? path.length).toList();
 
   /// When the picked value is unavailable ([Pick..absent]) the index in
-  /// [fullPath] which couldn't be found
+  /// [path] which couldn't be found
   int? get missingValueAtIndex => _missingValueAtIndex;
   int? _missingValueAtIndex;
 
@@ -151,7 +149,7 @@ class Pick with PickLocation, PickContext<Pick> {
             .where((dynamic it) => it != null)
             .toList(growable: false);
 
-    return _drillDown(value, selectors, parentPath: fullPath, context: context);
+    return _drillDown(value, selectors, parentPath: path, context: context);
   }
 
   @override
@@ -170,12 +168,12 @@ class Pick with PickLocation, PickContext<Pick> {
       throw PickException('required value at location ${location()} '
           'is ${isAbsent() ? 'absent' : 'null'}.$moreSegment');
     }
-    return RequiredPick(value, path: fullPath, context: _context);
+    return RequiredPick(value, path: path, context: _context);
   }
 
   @override
   @Deprecated('Use asStringOrNull() to pick a String value')
-  String toString() => 'Pick(value=$value, path=$fullPath)';
+  String toString() => 'Pick(value=$value, path=$path)';
 
   @override
   Pick get _builder => this;
@@ -184,18 +182,17 @@ class Pick with PickLocation, PickContext<Pick> {
 /// A picked object holding the [value] (never null) and giving access to useful parsing functions
 class RequiredPick with PickLocation, PickContext<RequiredPick> {
   RequiredPick(this.value,
-      {List<dynamic> path = const [], Map<String, dynamic>? context})
-      : _context = context != null ? Map.of(context) : {},
-        fullPath = path;
+      {this.path = const [], Map<String, dynamic>? context})
+      : _context = context != null ? Map.of(context) : {};
 
   /// The picked value, never `null`
   Object value;
 
   @override
-  List<dynamic> fullPath;
+  List<dynamic> path;
 
   @override
-  List get path => fullPath;
+  List get followablePath => path;
 
   // Pick even further
   Pick call([
@@ -216,7 +213,7 @@ class RequiredPick with PickLocation, PickContext<RequiredPick> {
             .where((dynamic it) => it != null)
             .toList(growable: false);
 
-    return _drillDown(value, selectors, parentPath: fullPath, context: context);
+    return _drillDown(value, selectors, parentPath: path, context: context);
   }
 
   @override
@@ -225,7 +222,7 @@ class RequiredPick with PickLocation, PickContext<RequiredPick> {
 
   @override
   @Deprecated('Use asStringOrNull() to pick a String value')
-  String toString() => 'RequiredPick(value=$value, path=$fullPath)';
+  String toString() => 'RequiredPick(value=$value, path=$path)';
 
   @override
   RequiredPick get _builder => this;
@@ -233,7 +230,7 @@ class RequiredPick with PickLocation, PickContext<RequiredPick> {
   /// Converts the picked value to a nullable type [Pick]
   ///
   /// Inverse of [Pick.required]
-  Pick nullable() => Pick(value, path: fullPath, context: context);
+  Pick nullable() => Pick(value, path: path, context: context);
 }
 
 /// Used internally with [PickContext.withContext] to add additional information
@@ -335,22 +332,22 @@ mixin PickLocation {
   /// The full path to [value] inside of the object
   ///
   /// I.e. ['shoes', 0, 'name']
-  List<dynamic> get fullPath;
+  List<dynamic> get path;
 
-  /// The path segments containing non-null values
+  /// The path segments containing non-null values parsing could follow along
   ///
   /// I.e. ['shoes'] for an empty shoes list
-  List<dynamic> get path;
+  List<dynamic> get followablePath;
 
   String location() {
     final access = <String>[];
-    final path = this.path;
-    final fullPath = this.fullPath;
-    final isSet = path.length == fullPath.length;
+    final fullPath = path;
+    final followable = followablePath;
+    final isSet = followable.length == fullPath.length;
     var foundNullPart = false;
     for (var i = 0; i < fullPath.length; i++) {
       final full = fullPath[i];
-      final part = path.length > i ? path[i] : null;
+      final part = followable.length > i ? followable[i] : null;
       final nullPart = () {
         if (foundNullPart) return '';
         if (isSet && i + 1 == fullPath.length) {
@@ -373,7 +370,7 @@ mixin PickLocation {
 
     final firstMissing = fullPath.isEmpty
         ? '<root>'
-        : fullPath[path.isEmpty ? 0 : path.length - 1];
+        : fullPath[followable.isEmpty ? 0 : followable.length - 1];
     final formattedMissing =
         firstMissing is int ? 'list index $firstMissing' : '"$firstMissing"';
 
