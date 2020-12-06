@@ -14,6 +14,22 @@ void main() {
             pick(DateTime(2000)).asStringOrThrow(), '2000-01-01 00:00:00.000');
       });
 
+      test("asString() doesn't transform Maps and Lists with toString", () {
+        expect(
+          () => pick(['a', 'b']).asStringOrThrow(),
+          throwsA(pickException(
+              containing: ['List<String>', 'not a List or Map', '[a, b]'])),
+        );
+        expect(
+          () => pick({'a': 'b'}).asStringOrThrow(),
+          throwsA(pickException(containing: [
+            'Map<String, String>',
+            'not a List or Map',
+            '{a: b}'
+          ])),
+        );
+      });
+
       test('null throws', () {
         expect(
           () => nullPick().asStringOrThrow(),
