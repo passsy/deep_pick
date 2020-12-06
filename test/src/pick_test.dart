@@ -1,10 +1,9 @@
-// ignore_for_file: deprecated_member_use_from_same_package
 import 'package:deep_pick/deep_pick.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('Pick', () {
-    test('pick from null returns null Pick with full location', () {
+    test('null pick carries full location', () {
       final p = pick(null, 'some', 'path');
       expect(p.path, ['some', 'path']);
       expect(p.value, null);
@@ -12,7 +11,9 @@ void main() {
 
     test('toString() prints value and path', () {
       expect(
-          Pick('a', path: ['b', 0]).toString(), 'Pick(value=a, path=[b, 0])');
+        Pick('a', path: ['b', 0]).toString(),
+        'Pick(value=a, path=[b, 0])',
+      );
     });
 
     test(
@@ -22,12 +23,10 @@ void main() {
         'set': {'a', 'b', 'c'},
       };
       expect(
-          () => pick(data, 'set', 0),
-          throwsA(isA<PickException>().having(
-              (e) => e.toString(),
-              'toString',
-              allOf(
-                  contains('[set]'), contains('Set'), contains('index (0)')))));
+        () => pick(data, 'set', 0),
+        throwsA(isA<PickException>().having((e) => e.toString(), 'toString',
+            allOf(contains('[set]'), contains('Set'), contains('index (0)')))),
+      );
     });
 
     test('call()', () {
@@ -40,7 +39,7 @@ void main() {
       expect(first.value, {'name': 'John Snow'});
 
       // pick further
-      expect(first.call('name').required().asString(), 'John Snow');
+      expect(first.call('name').asStringOrThrow(), 'John Snow');
     });
 
     test('pick deeper than data structure returns null pick', () {
@@ -69,24 +68,28 @@ void main() {
         expect(p.isAbsent(), isFalse);
         expect(p.missingValueAtIndex, null);
       });
+
       test('is not absent but null', () {
         final p = pick(null);
         expect(p.value, isNull);
         expect(p.isAbsent(), isFalse);
         expect(p.missingValueAtIndex, null);
       });
+
       test('is not absent but null further down', () {
         final p = pick({'a': null}, 'a');
         expect(p.value, isNull);
         expect(p.isAbsent(), isFalse);
         expect(p.missingValueAtIndex, null);
       });
+
       test('is not absent, not null', () {
         final p = pick({'a', 1}, 'b');
         expect(p.value, isNull);
         expect(p.isAbsent(), isTrue);
         expect(p.missingValueAtIndex, 0);
       });
+
       test('is not absent, not null, further down', () {
         final json = {
           'a': {'b': 1}
@@ -96,189 +99,6 @@ void main() {
         expect(p.isAbsent(), isTrue);
         expect(p.missingValueAtIndex, 1);
       });
-    });
-  });
-
-  group('parsing', () {
-    test('asStringOrNull()', () {
-      expect(pick('adam').asStringOrNull(), 'adam');
-      expect(pick(1).asStringOrNull(), '1');
-      expect(pick(DateTime(2000)).asStringOrNull(), '2000-01-01 00:00:00.000');
-      expect(nullPick().asStringOrNull(), isNull);
-    });
-
-    test('asMapOrNull()', () {
-      expect(pick({'ab': 'cd'}).asMapOrNull(), {'ab': 'cd'});
-      expect(pick(1).asMapOrNull(), isNull);
-      expect(nullPick().asMapOrNull(), isNull);
-    });
-
-    test('asMapOrNull() reports errors correctly', () {
-      final dynamic data = {
-        'a': {'some': 'value'}
-      };
-
-      try {
-        final parsed = pick(data).asMapOrNull<String, bool>();
-        fail('casted map without verifying the types. '
-            'Expected Map<String, bool> but was ${parsed.runtimeType}');
-        // ignore: avoid_catching_errors
-      } on TypeError catch (e) {
-        expect(
-          e,
-          const TypeMatcher<TypeError>().having(
-            (e) => e.toString(),
-            'message',
-            stringContainsInOrder(
-                ['<String, String>', 'is not a subtype of type', 'bool']),
-          ),
-        );
-        // ignore: avoid_catching_errors, deprecated_member_use
-      } on CastError catch (e) {
-        // backwards compatibility for Dart 2.7
-        // CastError was replaced with TypeError in Dart 2.8
-        expect(
-          e,
-          // ignore: deprecated_member_use
-          const TypeMatcher<CastError>().having(
-            (e) => e.toString(),
-            'message',
-            stringContainsInOrder(
-                ['<String, String>', 'is not a subtype of type', 'bool']),
-          ),
-        );
-      }
-    });
-
-    test('asMapOrEmpty()', () {
-      expect(pick({'ab': 'cd'}).asMapOrEmpty(), {'ab': 'cd'});
-      expect(pick('a').asMapOrEmpty(), {});
-      expect(nullPick().asMapOrEmpty(), {});
-    });
-
-    test('asMapOrEmpty() reports errors correctly', () {
-      final dynamic data = {
-        'a': {'some': 'value'}
-      };
-
-      try {
-        final parsed = pick(data).asMapOrEmpty<String, bool>();
-        fail('casted map without verifying the types. '
-            'Expected Map<String, bool> but was ${parsed.runtimeType}');
-        // ignore: avoid_catching_errors
-      } on TypeError catch (e) {
-        expect(
-          e,
-          const TypeMatcher<TypeError>().having(
-            (e) => e.toString(),
-            'message',
-            stringContainsInOrder(
-                ['<String, String>', 'is not a subtype of type', 'bool']),
-          ),
-        );
-        // ignore: avoid_catching_errors, deprecated_member_use
-      } on CastError catch (e) {
-        // backwards compatibility for Dart 2.7
-        // CastError was replaced with TypeError in Dart 2.8
-        expect(
-          e,
-          // ignore: deprecated_member_use
-          const TypeMatcher<CastError>().having(
-            (e) => e.toString(),
-            'message',
-            stringContainsInOrder(
-                ['<String, String>', 'is not a subtype of type', 'bool']),
-          ),
-        );
-      }
-    });
-
-    test('asListOrNull()', () {
-      expect(pick([1, 2, 3]).asListOrNull<int>(), [1, 2, 3]);
-      expect(pick('john').asListOrNull<int>(), isNull);
-      expect(nullPick().asListOrNull<int>(), isNull);
-    });
-
-    test('asListOrEmpty()', () {
-      expect(pick([1, 2, 3]).asListOrEmpty<int>(), [1, 2, 3]);
-      expect(pick('a').asListOrEmpty<int>(), []);
-      expect(nullPick().asListOrEmpty<int>(), []);
-    });
-
-    test('asIntOrNull()', () {
-      expect(pick(1).asIntOrNull(), 1);
-      expect(pick('a').asIntOrNull(), isNull);
-      expect(nullPick().asIntOrNull(), isNull);
-    });
-
-    test('asDoubleOrNull()', () {
-      expect(pick(1).asDoubleOrNull(), 1.0);
-      expect(pick(2.0).asDoubleOrNull(), 2.0);
-      expect(pick('3.0').asDoubleOrNull(), 3.0);
-      expect(pick('a').asDoubleOrNull(), isNull);
-      expect(nullPick().asDoubleOrNull(), isNull);
-    });
-
-    test('asDateTimeOrNull()', () {
-      expect(pick('2012-02-27 13:27:00,123456z').asDateTimeOrNull(),
-          DateTime.utc(2012, 2, 27, 13, 27, 0, 123, 456));
-      expect(pick(DateTime.utc(2020)).asDateTimeOrNull(), DateTime.utc(2020));
-      expect(pick('1').asDateTimeOrNull(), isNull);
-      expect(pick('Bubblegum').asDateTimeOrNull(), isNull);
-      expect(nullPick().asDateTimeOrNull(), isNull);
-    });
-
-    test('asListOrEmpty(Pick -> T)', () {
-      final data = [
-        {'name': 'John Snow'},
-        {'name': 'Daenerys Targaryen'},
-      ];
-      expect(pick(data).asListOrEmpty((it) => Person.fromJson(it.asMap())), [
-        Person(name: 'John Snow'),
-        Person(name: 'Daenerys Targaryen'),
-      ]);
-      expect(pick([]).asList((pick) => Person.fromJson(pick.asMap())), []);
-      expect(nullPick().asListOrEmpty((pick) => Person.fromJson(pick.asMap())),
-          []);
-    });
-
-    test('asListOrEmpty(Pick -> T) reports item parsing errors', () {
-      final data = [
-        {'name': 'John Snow'},
-        {'asdf': 'Daenerys Targaryen'}, // <-- wrong key
-      ];
-      expect(
-          () =>
-              pick(data).asListOrEmpty((pick) => Person.fromJson(pick.asMap())),
-          throwsA(isA<PickException>().having((e) => e.message, 'message',
-              contains('required value at location `name` is absent'))));
-    });
-
-    test('asListOrNull(Pick -> T)', () {
-      final data = [
-        {'name': 'John Snow'},
-        {'name': 'Daenerys Targaryen'},
-      ];
-      expect(pick(data).asListOrNull((pick) => Person.fromJson(pick.asMap())), [
-        Person(name: 'John Snow'),
-        Person(name: 'Daenerys Targaryen'),
-      ]);
-      expect(
-          pick([]).asListOrNull((pick) => Person.fromJson(pick.asMap())), []);
-      expect(nullPick().asListOrNull((pick) => Person.fromJson(pick.asMap())),
-          null);
-    });
-
-    test('asListOrNull(Pick -> T) reports item parsing errors', () {
-      final data = [
-        {'name': 'John Snow'},
-        {'asdf': 'Daenerys Targaryen'}, // <-- wrong key
-      ];
-      expect(
-          () =>
-              pick(data).asListOrNull((pick) => Person.fromJson(pick.asMap())),
-          throwsA(isA<PickException>().having((e) => e.message, 'message',
-              contains('required value at location `name` is absent'))));
     });
   });
 
@@ -336,7 +156,8 @@ void main() {
       expect(root.context, {'lang': 'de'});
     });
 
-    test('add and read from context with syntax sugar', () {
+    test('add and read from context with syntax sugar (deprecated)', () {
+      // ignore: deprecated_member_use_from_same_package
       final root = pick([]).addContext('lang', 'de');
       expect(root.fromContext('lang').asStringOrNull(), 'de');
     });
