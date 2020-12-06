@@ -9,32 +9,32 @@ void main() {
       expect(
           pick({'name': 'John Snow'})
               .required()
-              .let((pick) => Person.fromJson(pick)),
+              .let((pick) => Person.fromPick(pick)),
           Person(name: 'John Snow'));
       expect(
           pick({'name': 'John Snow'})
               .required()
-              .let((pick) => Person.fromJson(pick)),
+              .let((pick) => Person.fromPick(pick)),
           Person(name: 'John Snow'));
-      expect(() => nullPick().required().let((pick) => Person.fromJson(pick)),
+      expect(() => nullPick().required().let((pick) => Person.fromPick(pick)),
           throwsA(pickException(containing: ['unknownKey', 'absent'])));
     });
 
     test('letOrNull()', () {
       expect(
           pick({'name': 'John Snow'})
-              .letOrNull((pick) => Person.fromJson(pick)),
+              .letOrNull((pick) => Person.fromPick(pick)),
           Person(name: 'John Snow'));
-      expect(nullPick().letOrNull((pick) => Person.fromJson(pick)), isNull);
+      expect(nullPick().letOrNull((pick) => Person.fromPick(pick)), isNull);
       expect(
-        () => pick('a').letOrNull((pick) => Person.fromJson(pick)),
+        () => pick('a').letOrNull((pick) => Person.fromPick(pick)),
         throwsA(pickException(containing: [
           'required value at location "name" in pick(json, "name" (absent)) is absent.'
         ])),
       );
       expect(
           () => pick({'asdf': 'John Snow'})
-              .letOrNull((pick) => Person.fromJson(pick)),
+              .letOrNull((pick) => Person.fromPick(pick)),
           throwsA(isA<PickException>().having(
               (e) => e.message,
               'message',
@@ -45,17 +45,17 @@ void main() {
     test('letOrThrow()', () {
       expect(
           pick({'name': 'John Snow'})
-              .letOrThrow((pick) => Person.fromJson(pick)),
+              .letOrThrow((pick) => Person.fromPick(pick)),
           Person(name: 'John Snow'));
       expect(
-        () => nullPick().letOrThrow((pick) => Person.fromJson(pick)),
+        () => nullPick().letOrThrow((pick) => Person.fromPick(pick)),
         throwsA(pickException(containing: [
           'required value at location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use letOrNull() when the value may be null/absent at some point.'
         ])),
       );
       expect(
         () => pick({'asdf': 'John Snow'})
-            .letOrThrow((pick) => Person.fromJson(pick)),
+            .letOrThrow((pick) => Person.fromPick(pick)),
         throwsA(
           pickException(containing: [
             'required value at location "name" in pick(json, "name" (absent)) is absent. Use letOrNull() when the value may be null/absent at some point.'

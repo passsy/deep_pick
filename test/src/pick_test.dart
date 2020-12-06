@@ -277,7 +277,7 @@ class Person {
 
   Person({required this.name});
 
-  factory Person.fromJson(RequiredPick pick) {
+  factory Person.fromPick(RequiredPick pick) {
     return Person(
       name: pick('name').required().asString(),
     );

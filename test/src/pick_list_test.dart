@@ -21,7 +21,7 @@ void main() {
 
       test('map empty list to empty list', () {
         expect(
-          pick([]).asListOrThrow((pick) => Person.fromJson(pick)),
+          pick([]).asListOrThrow((pick) => Person.fromPick(pick)),
           [],
         );
       });
@@ -31,7 +31,7 @@ void main() {
           pick([
             {'name': 'John Snow'},
             {'name': 'Daenerys Targaryen'},
-          ]).asListOrThrow((pick) => Person.fromJson(pick)),
+          ]).asListOrThrow((pick) => Person.fromPick(pick)),
           [
             Person(name: 'John Snow'),
             Person(name: 'Daenerys Targaryen'),
@@ -39,13 +39,31 @@ void main() {
         );
       });
 
-      test('map to List<Person?>', () {
+      test('map to List<Person> ignoring null values', () {
         expect(
           pick([
             {'name': 'John Snow'},
             {'name': 'Daenerys Targaryen'},
             null, // <-- valid value
-          ]).asListOrThrow((pick) => Person.fromJson(pick)),
+          ]).asListOrThrow((pick) => Person.fromPick(pick)),
+          [
+            Person(name: 'John Snow'),
+            Person(name: 'Daenerys Targaryen'),
+            // not 3rd item
+          ],
+        );
+      });
+
+      test('map to List<Person?> with whenNull', () {
+        expect(
+          pick([
+            {'name': 'John Snow'},
+            {'name': 'Daenerys Targaryen'},
+            null, // <-- valid value
+          ]).asListOrThrow(
+            (pick) => Person.fromPick(pick),
+            whenNull: (it) => null,
+          ),
           [
             Person(name: 'John Snow'),
             Person(name: 'Daenerys Targaryen'),
@@ -59,7 +77,7 @@ void main() {
           () => pick([
             {'name': 'John Snow'},
             {'asdf': 'Daenerys Targaryen'}, // <-- missing name key
-          ]).asListOrThrow((pick) => Person.fromJson(pick)),
+          ]).asListOrThrow((pick) => Person.fromPick(pick)),
           throwsA(pickException(containing: [
             'required value at location list index 1 in pick(json, 1 (absent), "name") is absent. Use asListOrEmpty()/asListOrNull() when the value may be null/absent at some point (List<Person>?).'
           ])),
@@ -83,12 +101,12 @@ void main() {
 
     test('deprecated asList forwards to asListOrThrow', () {
       // ignore: deprecated_member_use_from_same_package
-      expect(pick([1, 2, 3]).asList(), [1, 2, 3]);
+      expect(pick([1, 2, 3]).asList<int>(), [1, 2, 3]);
       expect(
         // ignore: deprecated_member_use_from_same_package
         () => pick(Object()).asList(),
         throwsA(pickException(containing: [
-          "value Instance of 'Object' of type Object at location `<root>` can not be casted to List<dynamic>"
+          'value Instance of \'Object\' of type Object at location "<root>" in pick(<root>) can not be casted to List<dynamic>'
         ])),
       );
     });
@@ -108,14 +126,14 @@ void main() {
 
       test('map empty list to empty list', () {
         expect(
-          pick([]).asListOrEmpty((pick) => Person.fromJson(pick)),
+          pick([]).asListOrEmpty((pick) => Person.fromPick(pick)),
           [],
         );
       });
 
       test('map null list to empty list', () {
         expect(
-          nullPick().asListOrEmpty((pick) => Person.fromJson(pick)),
+          nullPick().asListOrEmpty((pick) => Person.fromPick(pick)),
           [],
         );
       });
@@ -125,7 +143,7 @@ void main() {
           pick([
             {'name': 'John Snow'},
             {'name': 'Daenerys Targaryen'},
-          ]).asListOrEmpty((pick) => Person.fromJson(pick)),
+          ]).asListOrEmpty((pick) => Person.fromPick(pick)),
           [
             Person(name: 'John Snow'),
             Person(name: 'Daenerys Targaryen'),
@@ -133,13 +151,31 @@ void main() {
         );
       });
 
-      test('map to List<Person?>', () {
+      test('map to List<Person> ignoring null values', () {
         expect(
           pick([
             {'name': 'John Snow'},
             {'name': 'Daenerys Targaryen'},
             null, // <-- valid value
-          ]).asListOrEmpty((pick) => Person.fromJson(pick)),
+          ]).asListOrEmpty((pick) => Person.fromPick(pick)),
+          [
+            Person(name: 'John Snow'),
+            Person(name: 'Daenerys Targaryen'),
+            // not 3rd item
+          ],
+        );
+      });
+
+      test('map to List<Person?> with whenNull', () {
+        expect(
+          pick([
+            {'name': 'John Snow'},
+            {'name': 'Daenerys Targaryen'},
+            null, // <-- valid value
+          ]).asListOrEmpty(
+            (pick) => Person.fromPick(pick),
+            whenNull: (it) => null,
+          ),
           [
             Person(name: 'John Snow'),
             Person(name: 'Daenerys Targaryen'),
@@ -153,7 +189,7 @@ void main() {
           () => pick([
             {'name': 'John Snow'},
             {'asdf': 'Daenerys Targaryen'}, // <-- missing name key
-          ]).asListOrEmpty((pick) => Person.fromJson(pick)),
+          ]).asListOrEmpty((pick) => Person.fromPick(pick)),
           throwsA(pickException(containing: [
             'required value at location list index 1 in pick(json, 1 (absent), "name") is absent.'
           ])),
@@ -176,14 +212,14 @@ void main() {
 
       test('map empty list to empty list', () {
         expect(
-          pick([]).asListOrNull((pick) => Person.fromJson(pick)),
+          pick([]).asListOrNull((pick) => Person.fromPick(pick)),
           [],
         );
       });
 
       test('map null list to null', () {
         expect(
-          nullPick().asListOrNull((pick) => Person.fromJson(pick)),
+          nullPick().asListOrNull((pick) => Person.fromPick(pick)),
           null,
         );
       });
@@ -193,7 +229,7 @@ void main() {
           pick([
             {'name': 'John Snow'},
             {'name': 'Daenerys Targaryen'},
-          ]).asListOrNull((pick) => Person.fromJson(pick)),
+          ]).asListOrNull((pick) => Person.fromPick(pick)),
           [
             Person(name: 'John Snow'),
             Person(name: 'Daenerys Targaryen'),
@@ -201,13 +237,31 @@ void main() {
         );
       });
 
-      test('map to List<Person?>', () {
+      test('map to List<Person> ignoring null values', () {
         expect(
           pick([
             {'name': 'John Snow'},
             {'name': 'Daenerys Targaryen'},
             null, // <-- valid value
-          ]).asListOrNull((pick) => Person.fromJson(pick)),
+          ]).asListOrNull((pick) => Person.fromPick(pick)),
+          [
+            Person(name: 'John Snow'),
+            Person(name: 'Daenerys Targaryen'),
+            // not 3rd item
+          ],
+        );
+      });
+
+      test('map to List<Person?> with whenNull', () {
+        expect(
+          pick([
+            {'name': 'John Snow'},
+            {'name': 'Daenerys Targaryen'},
+            null, // <-- valid value
+          ]).asListOrNull(
+            (pick) => Person.fromPick(pick),
+            whenNull: (it) => null,
+          ),
           [
             Person(name: 'John Snow'),
             Person(name: 'Daenerys Targaryen'),
@@ -222,10 +276,10 @@ void main() {
           {'asdf': 'Daenerys Targaryen'}, // <-- missing name key
         ];
         expect(
-          () => pick(data).asListOrNull((pick) => Person.fromJson(pick)),
-          pickException(containing: [
+          () => pick(data).asListOrNull((pick) => Person.fromPick(pick)),
+          throwsA(pickException(containing: [
             'required value at location list index 1 in pick(json, 1 (absent), "name") is absent.'
-          ]),
+          ])),
         );
       });
     });

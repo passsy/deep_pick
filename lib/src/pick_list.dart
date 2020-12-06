@@ -42,15 +42,16 @@ extension NullableListPick on Pick {
   @Deprecated('Use .asListOrThrow()')
   List<T> asList<T>([T Function(Pick)? map]) {
     return asListOrThrow((it) {
-      final mapFn = map ?? (Pick it) => it as T;
+      final mapFn = map ?? (Pick it) => it.value as T;
       return mapFn(it.nullable());
-    });
+    }, whenNull: (it) => it.value as T);
   }
 
-  List<T> asListOrThrow<T>(T Function(RequiredPick) map) {
+  List<T> asListOrThrow<T>(T Function(RequiredPick) map,
+      {T Function(Pick pick)? whenNull}) {
     withContext(requiredPickErrorHintKey,
         'Use asListOrEmpty()/asListOrNull() when the value may be null/absent at some point (List<$T>?).');
-    return required().asList(map);
+    return required().asList(map, whenNull: whenNull);
   }
 
   List<T> asListOrEmpty<T>(T Function(RequiredPick) map,
