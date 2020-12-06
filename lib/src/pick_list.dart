@@ -18,18 +18,14 @@ extension ListPick on RequiredPick {
 }
 
 extension NullableListPick on Pick {
-  // This deprecation is used to promote the `.required()` in auto-completion.
-  // Therefore it is not intended to be ever removed
-  @Deprecated(
-      'By default values are optional and can only be converted when a fallback is provided '
-      'i.e. .asListOrNull() which falls back to `null`. '
-      'Use .required().asList() in cases the value is mandatory. '
-      "It will crash when the value couldn't be picked.")
+  @Deprecated('Use .asListOrThrow()')
   List<T> asList<T>([T Function(Pick)? map]) {
-    if (value == null) {
-      throw PickException(
-          'value at location ${location()} is null and not an instance of List<$T>');
-    }
+    return asListOrThrow(map);
+  }
+
+  List<T> asListOrThrow<T>([T Function(Pick)? map]) {
+    withContext(requiredPickErrorHintKey,
+        'Use asListOrEmpty()/asListOrNull() when the value may be null/absent at some point (List<$T>?).');
     return required().asList(map);
   }
 
