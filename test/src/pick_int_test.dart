@@ -11,10 +11,6 @@ void main() {
         expect(pick(35).asIntOrThrow(), 35);
       });
 
-      test('parse double', () {
-        expect(pick(1.0).asIntOrThrow(), 1);
-      });
-
       test('parse int String', () {
         expect(pick('1').asIntOrThrow(), 1);
         expect(pick('123').asIntOrThrow(), 123);
