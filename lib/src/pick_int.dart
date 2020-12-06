@@ -31,6 +31,9 @@ extension NullableIntPick on Pick {
   @Deprecated('Use .asIntOrThrow()')
   int Function() get asInt => asIntOrThrow;
 
+  /// Returns the picked [value] as [int] or throws
+  ///
+  /// {@macro Pick.asInt}
   int asIntOrThrow() {
     withContext(requiredPickErrorHintKey,
         'Use asIntOrNull() when the value may be null/absent at some point (int?).');
