@@ -20,8 +20,7 @@ extension ListPick on RequiredPick {
           continue;
         }
         try {
-          final pick =
-              Pick(null, fullPath: [...fullPath, index], context: context);
+          final pick = Pick(null, path: [...fullPath, index], context: context);
           result.add(whenNull(pick));
           continue;
         } catch (e) {

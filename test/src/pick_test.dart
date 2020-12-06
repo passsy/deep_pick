@@ -56,7 +56,7 @@ void main() {
     test('toString() prints value and path', () {
       expect(
           // ignore: deprecated_member_use_from_same_package
-          Pick('a', fullPath: ['b', 0]).toString(),
+          Pick('a', path: ['b', 0]).toString(),
           'Pick(value=a, path=[b, 0])');
     });
 

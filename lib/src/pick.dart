@@ -36,27 +36,25 @@ Pick _drillDown(dynamic json, List<dynamic> selectors,
         try {
           data = data[selector];
           if (data == null) {
-            return Pick(null, fullPath: fullPath, context: context);
+            return Pick(null, path: fullPath, context: context);
           }
           // found a value, continue drill down
           continue;
           // ignore: avoid_catching_errors
         } on RangeError catch (_) {
           // out of range, value not found at index selector
-          return Pick.absent(path.length - 1,
-              fullPath: fullPath, context: context);
+          return Pick.absent(path.length - 1, path: fullPath, context: context);
         }
       }
     }
     if (data is Map) {
       if (!data.containsKey(selector)) {
-        return Pick.absent(path.length - 1,
-            fullPath: fullPath, context: context);
+        return Pick.absent(path.length - 1, path: fullPath, context: context);
       }
       final picked = data[selector];
       if (picked == null) {
         // no value mapped to selector
-        return Pick(null, fullPath: fullPath, context: context);
+        return Pick(null, path: fullPath, context: context);
       }
       data = picked;
       continue;
@@ -67,9 +65,9 @@ Pick _drillDown(dynamic json, List<dynamic> selectors,
           "It's not possible to pick a value by using a index ($selector)");
     }
     // can't drill down any more to find the exact location.
-    return Pick.absent(path.length - 1, fullPath: fullPath, context: context);
+    return Pick.absent(path.length - 1, path: fullPath, context: context);
   }
-  return Pick(data, fullPath: fullPath, context: context);
+  return Pick(data, path: fullPath, context: context);
 }
 
 /// A picked object holding the [value] (may be null) and giving access to useful parsing functions
@@ -80,9 +78,10 @@ class Pick with PickLocation, PickContext<Pick> {
   /// [isAbsent] will always return `false`.
   Pick(
     this.value, {
-    this.fullPath = const [],
+    List<dynamic> path = const [],
     Map<String, dynamic>? context,
-  }) : _context = context != null ? Map.of(context) : {};
+  })  : fullPath = path,
+        _context = context != null ? Map.of(context) : {};
 
   /// Pick of an absent value. While drilling down [path] the structure of the
   /// data did not match the [path] and the value wasn't found.
@@ -90,9 +89,10 @@ class Pick with PickLocation, PickContext<Pick> {
   /// [value] will always return `null` and [isAbsent] always `true`.
   Pick.absent(
     int missingValueAtIndex, {
-    this.fullPath = const [],
+    List<dynamic> path = const [],
     Map<String, dynamic>? context,
-  })  : _missingValueAtIndex = missingValueAtIndex,
+  })  : fullPath = path,
+        _missingValueAtIndex = missingValueAtIndex,
         _context = context != null ? Map.of(context) : {};
 
   /// The picked value, might be `null`
@@ -233,7 +233,7 @@ class RequiredPick with PickLocation, PickContext<RequiredPick> {
   /// Converts the picked value to a nullable type [Pick]
   ///
   /// Inverse of [Pick.required]
-  Pick nullable() => Pick(value, fullPath: path, context: context);
+  Pick nullable() => Pick(value, path: fullPath, context: context);
 }
 
 /// Used internally with [PickContext.withContext] to add additional information
