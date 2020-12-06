@@ -85,11 +85,11 @@ void main() {
 /// PODO - plain old dart object
 class Shoe {
   const Shoe({
-    required this.id,
-    required this.name,
+    /*required*/ this.id,
+    /*required*/ this.name,
     this.manufacturer,
-    required this.tags,
-    required this.price,
+    /*required*/ this.tags,
+    /*required*/ this.price,
   });
 
   factory Shoe.fromPick(RequiredPick pick) {
@@ -119,7 +119,7 @@ class Shoe {
   final String name;
 
   /// optional
-  final String? manufacturer;
+  final String /*?*/ manufacturer;
 
   /// never null, falls back to empty list
   final List<String> tags;

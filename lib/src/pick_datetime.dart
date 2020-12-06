@@ -52,7 +52,7 @@ extension NullableDateTimePick on Pick {
   /// Parses the picked [value] as [DateTime] or returns `null`
   ///
   /// {@macro Pick.asDateTime}
-  DateTime? asDateTimeOrNull() {
+  DateTime /*?*/ asDateTimeOrNull() {
     if (value == null) return null;
     try {
       return required().asDateTime();

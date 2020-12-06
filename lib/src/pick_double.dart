@@ -30,7 +30,7 @@ extension NullableDoublePick on Pick {
     return required().asDouble();
   }
 
-  double? asDoubleOrNull() {
+  double /*?*/ asDoubleOrNull() {
     if (value == null) return null;
     try {
       return required().asDouble();

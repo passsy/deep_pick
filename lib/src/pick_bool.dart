@@ -25,7 +25,7 @@ extension NullableBoolPick on Pick {
     return required().asBool();
   }
 
-  bool? asBoolOrNull() {
+  bool /*?*/ asBoolOrNull() {
     if (value == null) return null;
     try {
       return required().asBool();

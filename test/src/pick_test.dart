@@ -224,7 +224,7 @@ Pick nullPick() {
   return pick(<String, dynamic>{}, 'unknownKey');
 }
 
-Matcher pickException({required List<String> containing}) {
+Matcher pickException({/*required*/ List<String> containing}) {
   return const TypeMatcher<PickException>()
       .having((e) => e.message, 'message', stringContainsInOrder(containing));
 }
@@ -232,7 +232,7 @@ Matcher pickException({required List<String> containing}) {
 class Person {
   Person({
     // ignore: always_require_non_null_named_parameters
-    required this.name,
+    /*required*/ this.name,
   });
 
   factory Person.fromJson(Map<String, dynamic> data) {

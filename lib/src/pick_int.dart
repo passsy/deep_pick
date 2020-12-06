@@ -44,7 +44,7 @@ extension NullableIntPick on Pick {
   /// value is absent
   ///
   /// {@macro Pick.asInt}
-  int? asIntOrNull() {
+  int /*?*/ asIntOrNull() {
     if (value == null) return null;
     try {
       return required().asInt();

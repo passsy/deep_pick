@@ -25,7 +25,7 @@ Pick pick(
 }
 
 Pick _drillDown(dynamic json, List<dynamic> selectors,
-    {List<dynamic> parentPath = const [], Map<String, dynamic>? context}) {
+    {List<dynamic> parentPath = const [], Map<String, dynamic>/*?*/ context}) {
   final newPath = [...parentPath, ...selectors];
   final path = <dynamic>[];
   dynamic data = json;
@@ -48,7 +48,7 @@ Pick _drillDown(dynamic json, List<dynamic> selectors,
       }
     }
     if (data is Map) {
-      if (!data.containsKey(selector)) {
+      if (!(data as Map).containsKey(selector)) {
         return Pick.absent(path.length - 1, path: newPath, context: context);
       }
       final picked = data[selector];
@@ -79,7 +79,7 @@ class Pick with PickLocation, PickContext<Pick> {
   Pick(
     this.value, {
     this.path = const [],
-    Map<String, dynamic>? context,
+    Map<String, dynamic>/*?*/ context,
   }) : _context = context != null ? Map.of(context) : {};
 
   /// Pick of an absent value. While drilling down [path] the structure of the
@@ -89,12 +89,12 @@ class Pick with PickLocation, PickContext<Pick> {
   Pick.absent(
     int missingValueAtIndex, {
     this.path = const [],
-    Map<String, dynamic>? context,
+    Map<String, dynamic>/*?*/ context,
   })  : _missingValueAtIndex = missingValueAtIndex,
         _context = context != null ? Map.of(context) : {};
 
   /// The picked value, might be `null`
-  Object? value;
+  Object/*?*/ value;
 
   /// Allows the distinction between the actual [value] `null` and the value not
   /// being available
@@ -123,8 +123,8 @@ class Pick with PickLocation, PickContext<Pick> {
 
   /// When the picked value is unavailable ([Pick..absent]) the index in
   /// [path] which couldn't be found
-  int? get missingValueAtIndex => _missingValueAtIndex;
-  int? _missingValueAtIndex;
+  int/*?*/ get missingValueAtIndex => _missingValueAtIndex;
+  int/*?*/ _missingValueAtIndex;
 
   // Pick even further
   Pick call([
@@ -159,7 +159,7 @@ class Pick with PickLocation, PickContext<Pick> {
   RequiredPick required() {
     final value = this.value;
     if (value == null) {
-      final more = fromContext(requiredPickErrorHintKey).value as String?;
+      final more = fromContext(requiredPickErrorHintKey).value as String/*?*/;
       final moreSegment = more == null ? '' : ' $more';
       throw PickException('required value at location ${location()} '
           'is ${isAbsent ? 'absent' : 'null'}.$moreSegment');
@@ -177,7 +177,7 @@ class Pick with PickLocation, PickContext<Pick> {
 
 class RequiredPick with PickLocation, PickContext<RequiredPick> {
   RequiredPick(this.value,
-      {this.path = const [], Map<String, dynamic>? context})
+      {this.path = const [], Map<String, dynamic>/*?*/ context})
       : _context = context != null ? Map.of(context) : {};
 
   /// The picked value, never `null`

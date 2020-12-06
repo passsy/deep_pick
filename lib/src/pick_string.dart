@@ -42,7 +42,7 @@ extension NullableStringPick on Pick {
   /// Returns the picked [value] as [String] or returns `null` when the picked value isn't available
   ///
   /// {@macro Pick.asString}
-  String? asStringOrNull() {
+  String /*?*/ asStringOrNull() {
     if (value == null) return null;
     try {
       return required().asString();
