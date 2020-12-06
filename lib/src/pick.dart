@@ -108,15 +108,15 @@ class Pick with PickLocation, PickContext<Pick> {
   /// - Trying to access a key in a [Map] but the found data structure is a [List]
   ///
   /// ```
-  /// pick({"a": null}, "a").isAbsent(); // false
-  /// pick({"a": null}, "b").isAbsent(); // true
+  /// pick({"a": null}, "a").isAbsent; // false
+  /// pick({"a": null}, "b").isAbsent; // true
   ///
-  /// pick([null], 0).isAbsent(); // false
-  /// pick([], 2).isAbsent(); // true
+  /// pick([null], 0).isAbsent; // false
+  /// pick([], 2).isAbsent; // true
   ///
-  /// pick([], "a").isAbsent(); // true
+  /// pick([], "a").isAbsent; // true
   /// ```
-  bool isAbsent() => missingValueAtIndex != null;
+  bool get isAbsent => missingValueAtIndex != null;
 
   @override
   List<dynamic> path;
@@ -162,7 +162,7 @@ class Pick with PickLocation, PickContext<Pick> {
       final more = fromContext(requiredPickErrorHintKey).value as String?;
       final moreSegment = more == null ? '' : ' $more';
       throw PickException('required value at location ${location()} '
-          'is ${isAbsent() ? 'absent' : 'null'}.$moreSegment');
+          'is ${isAbsent ? 'absent' : 'null'}.$moreSegment');
     }
     return RequiredPick(value, path: path, context: _context);
   }
