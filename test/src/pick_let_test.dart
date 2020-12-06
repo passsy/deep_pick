@@ -5,19 +5,19 @@ import 'pick_test.dart';
 
 void main() {
   group('pick().let*', () {
-    test('let()', () {
+    test('letOrThrow()', () {
       expect(
-          pick({'name': 'John Snow'})
-              .required()
-              .let((pick) => Person.fromPick(pick)),
-          Person(name: 'John Snow'));
+        pick({'name': 'John Snow'}).letOrThrow((pick) => Person.fromPick(pick)),
+        Person(name: 'John Snow'),
+      );
       expect(
-          pick({'name': 'John Snow'})
-              .required()
-              .let((pick) => Person.fromPick(pick)),
-          Person(name: 'John Snow'));
-      expect(() => nullPick().required().let((pick) => Person.fromPick(pick)),
-          throwsA(pickException(containing: ['unknownKey', 'absent'])));
+        pick({'name': 'John Snow'}).letOrThrow((pick) => Person.fromPick(pick)),
+        Person(name: 'John Snow'),
+      );
+      expect(
+        () => nullPick().letOrThrow((pick) => Person.fromPick(pick)),
+        throwsA(pickException(containing: ['unknownKey', 'absent'])),
+      );
     });
 
     test('letOrNull()', () {
@@ -33,13 +33,12 @@ void main() {
         ])),
       );
       expect(
-          () => pick({'asdf': 'John Snow'})
-              .letOrNull((pick) => Person.fromPick(pick)),
-          throwsA(isA<PickException>().having(
-              (e) => e.message,
-              'message',
-              contains(
-                  'required value at location "name" in pick(json, "name" (absent)) is absent.'))));
+        () => pick({'asdf': 'John Snow'})
+            .letOrNull((pick) => Person.fromPick(pick)),
+        throwsA(pickException(containing: [
+          'required value at location "name" in pick(json, "name" (absent)) is absent.'
+        ])),
+      );
     });
 
     test('letOrThrow()', () {

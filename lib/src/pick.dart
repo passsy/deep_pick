@@ -124,7 +124,7 @@ class Pick with PickLocation, PickContext<Pick> {
   List<dynamic> fullPath;
 
   @override
-  List get path =>
+  List<dynamic> get path =>
       fullPath.take(_missingValueAtIndex ?? fullPath.length).toList();
 
   /// When the picked value is unavailable ([Pick..absent]) the index in
