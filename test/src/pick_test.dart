@@ -55,9 +55,10 @@ void main() {
 
     test('toString() prints value and path', () {
       expect(
-          // ignore: deprecated_member_use_from_same_package
-          Pick('a', path: ['b', 0]).toString(),
-          'Pick(value=a, path=[b, 0])');
+        // ignore: deprecated_member_use_from_same_package
+        Pick('a', path: ['b', 0]).toString(),
+        'Pick(value=a, path=[b, 0])',
+      );
     });
 
     test(
@@ -105,32 +106,32 @@ void main() {
       expect(level2Pick.path, [0, 'name']);
     });
 
-    group('isAbsent()', () {
+    group('isAbsent', () {
       test('is not absent because value', () {
         final p = pick('a');
         expect(p.value, isNotNull);
-        expect(p.isAbsent(), isFalse);
+        expect(p.isAbsent, isFalse);
         expect(p.missingValueAtIndex, null);
       });
 
       test('is not absent but null', () {
         final p = pick(null);
         expect(p.value, isNull);
-        expect(p.isAbsent(), isFalse);
+        expect(p.isAbsent, isFalse);
         expect(p.missingValueAtIndex, null);
       });
 
       test('is not absent but null further down', () {
         final p = pick({'a': null}, 'a');
         expect(p.value, isNull);
-        expect(p.isAbsent(), isFalse);
+        expect(p.isAbsent, isFalse);
         expect(p.missingValueAtIndex, null);
       });
 
       test('is not absent, not null', () {
         final p = pick({'a', 1}, 'b');
         expect(p.value, isNull);
-        expect(p.isAbsent(), isTrue);
+        expect(p.isAbsent, isTrue);
         expect(p.missingValueAtIndex, 0);
       });
 
@@ -140,7 +141,7 @@ void main() {
         };
         final p = pick(json, 'a', 'x' /*absent*/);
         expect(p.value, isNull);
-        expect(p.isAbsent(), isTrue);
+        expect(p.isAbsent, isTrue);
         expect(p.missingValueAtIndex, 1);
       });
     });
@@ -153,39 +154,39 @@ void main() {
         {'name': 'Daenerys Targaryen'},
       ];
       expect(pick(data, 10).value, isNull);
-      expect(pick(data, 10).isAbsent(), true);
+      expect(pick(data, 10).isAbsent, true);
     });
 
     test('unknown property in map returns null', () {
       final data = {'name': 'John Snow'};
       expect(pick(data, 'birthday').value, isNull);
-      expect(pick(data, 'birthday').isAbsent(), true);
+      expect(pick(data, 'birthday').isAbsent, true);
     });
 
     test('documentation example Map', () {
       final pa = pick({'a': null}, 'a');
       expect(pa.value, isNull);
-      expect(pa.isAbsent(), false);
+      expect(pa.isAbsent, false);
 
       final pb = pick({'a': null}, 'b');
       expect(pb.value, isNull);
-      expect(pb.isAbsent(), true);
+      expect(pb.isAbsent, true);
     });
 
     test('documentation example List', () {
       final p0 = pick([null], 0);
       expect(p0.value, isNull);
-      expect(p0.isAbsent(), false);
+      expect(p0.isAbsent, false);
 
       final p2 = pick([], 2);
       expect(p2.value, isNull);
-      expect(p2.isAbsent(), true);
+      expect(p2.isAbsent, true);
     });
 
     test('Map key for list', () {
       final p = pick([], 'a');
       expect(p.value, isNull);
-      expect(p.isAbsent(), true);
+      expect(p.isAbsent, true);
     });
   });
 

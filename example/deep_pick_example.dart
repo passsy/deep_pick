@@ -81,7 +81,7 @@ void main() {
 
   // access value out of range
   final puma = pick(json, 'shoes', 1);
-  print(puma.isAbsent()); // true;
+  print(puma.isAbsent); // true;
   print(puma.value); // null
 }
 
@@ -111,7 +111,7 @@ class Shoe {
       tags: pick('tags').asListOrEmpty((it) => it.asString()),
       price: () {
         // when server doesn't send the price field the shoe is not available
-        if (pricePick.isAbsent()) return 'Not for sale';
+        if (pricePick.isAbsent) return 'Not for sale';
         return pricePick.asStringOrNull() ?? 'Price available soon';
       }(),
     );

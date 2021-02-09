@@ -24,6 +24,17 @@ void main() {
         expect(pick('12345.01').asDoubleOrThrow(), 12345.01);
       });
 
+      test('parse german doubles', () {
+        expect(pick('1,0').asDoubleOrThrow(), 1.0);
+        expect(pick('12345,01').asDoubleOrThrow(), 12345.01);
+      });
+
+      test('parse double with separators', () {
+        expect(pick('12,345.01').asDoubleOrThrow(), 12345.01);
+        expect(pick('12 345,01').asDoubleOrThrow(), 12345.01);
+        expect(pick('12.345,01').asDoubleOrThrow(), 12345.01);
+      });
+
       test('null throws', () {
         expect(
           () => nullPick().asDoubleOrThrow(),
