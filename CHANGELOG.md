@@ -1,3 +1,18 @@
+## 0.6.0-nullsafety.2
+
+- **Breaking** `asList*()` methods now ignore `null` values. The map function now receives a `RequiredPick` as fist parameter instead of a `Pick` making parsing easier.
+
+  Therefore `pick().required().asList((RequiredPick pick) => /*...*/)` only maps non-nullable values. When your lists contain `null` it will be ignored.
+  This is fine in most cases and simplifies the map function.
+
+  In rare cases, where your lists contain `null` values with meaning, use the second parameter `whenNull` to map those null values `.asList((pick) => Person.fromPick(pick), whenNull: (Pick it) => null)`. The function still receives a `Pick` which gives access to the `context` api or the `PickLocation`. But the `Pick` never holds any value.
+  
+- **Breaking** Don't parse doubles as int because the is no rounding method which satisfies all [#31](https://github.com/passsy/deep_pick/pull/31)
+- **Breaking** Allow parsing of "german" doubles with `,` as decimal separator [#30](https://github.com/passsy/deep_pick/pull/30)
+- Improve error messages with more details where parsing stopped
+- New `RequiredPick.nullable()` converting a `RequiredPick` back to a `Pick` with potential `null` value
+- New `PickLocation.followablePath`. While `PickLocation.path` contains the full path to the value, `followablePath` contains only the part which could be followed with a non-nullable value
+
 ## 0.6.0-nullsafety.1
 
 - New `asXyzOrThrow()` methods as shorthand for `.required().asXyz()` featuring better error messages
