@@ -24,11 +24,22 @@ void main() {
         expect(pick('12345.01').asDoubleOrThrow(), 12345.01);
       });
 
+      test('parse german doubles', () {
+        expect(pick('1,0').asDoubleOrThrow(), 1.0);
+        expect(pick('12345,01').asDoubleOrThrow(), 12345.01);
+      });
+
+      test('parse double with separators', () {
+        expect(pick('12,345.01').asDoubleOrThrow(), 12345.01);
+        expect(pick('12 345,01').asDoubleOrThrow(), 12345.01);
+        expect(pick('12.345,01').asDoubleOrThrow(), 12345.01);
+      });
+
       test('null throws', () {
         expect(
           () => nullPick().asDoubleOrThrow(),
           throwsA(pickException(containing: [
-            'required value at location `unknownKey` is absent. Use asDoubleOrNull() when the value may be null/absent at some point (double?).'
+            'required value at location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asDoubleOrNull() when the value may be null/absent at some point (double?).'
           ])),
         );
 
@@ -42,7 +53,7 @@ void main() {
         expect(
           () => pick(Object()).asDoubleOrThrow(),
           throwsA(pickException(containing: [
-            "value Instance of 'Object' of type Object at location `<root>` can not be parsed as double"
+            'value Instance of \'Object\' of type Object at location "<root>" in pick(<root>) can not be parsed as double'
           ])),
         );
 
@@ -60,7 +71,7 @@ void main() {
         // ignore: deprecated_member_use_from_same_package
         () => pick(Object()).asDouble(),
         throwsA(pickException(containing: [
-          "value Instance of 'Object' of type Object at location `<root>` can not be parsed as double"
+          "value Instance of 'Object' of type Object at location \"<root>\" in pick(<root>) can not be parsed as double"
         ])),
       );
     });

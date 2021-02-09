@@ -14,7 +14,7 @@ void main() {
         expect(
           () => nullPick().asMapOrThrow<String, bool>(),
           throwsA(pickException(containing: [
-            'required value at location `unknownKey` is absent. Use asMapOrEmpty()/asMapOrNull() when the value may be null/absent at some point (Map<String, bool>?).'
+            'required value at location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asMapOrEmpty()/asMapOrNull() when the value may be null/absent at some point (Map<String, bool>?).'
           ])),
         );
       });
@@ -65,7 +65,7 @@ void main() {
         expect(
           () => pick(Object()).asMapOrThrow(),
           throwsA(pickException(containing: [
-            "value Instance of 'Object' of type Object at location `<root>` can not be casted to Map<dynamic, dynamic>"
+            'value Instance of \'Object\' of type Object at location "<root>" in pick(<root>) can not be casted to Map<dynamic, dynamic>'
           ])),
         );
       });
@@ -78,7 +78,7 @@ void main() {
         // ignore: deprecated_member_use_from_same_package
         () => pick(Object()).asMap(),
         throwsA(pickException(containing: [
-          "value Instance of 'Object' of type Object at location `<root>` can not be casted to Map<dynamic, dynamic>"
+          'value Instance of \'Object\' of type Object at location "<root>" in pick(<root>) can not be casted to Map<dynamic, dynamic>'
         ])),
       );
     });

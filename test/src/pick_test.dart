@@ -9,6 +9,50 @@ void main() {
       expect(p.value, null);
     });
 
+    test('required pick from null show good error message', () {
+      expect(
+          () => pick(null).required(),
+          throwsA(isA<PickException>().having(
+            (e) => e.message,
+            'message',
+            contains(
+                'required value at location "<root>" in pick(<root>) is null'),
+          )));
+    });
+
+    test('pick null but require - show good error message', () {
+      expect(
+          () => pick([null], 0).required(),
+          throwsA(isA<PickException>().having(
+            (e) => e.message,
+            'message',
+            contains(
+                'required value at location list index 0 in pick(json, 0 (null)) is null'),
+          )));
+    });
+
+    test('required pick from null with args show good error message', () {
+      expect(
+          () => pick(null, 'some', 'path').required(),
+          throwsA(isA<PickException>().having(
+            (e) => e.message,
+            'message',
+            contains(
+                'required value at location "some" in pick(json, "some" (absent), "path") is absent'),
+          )));
+    });
+
+    test('not matching required pick show good error message', () {
+      expect(
+          () => pick('a', 'some', 'path').required(),
+          throwsA(isA<PickException>().having(
+            (e) => e.message,
+            'message',
+            contains(
+                'required value at location "some" in pick(json, "some" (absent), "path") is absent'),
+          )));
+    });
+
     test('toString() prints value and path', () {
       expect(
         // ignore: deprecated_member_use_from_same_package
@@ -230,18 +274,15 @@ Matcher pickException({/*required*/ List<String> containing}) {
 }
 
 class Person {
-  Person({
-    // ignore: always_require_non_null_named_parameters
-    /*required*/ this.name,
-  });
+  final String name;
 
-  factory Person.fromJson(Map<String, dynamic> data) {
+  Person({/*required*/ this.name});
+
+  factory Person.fromPick(RequiredPick pick) {
     return Person(
-      name: pick(data, 'name').required().asString(),
+      name: pick('name').required().asString(),
     );
   }
-
-  final String name;
 
   @override
   bool operator ==(Object other) =>

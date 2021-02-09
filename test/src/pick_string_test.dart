@@ -34,7 +34,7 @@ void main() {
         expect(
           () => nullPick().asStringOrThrow(),
           throwsA(pickException(containing: [
-            'required value at location `unknownKey` is absent. Use asStringOrNull() when the value may be null/absent at some point (String?).'
+            'required value at location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asStringOrNull() when the value may be null/absent at some point (String?).'
           ])),
         );
       });
@@ -47,7 +47,7 @@ void main() {
         // ignore: deprecated_member_use_from_same_package
         () => nullPick().asString(),
         throwsA(pickException(containing: [
-          'required value at location `unknownKey` is absent. Use asStringOrNull() when the value may be null/absent at some point (String?).'
+          'required value at location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asStringOrNull() when the value may be null/absent at some point (String?).'
         ])),
       );
     });

@@ -11,10 +11,6 @@ void main() {
         expect(pick(35).asIntOrThrow(), 35);
       });
 
-      test('parse double', () {
-        expect(pick(1.0).asIntOrThrow(), 1);
-      });
-
       test('parse int String', () {
         expect(pick('1').asIntOrThrow(), 1);
         expect(pick('123').asIntOrThrow(), 123);
@@ -24,7 +20,7 @@ void main() {
         expect(
           () => nullPick().asIntOrThrow(),
           throwsA(pickException(containing: [
-            'required value at location `unknownKey` is absent. Use asIntOrNull() when the value may be null/absent at some point (int?).'
+            'required value at location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asIntOrNull() when the value may be null/absent at some point (int?).'
           ])),
         );
       });
@@ -33,7 +29,7 @@ void main() {
         expect(
           () => pick(Object()).asIntOrThrow(),
           throwsA(pickException(containing: [
-            "value Instance of 'Object' of type Object at location `<root>` can not be parsed as int"
+            "value Instance of 'Object' of type Object at location \"<root>\" in pick(<root>) can not be parsed as int"
           ])),
         );
 
@@ -51,7 +47,7 @@ void main() {
         // ignore: deprecated_member_use_from_same_package
         () => pick(Object()).asInt(),
         throwsA(pickException(containing: [
-          "value Instance of 'Object' of type Object at location `<root>` can not be parsed as int"
+          "value Instance of 'Object' of type Object at location \"<root>\" in pick(<root>) can not be parsed as int"
         ])),
       );
     });

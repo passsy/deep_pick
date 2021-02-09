@@ -23,9 +23,14 @@ void main() {
   ]
 }
 ''');
+
   // pick a value deep down the json structure
-  final firstTag = pick(json, 'shoes', 1, 'tags', 0).asStringOrNull();
+  final firstTag = pick(json, 'shoes', 1, 'tags', 0).asStringOrThrow();
   print(firstTag); // adidas
+
+  // The unsafe vanilla way with Dart 2.12
+  // final firstTag2 = json['shoes']?[1]?['tags'][0] as String?;
+  // print(firstTag2); // adidas
 
   // fallback to null if it couldn't be found
   final manufacturer = pick(json, 'shoes', 0, 'manufacturer').asStringOrNull();
@@ -42,7 +47,8 @@ void main() {
   print(id.asStringOrNull()); // "421"
 
   // pick lists
-  final tags = pick(json, 'shoes', 0, 'tags').asListOrEmpty<String>();
+  final tags =
+      pick(json, 'shoes', 0, 'tags').asListOrEmpty((it) => it.asString());
   print(tags); // [nike, JustDoIt]
 
   // pick maps
@@ -59,8 +65,7 @@ void main() {
   print(thirdShoe); // null
 
   // map list of picks to dart objects
-  final shoes =
-      pick(json, 'shoes').asListOrEmpty((p) => Shoe.fromPick(p.required()));
+  final shoes = pick(json, 'shoes').asListOrEmpty((p) => Shoe.fromPick(p));
   print(shoes);
   // [
   //   Shoe{id: 421, name: Nike Zoom Fly 3, tags: [nike, JustDoIt]},
@@ -71,7 +76,7 @@ void main() {
   // without adding new arguments
   final newShoes = pick(json, 'shoes')
       .withContext('newApi', true)
-      .asListOrEmpty((p) => Shoe.fromPick(p.required()));
+      .asListOrEmpty((p) => Shoe.fromPick(p));
   print(newShoes);
 
   // access value out of range
@@ -103,7 +108,7 @@ class Shoe {
       manufacturer: newApi
           ? pick('manufacturer').required().asString()
           : pick('manufacturer').asStringOrNull(),
-      tags: pick('tags').asListOrEmpty(),
+      tags: pick('tags').asListOrEmpty((it) => it.asString()),
       price: () {
         // when server doesn't send the price field the shoe is not available
         if (pricePick.isAbsent) return 'Not for sale';
