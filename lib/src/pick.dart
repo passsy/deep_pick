@@ -26,7 +26,7 @@ Pick pick(
 
 Pick _drillDown(dynamic json, List<dynamic> selectors,
     {List<dynamic> parentPath = const [], Map<String, dynamic>? context}) {
-  final newPath = [...parentPath, ...selectors];
+  final fullPath = [...parentPath, ...selectors];
   final path = <dynamic>[];
   dynamic data = json;
   for (final selector in selectors) {
@@ -36,25 +36,25 @@ Pick _drillDown(dynamic json, List<dynamic> selectors,
         try {
           data = data[selector];
           if (data == null) {
-            return Pick(null, path: newPath, context: context);
+            return Pick(null, path: fullPath, context: context);
           }
           // found a value, continue drill down
           continue;
           // ignore: avoid_catching_errors
         } on RangeError catch (_) {
           // out of range, value not found at index selector
-          return Pick.absent(path.length - 1, path: newPath, context: context);
+          return Pick.absent(path.length - 1, path: fullPath, context: context);
         }
       }
     }
     if (data is Map) {
       if (!data.containsKey(selector)) {
-        return Pick.absent(path.length - 1, path: newPath, context: context);
+        return Pick.absent(path.length - 1, path: fullPath, context: context);
       }
       final picked = data[selector];
       if (picked == null) {
         // no value mapped to selector
-        return Pick(null, path: newPath, context: context);
+        return Pick(null, path: fullPath, context: context);
       }
       data = picked;
       continue;
@@ -65,12 +65,12 @@ Pick _drillDown(dynamic json, List<dynamic> selectors,
           "It's not possible to pick a value by using a index ($selector)");
     }
     // can't drill down any more to find the exact location.
-    return Pick.absent(path.length - 1, path: newPath, context: context);
+    return Pick.absent(path.length - 1, path: fullPath, context: context);
   }
-  return Pick(data, path: newPath, context: context);
+  return Pick(data, path: fullPath, context: context);
 }
 
-/// A picked object holding the [value] and giving access to useful parsing functions
+/// A picked object holding the [value] (may be null) and giving access to useful parsing functions
 class Pick with PickLocation, PickContext<Pick> {
   /// Pick constructor when being able to drill down [path] all the way to reach
   /// the value.
@@ -120,6 +120,10 @@ class Pick with PickLocation, PickContext<Pick> {
 
   @override
   List<dynamic> path;
+
+  @override
+  List<dynamic> get followablePath =>
+      path.take(_missingValueAtIndex ?? path.length).toList();
 
   /// When the picked value is unavailable ([Pick..absent]) the index in
   /// [path] which couldn't be found
@@ -175,6 +179,7 @@ class Pick with PickLocation, PickContext<Pick> {
   Pick get _builder => this;
 }
 
+/// A picked object holding the [value] (never null) and giving access to useful parsing functions
 class RequiredPick with PickLocation, PickContext<RequiredPick> {
   RequiredPick(this.value,
       {this.path = const [], Map<String, dynamic>? context})
@@ -185,6 +190,9 @@ class RequiredPick with PickLocation, PickContext<RequiredPick> {
 
   @override
   List<dynamic> path;
+
+  @override
+  List get followablePath => path;
 
   // Pick even further
   Pick call([
@@ -218,6 +226,11 @@ class RequiredPick with PickLocation, PickContext<RequiredPick> {
 
   @override
   RequiredPick get _builder => this;
+
+  /// Converts the picked value to a nullable type [Pick]
+  ///
+  /// Inverse of [Pick.required]
+  Pick nullable() => Pick(value, path: path, context: context);
 }
 
 /// Used internally with [PickContext.withContext] to add additional information
@@ -316,13 +329,53 @@ mixin PickContext<T> {
 }
 
 mixin PickLocation {
-  /// The path to [value] inside of the object
+  /// The full path to [value] inside of the object
   ///
   /// I.e. ['shoes', 0, 'name']
   List<dynamic> get path;
 
+  /// The path segments containing non-null values parsing could follow along
+  ///
+  /// I.e. ['shoes'] for an empty shoes list
+  List<dynamic> get followablePath;
+
   String location() {
-    if (path.isEmpty) return '`<root>`';
-    return path.map((it) => '`$it`').join(',');
+    final access = <String>[];
+    final fullPath = path;
+    final followable = followablePath;
+    final isSet = followable.length == fullPath.length;
+    var foundNullPart = false;
+    for (var i = 0; i < fullPath.length; i++) {
+      final full = fullPath[i];
+      final part = followable.length > i ? followable[i] : null;
+      final nullPart = () {
+        if (foundNullPart) return '';
+        if (isSet && i + 1 == fullPath.length) {
+          foundNullPart = true;
+          return ' (null)';
+        }
+        if (part == null) {
+          foundNullPart = true;
+          return ' (absent)';
+        }
+        return '';
+      }();
+
+      if (full is int) {
+        access.add('$full$nullPart');
+      } else {
+        access.add('"$full"$nullPart');
+      }
+    }
+
+    final firstMissing = fullPath.isEmpty
+        ? '<root>'
+        : fullPath[followable.isEmpty ? 0 : followable.length - 1];
+    final formattedMissing =
+        firstMissing is int ? 'list index $firstMissing' : '"$firstMissing"';
+
+    final params = access.isNotEmpty ? ', ${access.join(', ')}' : '';
+    final root = access.isEmpty ? '<root>' : 'json';
+    return '$formattedMissing in pick($root$params)';
   }
 }

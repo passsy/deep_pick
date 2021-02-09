@@ -39,7 +39,7 @@ void main() {
         expect(
           () => nullPick().asDoubleOrThrow(),
           throwsA(pickException(containing: [
-            'required value at location `unknownKey` is absent. Use asDoubleOrNull() when the value may be null/absent at some point (double?).'
+            'required value at location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asDoubleOrNull() when the value may be null/absent at some point (double?).'
           ])),
         );
 
@@ -53,7 +53,7 @@ void main() {
         expect(
           () => pick(Object()).asDoubleOrThrow(),
           throwsA(pickException(containing: [
-            "value Instance of 'Object' of type Object at location `<root>` can not be parsed as double"
+            'value Instance of \'Object\' of type Object at location "<root>" in pick(<root>) can not be parsed as double'
           ])),
         );
 
@@ -71,7 +71,7 @@ void main() {
         // ignore: deprecated_member_use_from_same_package
         () => pick(Object()).asDouble(),
         throwsA(pickException(containing: [
-          "value Instance of 'Object' of type Object at location `<root>` can not be parsed as double"
+          "value Instance of 'Object' of type Object at location \"<root>\" in pick(<root>) can not be parsed as double"
         ])),
       );
     });

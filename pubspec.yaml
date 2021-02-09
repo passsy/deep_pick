@@ -1,6 +1,6 @@
 name: deep_pick
-description: A library to access deep nested values inside of dart data structures, like returned from `dynamic jsonDecode(String source)`.
-version: 0.6.0-nullsafety.1
+description: Simplifies manual JSON parsing with a type-safe API. No dynamic, no manual casting. Flexible inputs types, fixed output types. Useful parsing error messages
+version: 0.6.0-nullsafety.2
 homepage: https://github.com/passsy/deep_pick
 
 environment:
