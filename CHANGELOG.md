@@ -1,3 +1,21 @@
+## 0.6.0-nullsafety.1
+
+- New `asXyzOrThrow()` methods as shorthand for `.required().asXyz()` featuring better error messages
+  - `asBoolOrThrow()`
+  - `asDateTimeOrThrow()`
+  - `asDoubleOrThrow()`
+  - `asIntOrThrow()`
+  - `letOrThrow()`
+  - `asListOrThrow()`
+  - `asMapOrThrow()`
+  - `asStringOrThrow()`
+- New `Pick.isAbsent` getter to check if a value is absent or `null` [#24](https://github.com/passsy/deep_pick/pull/24). Absent could mean
+  1. Accessing a key which doesn't exist in a `Map`
+  2. Reading the value from `List` when the index is greater than the length
+  3. Trying to access a key in a `Map` but the found data a `Object` which isn't a Map
+- The String `"true"` and `"false"` are now parsed as boolean
+- More nnbd refactoring
+
 ## 0.6.0-nullsafety.0
 
 - Migrate to nullsafety (required Dart >=2.12)
