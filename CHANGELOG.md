@@ -1,3 +1,38 @@
+## 0.6.0
+
+### API changes
+- Remove long deprecated `parseJsonTo*` methods. Use the `pick(json, args*)` api
+- New `asXyzOrThrow()` methods as shorthand for `.required().asXyz()` featuring better error messages
+  - `asBoolOrThrow()`
+  - `asDateTimeOrThrow()`
+  - `asDoubleOrThrow()`
+  - `asIntOrThrow()`
+  - `letOrThrow()`
+  - `asListOrThrow()`
+  - `asMapOrThrow()`
+  - `asStringOrThrow()`
+- New `Pick.isAbsent` getter to check if a value is absent or `null` [#24](https://github.com/passsy/deep_pick/pull/24). Absent could mean
+  1. Accessing a key which doesn't exist in a `Map`
+  2. Reading the value from `List` when the index is greater than the length
+  3. Trying to access a key in a `Map` but the found data a `Object` which isn't a Map
+- New `RequiredPick.nullable()` converting a `RequiredPick` back to a `Pick` with potential `null` value
+- New `PickLocation.followablePath`. While `PickLocation.path` contains the full path to the value, `followablePath` contains only the part which could be followed with a non-nullable value
+
+- **Breaking** `asList*()` now *requires* the mapping function.
+- **Breaking** `asList*()` now ignores `null` values when parsing. The map function now receives a `RequiredPick` as fist parameter instead of a `Pick` with a potential null value, making parsing easier.
+
+  Therefore `pick().required().asList((RequiredPick pick) => /*...*/)` only maps non-nullable values. When your lists contain `null` it will be ignored.
+  This is fine in most cases and simplifies the map function.
+
+  In rare cases, where your lists contain `null` values with meaning, use the second parameter `whenNull` to map those null values `.asList((pick) => Person.fromPick(pick), whenNull: (Pick it) => null)`. The function still receives a `Pick` which gives access to the `context` api or the `PickLocation`. But the `Pick` never holds any value.
+
+### Parsing changes
+- The String `"true"` and `"false"` are now parsed as boolean
+- **Breaking** Don't parse doubles as int because the is no rounding method which satisfies all [#31](https://github.com/passsy/deep_pick/pull/31)
+- **Breaking** Allow parsing of "german" doubles with `,` as decimal separator [#30](https://github.com/passsy/deep_pick/pull/30)
+
+- Improve error messages with more details where parsing stopped
+
 ## 0.6.0-nullsafety.2
 
 - **Breaking** `asList*()` methods now ignore `null` values. The map function now receives a `RequiredPick` as fist parameter instead of a `Pick` making parsing easier.
@@ -34,7 +69,7 @@
 ## 0.6.0-nullsafety.0
 
 - Migrate to nullsafety (required Dart >=2.12)
-- Remove deprecated long deprecated `parseJsonTo*` methods. Use the `pick(json, args*)` api
+- Remove long deprecated `parseJsonTo*` methods. Use the `pick(json, args*)` api
 - Improve dartdoc
 
 ## 0.5.1
