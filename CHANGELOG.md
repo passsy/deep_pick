@@ -1,3 +1,7 @@
+## 0.7.0
+
+- Enable nullsafety (requires Dart >=2.12)
+
 ## 0.6.0
 
 ### API changes
