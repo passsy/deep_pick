@@ -310,7 +310,6 @@ mixin PickContext<T> {
     dynamic arg6,
     dynamic arg7,
     dynamic arg8,
-    dynamic arg9,
   ]) {
     return pick(
       context,
