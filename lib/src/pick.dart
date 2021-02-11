@@ -5,27 +5,27 @@
 /// - or [int] when you want to pick a value at index from a [List]
 Pick pick(
   /*Map?|List?*/ dynamic json, [
-  dynamic arg0,
-  dynamic arg1,
-  dynamic arg2,
-  dynamic arg3,
-  dynamic arg4,
-  dynamic arg5,
-  dynamic arg6,
-  dynamic arg7,
-  dynamic arg8,
-  dynamic arg9,
+  Object? arg0,
+  Object? arg1,
+  Object? arg2,
+  Object? arg3,
+  Object? arg4,
+  Object? arg5,
+  Object? arg6,
+  Object? arg7,
+  Object? arg8,
+  Object? arg9,
 ]) {
-  final selectors =
-      <dynamic>[arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9]
-          // null is a sign for unused 'varargs'
-          .where((dynamic it) => it != null)
-          .toList(growable: false);
+  final selectors = [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9]
+      // null is a sign for unused 'varargs'
+      .where((dynamic it) => it != null)
+      .cast<Object>()
+      .toList(growable: false);
   return _drillDown(json, selectors);
 }
 
-Pick _drillDown(dynamic json, List<dynamic> selectors,
-    {List<dynamic> parentPath = const [], Map<String, dynamic>? context}) {
+Pick _drillDown(dynamic json, List<Object> selectors,
+    {List<Object> parentPath = const [], Map<String, dynamic>? context}) {
   final fullPath = [...parentPath, ...selectors];
   final path = <dynamic>[];
   dynamic data = json;
@@ -51,7 +51,7 @@ Pick _drillDown(dynamic json, List<dynamic> selectors,
       if (!data.containsKey(selector)) {
         return Pick.absent(path.length - 1, path: fullPath, context: context);
       }
-      final picked = data[selector];
+      final dynamic picked = data[selector];
       if (picked == null) {
         // no value mapped to selector
         return Pick(null, path: fullPath, context: context);
@@ -89,12 +89,13 @@ class Pick with PickLocation, PickContext<Pick> {
   Pick.absent(
     int missingValueAtIndex, {
     this.path = const [],
-    Map<String, dynamic>? context,
-  })  : _missingValueAtIndex = missingValueAtIndex,
+    Map<String, Object?>? context,
+  })  : value = null,
+        _missingValueAtIndex = missingValueAtIndex,
         _context = context != null ? Map.of(context) : {};
 
   /// The picked value, might be `null`
-  Object? value;
+  final Object? value;
 
   /// Allows the distinction between the actual [value] `null` and the value not
   /// being available
@@ -119,10 +120,10 @@ class Pick with PickLocation, PickContext<Pick> {
   bool get isAbsent => missingValueAtIndex != null;
 
   @override
-  List<dynamic> path;
+  List<Object> path;
 
   @override
-  List<dynamic> get followablePath =>
+  List<Object> get followablePath =>
       path.take(_missingValueAtIndex ?? path.length).toList();
 
   /// When the picked value is unavailable ([Pick..absent]) the index in
@@ -132,29 +133,30 @@ class Pick with PickLocation, PickContext<Pick> {
 
   // Pick even further
   Pick call([
-    dynamic arg0,
-    dynamic arg1,
-    dynamic arg2,
-    dynamic arg3,
-    dynamic arg4,
-    dynamic arg5,
-    dynamic arg6,
-    dynamic arg7,
-    dynamic arg8,
-    dynamic arg9,
+    Object? arg0,
+    Object? arg1,
+    Object? arg2,
+    Object? arg3,
+    Object? arg4,
+    Object? arg5,
+    Object? arg6,
+    Object? arg7,
+    Object? arg8,
+    Object? arg9,
   ]) {
     final selectors =
-        <dynamic>[arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9]
+        [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9]
             // null is a sign for unused 'varargs'
-            .where((dynamic it) => it != null)
+            .where((Object? it) => it != null)
+            .cast<Object>()
             .toList(growable: false);
 
     return _drillDown(value, selectors, parentPath: path, context: context);
   }
 
   @override
-  Map<String, dynamic> get context => _context;
-  final Map<String, dynamic> _context;
+  Map<String, Object?> get context => _context;
+  final Map<String, Object?> _context;
 
   /// Enter a "required" context which requires the picked value to be non-null
   /// and parsable or a [PickException] is thrown.
@@ -181,44 +183,49 @@ class Pick with PickLocation, PickContext<Pick> {
 
 /// A picked object holding the [value] (never null) and giving access to useful parsing functions
 class RequiredPick with PickLocation, PickContext<RequiredPick> {
-  RequiredPick(this.value,
-      {this.path = const [], Map<String, dynamic>? context})
-      : _context = context != null ? Map.of(context) : {};
+  RequiredPick(
+    // using dynamic here to match the return type of jsonDecode
+    dynamic value, {
+    this.path = const [],
+    Map<String, Object?>? context,
+  })  : value = value as Object,
+        _context = context != null ? Map.of(context) : {};
 
   /// The picked value, never `null`
-  Object value;
+  final Object value;
 
   @override
-  List<dynamic> path;
+  List<Object> path;
 
   @override
-  List get followablePath => path;
+  List<Object> get followablePath => path;
 
   // Pick even further
   Pick call([
-    dynamic arg0,
-    dynamic arg1,
-    dynamic arg2,
-    dynamic arg3,
-    dynamic arg4,
-    dynamic arg5,
-    dynamic arg6,
-    dynamic arg7,
-    dynamic arg8,
-    dynamic arg9,
+    Object? arg0,
+    Object? arg1,
+    Object? arg2,
+    Object? arg3,
+    Object? arg4,
+    Object? arg5,
+    Object? arg6,
+    Object? arg7,
+    Object? arg8,
+    Object? arg9,
   ]) {
     final selectors =
-        <dynamic>[arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9]
+        [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9]
             // null is a sign for unused 'varargs'
-            .where((dynamic it) => it != null)
+            .where((Object? it) => it != null)
+            .cast<Object>()
             .toList(growable: false);
 
     return _drillDown(value, selectors, parentPath: path, context: context);
   }
 
   @override
-  Map<String, dynamic> get context => _context;
-  final Map<String, dynamic> _context;
+  Map<String, Object?> get context => _context;
+  final Map<String, Object?> _context;
 
   @override
   @Deprecated('Use asStringOrNull() to pick a String value')
@@ -331,12 +338,12 @@ mixin PickLocation {
   /// The full path to [value] inside of the object
   ///
   /// I.e. ['shoes', 0, 'name']
-  List<dynamic> get path;
+  List<Object> get path;
 
   /// The path segments containing non-null values parsing could follow along
   ///
   /// I.e. ['shoes'] for an empty shoes list
-  List<dynamic> get followablePath;
+  List<Object> get followablePath;
 
   String location() {
     final access = <String>[];
