@@ -1,6 +1,6 @@
 name: deep_pick
 description: Simplifies manual JSON parsing with a type-safe API. No dynamic, no manual casting. Flexible inputs types, fixed output types. Useful parsing error messages
-version: 0.7.0
+version: 0.7.1-pre.1
 homepage: https://github.com/passsy/deep_pick
 
 environment:
