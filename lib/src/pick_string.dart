@@ -1,6 +1,10 @@
 import 'package:deep_pick/src/pick.dart';
 
-extension StringPick on RequiredPick {
+
+extension NullableStringPick on Pick {
+  @Deprecated('Use .asStringOrThrow()')
+  String Function() get asString => asStringOrThrow;
+
   /// Returns the picked [value] as String representation; only throws when
   /// the value is `null`.
   ///
@@ -10,7 +14,7 @@ extension StringPick on RequiredPick {
   /// for [int], [double] and any other [Object] which isn't a collection of
   /// values such as a [List] or [Map]
   /// {@endtemplate}
-  String asString() {
+  String _parse() {
     final value = this.value;
     if (value is String) {
       return value;
@@ -18,16 +22,11 @@ extension StringPick on RequiredPick {
     if (value is List || value is Map) {
       throw PickException(
           'value at location ${location()} is of type ${value.runtimeType}. '
-          'Drill further down to a value which is not a List or Map. '
-          'value: $value');
+              'Drill further down to a value which is not a List or Map. '
+              'value: $value');
     }
     return value.toString();
   }
-}
-
-extension NullableStringPick on Pick {
-  @Deprecated('Use .asStringOrThrow()')
-  String Function() get asString => asStringOrThrow;
 
   /// Returns the picked [value] as String representation; only throws when
   /// the value is `null`.
@@ -36,7 +35,7 @@ extension NullableStringPick on Pick {
   String asStringOrThrow() {
     withContext(requiredPickErrorHintKey,
         'Use asStringOrNull() when the value may be null/absent at some point (String?).');
-    return required().asString();
+    return required()._parse();
   }
 
   /// Returns the picked [value] as [String] or returns `null` when the picked value isn't available
@@ -45,7 +44,7 @@ extension NullableStringPick on Pick {
   String? asStringOrNull() {
     if (value == null) return null;
     try {
-      return required().asString();
+      return _parse();
     } catch (_) {
       return null;
     }

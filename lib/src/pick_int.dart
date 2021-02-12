@@ -1,13 +1,16 @@
 import 'package:deep_pick/src/pick.dart';
 
-extension IntPick on RequiredPick {
+extension NullableIntPick on Pick {
+  @Deprecated('Use .asIntOrThrow()')
+  int Function() get asInt => asIntOrThrow;
+
   /// Returns the picked [value] as [int]
   ///
   /// {@template Pick.asInt}
   /// Parses the picked value as [int]. Also tries to parse [String] as [int]
   /// via [int.tryParse]
   /// {@endtemplate}
-  int asInt() {
+  int _parse() {
     final value = this.value;
     if (value is int) {
       return value;
@@ -21,11 +24,6 @@ extension IntPick on RequiredPick {
     throw PickException('value $value of type ${value.runtimeType} '
         'at location ${location()} can not be parsed as int');
   }
-}
-
-extension NullableIntPick on Pick {
-  @Deprecated('Use .asIntOrThrow()')
-  int Function() get asInt => asIntOrThrow;
 
   /// Returns the picked [value] as [int] or throws
   ///
@@ -33,7 +31,7 @@ extension NullableIntPick on Pick {
   int asIntOrThrow() {
     withContext(requiredPickErrorHintKey,
         'Use asIntOrNull() when the value may be null/absent at some point (int?).');
-    return required().asInt();
+    return required()._parse();
   }
 
   /// Returns the picked [value] as [int?] or returns `null` when the picked
@@ -43,7 +41,7 @@ extension NullableIntPick on Pick {
   int? asIntOrNull() {
     if (value == null) return null;
     try {
-      return required().asInt();
+      return _parse();
     } catch (_) {
       return null;
     }

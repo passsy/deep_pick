@@ -40,18 +40,6 @@ void main() {
       });
     });
 
-    test('deprecated asString forwards to asStringOrThrow', () {
-      // ignore: deprecated_member_use_from_same_package
-      expect(pick('1').asString(), '1');
-      expect(
-        // ignore: deprecated_member_use_from_same_package
-        () => nullPick().asString(),
-        throwsA(pickException(containing: [
-          'required value at location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asStringOrNull() when the value may be null/absent at some point (String?).'
-        ])),
-      );
-    });
-
     group('asStringOrNull', () {
       test('parse String', () {
         expect(pick('2012').asStringOrNull(), '2012');

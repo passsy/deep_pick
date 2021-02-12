@@ -280,7 +280,7 @@ class Person {
 
   factory Person.fromPick(RequiredPick pick) {
     return Person(
-      name: pick('name').required().asString(),
+      name: pick('name').required().asStringOrThrow(),
     );
   }
 

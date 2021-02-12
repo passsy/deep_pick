@@ -159,9 +159,9 @@ class Pick with PickLocation, PickContext<Pick> {
   final Map<String, Object?> _context;
 
   /// Enter a "required" context which requires the picked value to be non-null
-  /// and parsable or a [PickException] is thrown.
+  /// or a [PickException] is thrown.
   ///
-  /// Crashes when the the value is `null` or can't be parsed correctly with the asXyz() methods.
+  /// Crashes when the the value is `null`.
   RequiredPick required() {
     final value = this.value;
     if (value == null) {
@@ -182,61 +182,23 @@ class Pick with PickLocation, PickContext<Pick> {
 }
 
 /// A picked object holding the [value] (never null) and giving access to useful parsing functions
-class RequiredPick with PickLocation, PickContext<RequiredPick> {
+class RequiredPick extends Pick {
   RequiredPick(
     // using dynamic here to match the return type of jsonDecode
     dynamic value, {
-    this.path = const [],
+    List<Object> path = const [],
     Map<String, Object?>? context,
   })  : value = value as Object,
-        _context = context != null ? Map.of(context) : {};
+        super(value, path: path, context: context);
 
-  /// The picked value, never `null`
+  @override
+  // ignore: overridden_fields
   final Object value;
-
-  @override
-  List<Object> path;
-
-  @override
-  List<Object> get followablePath => path;
-
-  // Pick even further
-  Pick call([
-    Object? arg0,
-    Object? arg1,
-    Object? arg2,
-    Object? arg3,
-    Object? arg4,
-    Object? arg5,
-    Object? arg6,
-    Object? arg7,
-    Object? arg8,
-    Object? arg9,
-  ]) {
-    final selectors =
-        [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9]
-            // null is a sign for unused 'varargs'
-            .where((Object? it) => it != null)
-            .cast<Object>()
-            .toList(growable: false);
-
-    return _drillDown(value, selectors, parentPath: path, context: context);
-  }
-
-  @override
-  Map<String, Object?> get context => _context;
-  final Map<String, Object?> _context;
 
   @override
   @Deprecated('Use asStringOrNull() to pick a String value')
   String toString() => 'RequiredPick(value=$value, path=$path)';
 
-  @override
-  RequiredPick get _builder => this;
-
-  /// Converts the picked value to a nullable type [Pick]
-  ///
-  /// Inverse of [Pick.required]
   Pick nullable() => Pick(value, path: path, context: context);
 }
 

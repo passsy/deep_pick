@@ -45,7 +45,7 @@ void main() {
 
         expect(
           () => nullPick().asDoubleOrThrow(),
-          throwsA(pickException(containing: ['unknownKey', 'null', 'double'])),
+          throwsA(pickException(containing: ['unknownKey', 'absent', 'double'])),
         );
       });
 

@@ -1,7 +1,11 @@
 import 'package:deep_pick/src/pick.dart';
 
-extension DoublePick on RequiredPick {
-  double asDouble() {
+
+extension NullableDoublePick on Pick {
+  @Deprecated('Use .asDoubleOrThrow()')
+  double Function() get asDouble => asDoubleOrThrow;
+
+  double _parse() {
     final value = this.value;
     if (value is double) {
       return value;
@@ -49,22 +53,17 @@ extension DoublePick on RequiredPick {
     throw PickException('value $value of type ${value.runtimeType} '
         'at location ${location()} can not be parsed as double');
   }
-}
-
-extension NullableDoublePick on Pick {
-  @Deprecated('Use .asDoubleOrThrow()')
-  double Function() get asDouble => asDoubleOrThrow;
 
   double asDoubleOrThrow() {
     withContext(requiredPickErrorHintKey,
         'Use asDoubleOrNull() when the value may be null/absent at some point (double?).');
-    return required().asDouble();
+    return required()._parse();
   }
 
   double? asDoubleOrNull() {
     if (value == null) return null;
     try {
-      return required().asDouble();
+      return _parse();
     } catch (_) {
       return null;
     }
