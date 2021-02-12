@@ -10,8 +10,8 @@ extension ListPick on RequiredPick {
       for (final item in value) {
         index++;
         if (item != null) {
-          final picked = RequiredPick(item,
-              path: [...path, index], context: context);
+          final picked =
+              RequiredPick(item, path: [...path, index], context: context);
           result.add(map(picked));
           continue;
         }
