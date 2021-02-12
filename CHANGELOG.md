@@ -1,3 +1,8 @@
+## 0.8.0
+
+- Removal of parsing extensions of `RequiredPick` to acknowledge that parsing causes errors too. Read more in [#34](https://github.com/passsy/deep_pick/pull/34)
+- Replace `dynamic` with `Object` where possible
+
 ## 0.7.0
 
 - Enable nullsafety (requires Dart >=2.12)
