@@ -8,6 +8,14 @@ void main() {
       expect(RequiredPick('a', path: ['b', 0]).toString(),
           'RequiredPick(value=a, path=[b, 0])');
     });
+
+    test('value is non nullable', (){
+      final nullable = pick('a');
+      expect([nullable.value].runtimeType.toString(), 'List<Object?>');
+
+      final nonNull = nullable.required();
+      expect([nonNull.value].runtimeType.toString(), 'List<Object>');
+    });
   });
 
   group('.call()', () {

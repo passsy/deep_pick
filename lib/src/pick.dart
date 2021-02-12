@@ -193,7 +193,7 @@ class RequiredPick extends Pick {
 
   @override
   // ignore: overridden_fields
-  final Object value;
+  covariant Object value;
 
   @override
   @Deprecated('Use asStringOrNull() to pick a String value')
