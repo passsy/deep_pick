@@ -44,8 +44,8 @@ Future<void> main() async {
   print(id.asStringOrNull()); // "421"
 
   // pick lists
-  final tags =
-      pick(json, 'shoes', 0, 'tags').asListOrEmpty((it) => it.asStringOrThrow());
+  final tags = pick(json, 'shoes', 0, 'tags')
+      .asListOrEmpty((it) => it.asStringOrThrow());
   print(tags); // [nike, JustDoIt]
 
   // pick maps

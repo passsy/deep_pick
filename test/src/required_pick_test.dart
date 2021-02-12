@@ -9,7 +9,7 @@ void main() {
           'RequiredPick(value=a, path=[b, 0])');
     });
 
-    test('value is non nullable', (){
+    test('value is non nullable', () {
       final nullable = pick('a');
       expect([nullable.value].runtimeType.toString(), 'List<Object?>');
 

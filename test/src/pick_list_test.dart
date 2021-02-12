@@ -7,7 +7,8 @@ void main() {
   group('pick().asList*', () {
     group('asListOrThrow', () {
       test('pipe through List', () {
-        expect(pick([1, 2, 3]).asListOrThrow((it) => it.asIntOrThrow()), [1, 2, 3]);
+        expect(pick([1, 2, 3]).asListOrThrow((it) => it.asIntOrThrow()),
+            [1, 2, 3]);
       });
 
       test('null throws', () {
@@ -113,7 +114,8 @@ void main() {
 
     group('asListOrEmpty', () {
       test('pick value', () {
-        expect(pick([1, 2, 3]).asListOrEmpty((it) => it.asIntOrThrow()), [1, 2, 3]);
+        expect(pick([1, 2, 3]).asListOrEmpty((it) => it.asIntOrThrow()),
+            [1, 2, 3]);
       });
 
       test('null returns null', () {
@@ -199,7 +201,8 @@ void main() {
 
     group('asListOrNull', () {
       test('pick value', () {
-        expect(pick([1, 2, 3]).asListOrNull((it) => it.asIntOrThrow()), [1, 2, 3]);
+        expect(
+            pick([1, 2, 3]).asListOrNull((it) => it.asIntOrThrow()), [1, 2, 3]);
       });
 
       test('null returns null', () {
