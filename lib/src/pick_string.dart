@@ -1,6 +1,5 @@
 import 'package:deep_pick/src/pick.dart';
 
-
 extension NullableStringPick on Pick {
   @Deprecated('Use .asStringOrThrow()')
   String Function() get asString => asStringOrThrow;
@@ -22,8 +21,8 @@ extension NullableStringPick on Pick {
     if (value is List || value is Map) {
       throw PickException(
           'value at location ${location()} is of type ${value.runtimeType}. '
-              'Drill further down to a value which is not a List or Map. '
-              'value: $value');
+          'Drill further down to a value which is not a List or Map. '
+          'value: $value');
     }
     return value.toString();
   }

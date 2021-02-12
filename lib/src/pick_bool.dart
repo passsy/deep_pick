@@ -1,6 +1,5 @@
 import 'package:deep_pick/src/pick.dart';
 
-
 extension BoolPick on Pick {
   bool _asBool() {
     final value = this.value;

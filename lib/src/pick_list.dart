@@ -1,6 +1,5 @@
 import 'package:deep_pick/src/pick.dart';
 
-
 extension NullableListPick on Pick {
   @Deprecated('Use .asListOrThrow()')
   List<T> asList<T>([T Function(Pick)? map]) {
@@ -20,7 +19,7 @@ extension NullableListPick on Pick {
         index++;
         if (item != null) {
           final picked =
-          RequiredPick(item, path: [...path, index], context: context);
+              RequiredPick(item, path: [...path, index], context: context);
           result.add(map(picked));
           continue;
         }

@@ -303,7 +303,8 @@ class RequiredPick extends Pick {
   // Has been removed in 0.5.0
   @Deprecated('Use withContext')
   @override
-  RequiredPick Function(String key, dynamic value) get addContext => withContext;
+  RequiredPick Function(String key, dynamic value) get addContext =>
+      withContext;
 
   @override
   RequiredPick withContext(String key, Object? value) {

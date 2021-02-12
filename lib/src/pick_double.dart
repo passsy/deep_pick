@@ -1,6 +1,5 @@
 import 'package:deep_pick/src/pick.dart';
 
-
 extension NullableDoublePick on Pick {
   @Deprecated('Use .asDoubleOrThrow()')
   double Function() get asDouble => asDoubleOrThrow;

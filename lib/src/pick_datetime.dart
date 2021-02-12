@@ -1,6 +1,5 @@
 import 'package:deep_pick/src/pick.dart';
 
-
 extension NullableDateTimePick on Pick {
   @Deprecated('Use .asDateTimeOrThrow()')
   DateTime Function() get asDateTime => asDateTimeOrThrow;
