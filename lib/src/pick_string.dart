@@ -4,8 +4,7 @@ extension NullableStringPick on Pick {
   @Deprecated('Use .asStringOrThrow()')
   String Function() get asString => asStringOrThrow;
 
-  /// Returns the picked [value] as String representation; only throws when
-  /// the value is `null`.
+  /// Returns the picked [value] as [String] representation
   ///
   /// {@template Pick.asString}
   /// Parses the picked value as String. If the value is not already a [String]
@@ -27,8 +26,8 @@ extension NullableStringPick on Pick {
     return value.toString();
   }
 
-  /// Returns the picked [value] as String representation; only throws when
-  /// the value is `null`.
+  /// Returns the picked [value] as String representation; only throws a
+  /// [PickException] when the value is `null`.
   ///
   /// {@macro Pick.asString}
   String asStringOrThrow() {
