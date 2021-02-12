@@ -38,7 +38,7 @@ Future<void> main() async {
   print(manufacturer); // null
 
   // use required() to crash if a object doesn't exist
-  final name = pick(json, 'shoes', 0, 'name').required().asString();
+  final name = pick(json, 'shoes', 0, 'name').required().asStringOrThrow();
   print(name); // Nike Zoom Fly 3
 
   // you decide which type you want
@@ -49,11 +49,11 @@ Future<void> main() async {
 
   // pick lists
   final tags =
-      pick(json, 'shoes', 0, 'tags').asListOrEmpty((it) => it.asString());
+      pick(json, 'shoes', 0, 'tags').asListOrEmpty((it) => it.asStringOrThrow());
   print(tags); // [nike, JustDoIt]
 
   // pick maps
-  final shoe = pick(json, 'shoes', 0).required().asMap();
+  final shoe = pick(json, 'shoes', 0).required().asMapOrThrow();
   print(shoe); // {id: 421, name: Nike Zoom Fly 3, tags: [nike, JustDoIt]}
 
   // easily pick and map objects to dart objects
@@ -107,13 +107,13 @@ class Shoe {
     final newApi = pick.fromContext('newApi').asBoolOrFalse();
     final pricePick = pick('price');
     return Shoe(
-      id: pick('id').required().asString(),
-      name: pick('name').required().asString(),
+      id: pick('id').asStringOrThrow(),
+      name: pick('name').asStringOrThrow(),
       // manufacturer is a required field in the new API
       manufacturer: newApi
-          ? pick('manufacturer').required().asString()
+          ? pick('manufacturer').asStringOrThrow()
           : pick('manufacturer').asStringOrNull(),
-      tags: pick('tags').asListOrEmpty((it) => it.asString()),
+      tags: pick('tags').asListOrEmpty((it) => it.asStringOrThrow()),
       price: () {
         // when server doesn't send the price field the shoe is not available
         if (pricePick.isAbsent) return 'Not for sale';

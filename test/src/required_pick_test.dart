@@ -78,10 +78,11 @@ void main() {
       root.context['lang'] = 'de';
       expect(root.context, {'lang': 'de'});
 
-      final contexts = root.asList((pick) => pick.context);
-      // only check the lang fields, ignore the _required_pick_error_hint
-      expect(contexts[0]['lang'], 'de');
-      expect(contexts[1]['lang'], 'de');
+      final contexts = root.asListOrEmpty((pick) => pick.context);
+      expect(contexts, [
+        {'lang': 'de'},
+        {'lang': 'de'}
+      ]);
     });
 
     test('copy context into call()', () {

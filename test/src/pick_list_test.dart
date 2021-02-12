@@ -7,12 +7,12 @@ void main() {
   group('pick().asList*', () {
     group('asListOrThrow', () {
       test('pipe through List', () {
-        expect(pick([1, 2, 3]).asListOrThrow((it) => it.asInt()), [1, 2, 3]);
+        expect(pick([1, 2, 3]).asListOrThrow((it) => it.asIntOrThrow()), [1, 2, 3]);
       });
 
       test('null throws', () {
         expect(
-          () => nullPick().asListOrThrow((it) => it.asString()),
+          () => nullPick().asListOrThrow((it) => it.asStringOrThrow()),
           throwsA(pickException(containing: [
             'required value at location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asListOrEmpty()/asListOrNull() when the value may be null/absent at some point (List<String>?).'
           ])),
@@ -86,12 +86,12 @@ void main() {
 
       test('wrong type throws', () {
         expect(
-          () => pick('Bubblegum').asListOrThrow((it) => it.asString()),
+          () => pick('Bubblegum').asListOrThrow((it) => it.asStringOrThrow()),
           throwsA(pickException(
               containing: ['Bubblegum', 'String', 'List<dynamic>'])),
         );
         expect(
-          () => pick(Object()).asListOrThrow((it) => it.asString()),
+          () => pick(Object()).asListOrThrow((it) => it.asStringOrThrow()),
           throwsA(pickException(containing: [
             'value Instance of \'Object\' of type Object at location "<root>" in pick(<root>) can not be casted to List<dynamic>'
           ])),
@@ -113,15 +113,15 @@ void main() {
 
     group('asListOrEmpty', () {
       test('pick value', () {
-        expect(pick([1, 2, 3]).asListOrEmpty((it) => it.asInt()), [1, 2, 3]);
+        expect(pick([1, 2, 3]).asListOrEmpty((it) => it.asIntOrThrow()), [1, 2, 3]);
       });
 
       test('null returns null', () {
-        expect(nullPick().asListOrEmpty((it) => it.asInt()), []);
+        expect(nullPick().asListOrEmpty((it) => it.asIntOrThrow()), []);
       });
 
       test('wrong type returns empty', () {
-        expect(pick(Object()).asListOrEmpty((it) => it.asInt()), []);
+        expect(pick(Object()).asListOrEmpty((it) => it.asIntOrThrow()), []);
       });
 
       test('map empty list to empty list', () {
@@ -199,15 +199,15 @@ void main() {
 
     group('asListOrNull', () {
       test('pick value', () {
-        expect(pick([1, 2, 3]).asListOrNull((it) => it.asInt()), [1, 2, 3]);
+        expect(pick([1, 2, 3]).asListOrNull((it) => it.asIntOrThrow()), [1, 2, 3]);
       });
 
       test('null returns null', () {
-        expect(nullPick().asListOrNull((it) => it.asInt()), isNull);
+        expect(nullPick().asListOrNull((it) => it.asIntOrThrow()), isNull);
       });
 
       test('wrong type returns empty', () {
-        expect(pick(Object()).asListOrNull((it) => it.asInt()), isNull);
+        expect(pick(Object()).asListOrNull((it) => it.asIntOrThrow()), isNull);
       });
 
       test('map empty list to empty list', () {
