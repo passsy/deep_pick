@@ -1,9 +1,10 @@
-// ignore_for_file: avoid_print, always_require_non_null_named_parameters
+// ignore_for_file: avoid_print, always_require_non_null_named_parameters, non_constant_identifier_names, omit_local_variable_types
 import 'dart:convert';
 
 import 'package:deep_pick/deep_pick.dart';
+import 'package:http/http.dart' as http;
 
-void main() {
+Future<void> main() async {
   final json = jsonDecode('''
 {
   "shoes": [
@@ -83,6 +84,10 @@ void main() {
   final puma = pick(json, 'shoes', 1);
   print(puma.isAbsent); // true;
   print(puma.value); // null
+
+  // Load data from an API
+  final stats = await getStats();
+  print(stats.requests);
 }
 
 /// A data class representing a shoe model
@@ -148,4 +153,50 @@ class Shoe {
 
   @override
   int get hashCode => id.hashCode ^ name.hashCode ^ tags.hashCode;
+}
+
+Future<CounterApiStats> getStats() async {
+  final response = await http.get(Uri.parse('https://api.countapi.xyz/stats'));
+  final json = jsonDecode(response.body);
+
+  // Parse individual fields
+  final int? requests = pick(json, 'requests').asIntOrNull();
+  final int keys_created = pick(json, 'keys_created').asIntOrThrow();
+  final int? keys_updated = pick(json, 'keys_updated').asIntOrNull();
+  final String? version = pick(json, 'version').asStringOrNull();
+  print('requests $requests, keys_created $keys_created, '
+      'keys_updated: $keys_updated, version: "$version"');
+
+  // Parse the full object
+  final CounterApiStats stats = CounterApiStats.fromPick(RequiredPick(json));
+
+  // Parse lists
+  final List<CounterApiStats> multipleStats = pick(json, 'items')
+      .asListOrEmpty((pick) => CounterApiStats.fromPick(pick));
+  print(multipleStats); // always empty [], the countapi doesn't have items
+
+  return stats;
+}
+
+class CounterApiStats {
+  const CounterApiStats({
+    required this.requests,
+    required this.keys_created,
+    required this.keys_updated,
+    this.version,
+  });
+
+  final int requests;
+  final int keys_created;
+  final int keys_updated;
+  final String? version;
+
+  factory CounterApiStats.fromPick(RequiredPick pick) {
+    return CounterApiStats(
+      requests: pick('requests').asIntOrThrow(),
+      keys_created: pick('keys_created').asIntOrThrow(),
+      keys_updated: pick('keys_updated').asIntOrThrow(),
+      version: pick('version').asStringOrNull(),
+    );
+  }
 }
