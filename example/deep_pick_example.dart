@@ -25,7 +25,7 @@ Future<void> main() async {
 }
 ''');
 
-  // pick a value deep down the json structure
+  // pick a value deep down the json structure or crash
   final firstTag = pick(json, 'shoes', 1, 'tags', 0).asStringOrThrow();
   print(firstTag); // adidas
 
@@ -36,10 +36,6 @@ Future<void> main() async {
   // fallback to null if it couldn't be found
   final manufacturer = pick(json, 'shoes', 0, 'manufacturer').asStringOrNull();
   print(manufacturer); // null
-
-  // use required() to crash if a object doesn't exist
-  final name = pick(json, 'shoes', 0, 'name').required().asStringOrThrow();
-  print(name); // Nike Zoom Fly 3
 
   // you decide which type you want
   final id = pick(json, 'shoes', 0, 'id');
