@@ -14,20 +14,9 @@ void main() {
             pick(DateTime(2000)).asStringOrThrow(), '2000-01-01 00:00:00.000');
       });
 
-      test("asString() doesn't transform Maps and Lists with toString", () {
-        expect(
-          () => pick(['a', 'b']).asStringOrThrow(),
-          throwsA(pickException(
-              containing: ['List<String>', 'not a List or Map', '[a, b]'])),
-        );
-        expect(
-          () => pick({'a': 'b'}).asStringOrThrow(),
-          throwsA(pickException(containing: [
-            'Map<String, String>',
-            'not a List or Map',
-            '{a: b}'
-          ])),
-        );
+      test('asString() alsow works for Maps and Lists calling their toString', () {
+        expect(pick(['a', 'b']).asStringOrThrow(), '[a, b]');
+        expect(pick({'a': 1}).asStringOrThrow(), '{a: 1}');
       });
 
       test('null throws', () {
@@ -57,13 +46,8 @@ void main() {
     test('deprecated asString forwards to asStringOrThrow', () {
       // ignore: deprecated_member_use_from_same_package
       expect(pick('adam').asString(), 'adam');
-      expect(
-        // ignore: deprecated_member_use_from_same_package
-        () => pick([]).asString(),
-        throwsA(pickException(containing: [
-          'value at location "<root>" in pick(<root>) is of type List<dynamic>. Drill further down to a value which is not a List or Map. value: []'
-        ])),
-      );
+      // ignore: deprecated_member_use_from_same_package
+      expect(pick([]).asString(), '[]');
     });
   });
 
@@ -78,19 +62,8 @@ void main() {
       });
 
       test("asString() doesn't transform Maps and Lists with toString", () {
-        expect(
-          () => pick(['a', 'b']).required().asStringOrThrow(),
-          throwsA(pickException(
-              containing: ['List<String>', 'not a List or Map', '[a, b]'])),
-        );
-        expect(
-          () => pick({'a': 'b'}).required().asStringOrThrow(),
-          throwsA(pickException(containing: [
-            'Map<String, String>',
-            'not a List or Map',
-            '{a: b}'
-          ])),
-        );
+        expect(pick(['a', 'b']).required().asStringOrThrow(), '[a, b]');
+        expect(pick({'a': 1}).required().asStringOrThrow(), '{a: 1}');
       });
 
       test('null throws', () {
@@ -117,13 +90,8 @@ void main() {
     test('deprecated asString forwards to asStringOrThrow', () {
       // ignore: deprecated_member_use_from_same_package
       expect(pick('adam').required().asString(), 'adam');
-      expect(
-        // ignore: deprecated_member_use_from_same_package
-        () => pick([]).required().asString(),
-        throwsA(pickException(containing: [
-          'value at location "<root>" in pick(<root>) is of type List<dynamic>. Drill further down to a value which is not a List or Map. value: []'
-        ])),
-      );
+      // ignore: deprecated_member_use_from_same_package
+      expect(pick([]).required().asString(), '[]');
     });
   });
 }
