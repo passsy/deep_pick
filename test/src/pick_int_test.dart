@@ -81,7 +81,7 @@ void main() {
 
       test('null throws', () {
         expect(
-              () => nullPick().required().asIntOrThrow(),
+          () => nullPick().required().asIntOrThrow(),
           throwsA(pickException(containing: [
             'required value at location "unknownKey" in pick(json, "unknownKey" (absent)) is absent.'
           ])),
@@ -90,14 +90,14 @@ void main() {
 
       test('wrong type throws', () {
         expect(
-              () => pick(Object()).required().asIntOrThrow(),
+          () => pick(Object()).required().asIntOrThrow(),
           throwsA(pickException(containing: [
             "value Instance of 'Object' of type Object at location \"<root>\" in pick(<root>) can not be parsed as int"
           ])),
         );
 
         expect(
-              () => pick('Bubblegum').required().asIntOrThrow(),
+          () => pick('Bubblegum').required().asIntOrThrow(),
           throwsA(pickException(containing: ['Bubblegum', 'String', 'int'])),
         );
       });
@@ -108,7 +108,7 @@ void main() {
       expect(pick('1').asInt(), 1.0);
       expect(
         // ignore: deprecated_member_use_from_same_package
-            () => pick(Object()).asInt(),
+        () => pick(Object()).asInt(),
         throwsA(pickException(containing: [
           "value Instance of 'Object' of type Object at location \"<root>\" in pick(<root>) can not be parsed as int"
         ])),

@@ -77,7 +77,8 @@ void main() {
       test('parse String', () {
         expect(pick('2012-02-27 13:27:00').required().asDateTimeOrThrow(),
             DateTime(2012, 2, 27, 13, 27));
-        expect(pick('2012-02-27 13:27:00.123456z').required().asDateTimeOrThrow(),
+        expect(
+            pick('2012-02-27 13:27:00.123456z').required().asDateTimeOrThrow(),
             DateTime.utc(2012, 2, 27, 13, 27, 0, 123, 456));
       });
 
@@ -89,7 +90,7 @@ void main() {
 
       test('null throws', () {
         expect(
-              () => nullPick().required().asDateTimeOrThrow(),
+          () => nullPick().required().asDateTimeOrThrow(),
           throwsA(pickException(containing: [
             'required value at location "unknownKey" in pick(json, "unknownKey" (absent)) is absent.'
           ])),
@@ -98,13 +99,13 @@ void main() {
 
       test('wrong type throws', () {
         expect(
-              () => pick(Object()).required().asDateTimeOrThrow(),
+          () => pick(Object()).required().asDateTimeOrThrow(),
           throwsA(pickException(containing: [
             "value Instance of 'Object' of type Object at location \"<root>\" in pick(<root>) can not be parsed as DateTime"
           ])),
         );
         expect(
-              () => pick('Bubblegum').required().asDateTimeOrThrow(),
+          () => pick('Bubblegum').required().asDateTimeOrThrow(),
           throwsA(
               pickException(containing: ['Bubblegum', 'String', 'DateTime'])),
         );
@@ -117,7 +118,7 @@ void main() {
           DateTime(2012, 2, 27, 13, 27));
       expect(
         // ignore: deprecated_member_use_from_same_package
-            () => nullPick().required().asDateTime(),
+        () => nullPick().required().asDateTime(),
         throwsA(pickException(containing: [
           'required value at location "unknownKey" in pick(json, "unknownKey" (absent)) is absent.'
         ])),

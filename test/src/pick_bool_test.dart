@@ -97,8 +97,7 @@ void main() {
       expect(
         // ignore: deprecated_member_use_from_same_package
         () => nullPick().required().asBool(),
-        throwsA(pickException(
-            containing: ['unknownKey', 'absent'])),
+        throwsA(pickException(containing: ['unknownKey', 'absent'])),
       );
     });
 
@@ -113,8 +112,7 @@ void main() {
       );
       expect(
         () => nullPick().required().asBoolOrThrow(),
-        throwsA(pickException(
-            containing: ['unknownKey', 'absent'])),
+        throwsA(pickException(containing: ['unknownKey', 'absent'])),
       );
     });
   });

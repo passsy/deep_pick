@@ -7,15 +7,19 @@ void main() {
   group('pick().let*', () {
     test('.required().let()', () {
       expect(
-        pick({'name': 'John Snow'}).required().let((pick) => Person.fromPick(pick)),
+        pick({'name': 'John Snow'})
+            .required()
+            .let((pick) => Person.fromPick(pick)),
         Person(name: 'John Snow'),
       );
       expect(
-        pick({'name': 'John Snow'}).required().let((pick) => Person.fromPick(pick)),
+        pick({'name': 'John Snow'})
+            .required()
+            .let((pick) => Person.fromPick(pick)),
         Person(name: 'John Snow'),
       );
       expect(
-            () => nullPick().required().let((pick) => Person.fromPick(pick)),
+        () => nullPick().required().let((pick) => Person.fromPick(pick)),
         throwsA(pickException(containing: ['unknownKey', 'absent'])),
       );
     });
