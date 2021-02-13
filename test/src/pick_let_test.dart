@@ -5,6 +5,21 @@ import 'pick_test.dart';
 
 void main() {
   group('pick().let*', () {
+    test('.required().let()', () {
+      expect(
+        pick({'name': 'John Snow'}).required().let((pick) => Person.fromPick(pick)),
+        Person(name: 'John Snow'),
+      );
+      expect(
+        pick({'name': 'John Snow'}).required().let((pick) => Person.fromPick(pick)),
+        Person(name: 'John Snow'),
+      );
+      expect(
+            () => nullPick().required().let((pick) => Person.fromPick(pick)),
+        throwsA(pickException(containing: ['unknownKey', 'absent'])),
+      );
+    });
+
     test('letOrThrow()', () {
       expect(
         pick({'name': 'John Snow'}).letOrThrow((pick) => Person.fromPick(pick)),

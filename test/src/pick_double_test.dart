@@ -42,12 +42,6 @@ void main() {
             'required value at location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asDoubleOrNull() when the value may be null/absent at some point (double?).'
           ])),
         );
-
-        expect(
-          () => nullPick().asDoubleOrThrow(),
-          throwsA(
-              pickException(containing: ['unknownKey', 'absent', 'double'])),
-        );
       });
 
       test('wrong type throws', () {
@@ -88,6 +82,84 @@ void main() {
 
       test('wrong type returns null', () {
         expect(pick(Object()).asDoubleOrNull(), isNull);
+      });
+    });
+  });
+
+  group('pick().required().asDouble*', () {
+    group('asDoubleOrThrow', () {
+      test('parse double', () {
+        expect(pick(1.0).required().asDoubleOrThrow(), 1.0);
+        expect(pick(double.infinity).required().asDoubleOrThrow(), double.infinity);
+      });
+
+      test('parse int', () {
+        expect(pick(1).required().asDoubleOrThrow(), 1.0);
+      });
+      test('parse int String', () {
+        expect(pick('1').required().asDoubleOrThrow(), 1.0);
+      });
+
+      test('parse double String', () {
+        expect(pick('1.0').required().asDoubleOrThrow(), 1.0);
+        expect(pick('25.4634').required().asDoubleOrThrow(), 25.4634);
+        expect(pick('12345.01').required().asDoubleOrThrow(), 12345.01);
+      });
+
+      test('parse german doubles', () {
+        expect(pick('1,0').required().asDoubleOrThrow(), 1.0);
+        expect(pick('12345,01').required().asDoubleOrThrow(), 12345.01);
+      });
+
+      test('parse double with separators', () {
+        expect(pick('12,345.01').required().asDoubleOrThrow(), 12345.01);
+        expect(pick('12 345,01').required().asDoubleOrThrow(), 12345.01);
+        expect(pick('12.345,01').required().asDoubleOrThrow(), 12345.01);
+      });
+
+      test('null throws', () {
+        expect(
+              () => nullPick().required().asDoubleOrThrow(),
+          throwsA(pickException(containing: [
+            'required value at location "unknownKey" in pick(json, "unknownKey" (absent)) is absent.'
+          ])),
+        );
+      });
+
+      test('wrong type throws', () {
+        expect(
+              () => pick(Object()).required().asDoubleOrThrow(),
+          throwsA(pickException(containing: [
+            'value Instance of \'Object\' of type Object at location "<root>" in pick(<root>) can not be parsed as double'
+          ])),
+        );
+
+        expect(
+              () => pick('Bubblegum').required().asDoubleOrThrow(),
+          throwsA(pickException(containing: ['Bubblegum', 'String', 'double'])),
+        );
+      });
+    });
+
+    test('deprecated asDouble forwards to asDoubleOrThrow', () {
+      // ignore: deprecated_member_use_from_same_package
+      expect(pick('1').required().asDouble(), 1.0);
+      expect(
+        // ignore: deprecated_member_use_from_same_package
+            () => pick(Object()).required().asDouble(),
+        throwsA(pickException(containing: [
+          "value Instance of 'Object' of type Object at location \"<root>\" in pick(<root>) can not be parsed as double"
+        ])),
+      );
+    });
+
+    group('asDoubleOrNull', () {
+      test('parse String', () {
+        expect(pick('2012').required().asDoubleOrNull(), 2012);
+      });
+
+      test('wrong type returns null', () {
+        expect(pick(Object()).required().asDoubleOrNull(), isNull);
       });
     });
   });
