@@ -20,7 +20,9 @@ pick(json, 'parsing', 'is', 'fun').asBool(); // true
 
 ```yaml
 dependencies:
-  deep_pick: ^0.6.0
+  deep_pick: ^0.6.10
+  
+  deep_pick: ^0.8.0 # Dart >=2.12 (nullsafety)
 ```
 
 ### Example
