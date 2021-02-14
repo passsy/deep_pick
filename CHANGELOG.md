@@ -1,4 +1,4 @@
-## 0.8.0
+## 0.8.0 (and 0.6.10 for Dart <2.12) 
 
 - Deprecated parsing extensions of `RequiredPick` to acknowledge that all parsers eventually causes errors. 
   From now on, always use `.asIntOrThrow()` instead of `.required().asInt()`. Only exception is `.required().toString()`.
@@ -11,6 +11,10 @@
 ## 0.7.0
 
 - Enable nullsafety (requires Dart >=2.12)
+
+## 0.6.10
+
+Backports 0.8.0 to pre-nullsafety
 
 ## 0.6.0
 
