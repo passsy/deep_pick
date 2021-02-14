@@ -16,11 +16,10 @@ Pick pick(
   dynamic arg8,
   dynamic arg9,
 ]) {
-  final selectors =
-      <dynamic>[arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9]
-          // null is a sign for unused 'varargs'
-          .where((dynamic it) => it != null)
-          .toList(growable: false);
+  final selectors = [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9]
+      // null is a sign for unused 'varargs'
+      .where((it) => it != null)
+      .toList(growable: false);
   return _drillDown(json, selectors);
 }
 
@@ -51,7 +50,7 @@ Pick _drillDown(dynamic json, List<dynamic> selectors,
       if (!(data as Map).containsKey(selector)) {
         return Pick.absent(path.length - 1, path: fullPath, context: context);
       }
-      final picked = data[selector];
+      final dynamic picked = data[selector];
       if (picked == null) {
         // no value mapped to selector
         return Pick(null, path: fullPath, context: context);
@@ -71,7 +70,7 @@ Pick _drillDown(dynamic json, List<dynamic> selectors,
 }
 
 /// A picked object holding the [value] (may be null) and giving access to useful parsing functions
-class Pick with PickLocation, PickContext<Pick> {
+class Pick {
   /// Pick constructor when being able to drill down [path] all the way to reach
   /// the value.
   /// [value] may still be `null` but the structure was correct, therefore
@@ -80,7 +79,7 @@ class Pick with PickLocation, PickContext<Pick> {
     this.value, {
     this.path = const [],
     Map<String, dynamic>/*?*/ context,
-  }) : _context = context != null ? Map.of(context) : {};
+  }) : context = context != null ? Map.of(context) : {};
 
   /// Pick of an absent value. While drilling down [path] the structure of the
   /// data did not match the [path] and the value wasn't found.
@@ -90,11 +89,12 @@ class Pick with PickLocation, PickContext<Pick> {
     int missingValueAtIndex, {
     this.path = const [],
     Map<String, dynamic>/*?*/ context,
-  })  : _missingValueAtIndex = missingValueAtIndex,
-        _context = context != null ? Map.of(context) : {};
+  })  : value = null,
+        _missingValueAtIndex = missingValueAtIndex,
+        context = context != null ? Map.of(context) : {};
 
   /// The picked value, might be `null`
-  Object/*?*/ value;
+  final Object/*?*/ value;
 
   /// Allows the distinction between the actual [value] `null` and the value not
   /// being available
@@ -103,7 +103,7 @@ class Pick with PickLocation, PickContext<Pick> {
   /// used to check if a [Map] contains `null` for a key or the key being absent
   ///
   /// Not available could mean:
-  /// - Accessing a key which doesn't exist in a
+  /// - Accessing a key which doesn't exist in a [Map]
   /// - Reading the value from [List] when the index is greater than the length
   /// - Trying to access a key in a [Map] but the found data structure is a [List]
   ///
@@ -118,18 +118,26 @@ class Pick with PickLocation, PickContext<Pick> {
   /// ```
   bool get isAbsent => missingValueAtIndex != null;
 
-  @override
-  List<dynamic> path;
-
-  @override
-  List<dynamic> get followablePath =>
-      path.take(_missingValueAtIndex ?? path.length).toList();
+  /// Attaches additional information which can be used during parsing.
+  /// i.e the HTTP request/response including headers
+  final Map<String, dynamic> context;
 
   /// When the picked value is unavailable ([Pick..absent]) the index in
   /// [path] which couldn't be found
   int/*?*/ get missingValueAtIndex => _missingValueAtIndex;
   int/*?*/ _missingValueAtIndex;
 
+  /// The full path to [value] inside of the object
+  ///
+  /// I.e. ['shoes', 0, 'name']
+  final List<dynamic> path;
+
+  /// The path segments containing non-null values parsing could follow along
+  ///
+  /// I.e. ['shoes'] for an empty shoes list
+  List<dynamic> get followablePath =>
+      path.take(_missingValueAtIndex ?? path.length).toList();
+
   // Pick even further
   Pick call([
     dynamic arg0,
@@ -144,118 +152,33 @@ class Pick with PickLocation, PickContext<Pick> {
     dynamic arg9,
   ]) {
     final selectors =
-        <dynamic>[arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9]
+        [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9]
             // null is a sign for unused 'varargs'
-            .where((dynamic it) => it != null)
+            .where((it) => it != null)
             .toList(growable: false);
 
     return _drillDown(value, selectors, parentPath: path, context: context);
   }
 
-  @override
-  Map<String, dynamic> get context => _context;
-  final Map<String, dynamic> _context;
-
   /// Enter a "required" context which requires the picked value to be non-null
-  /// and parsable or a [PickException] is thrown.
+  /// or a [PickException] is thrown.
   ///
-  /// Crashes when the the value is `null` or can't be parsed correctly with the asXyz() methods.
+  /// Crashes when the the value is `null`.
   RequiredPick required() {
     final value = this.value;
     if (value == null) {
       final more = fromContext(requiredPickErrorHintKey).value as String/*?*/;
       final moreSegment = more == null ? '' : ' $more';
-      throw PickException('required value at location ${location()} '
+      throw PickException(
+          'Expected a non-null value but location $debugParsingExit '
           'is ${isAbsent ? 'absent' : 'null'}.$moreSegment');
     }
-    return RequiredPick(value, path: path, context: _context);
+    return RequiredPick(value, path: path, context: context);
   }
 
   @override
   @Deprecated('Use asStringOrNull() to pick a String value')
   String toString() => 'Pick(value=$value, path=$path)';
-
-  @override
-  Pick get _builder => this;
-}
-
-/// A picked object holding the [value] (never null) and giving access to useful parsing functions
-class RequiredPick with PickLocation, PickContext<RequiredPick> {
-  RequiredPick(this.value,
-      {this.path = const [], Map<String, dynamic>/*?*/ context})
-      : _context = context != null ? Map.of(context) : {};
-
-  /// The picked value, never `null`
-  Object value;
-
-  @override
-  List<dynamic> path;
-
-  @override
-  List get followablePath => path;
-
-  // Pick even further
-  Pick call([
-    dynamic arg0,
-    dynamic arg1,
-    dynamic arg2,
-    dynamic arg3,
-    dynamic arg4,
-    dynamic arg5,
-    dynamic arg6,
-    dynamic arg7,
-    dynamic arg8,
-    dynamic arg9,
-  ]) {
-    final selectors =
-        <dynamic>[arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9]
-            // null is a sign for unused 'varargs'
-            .where((dynamic it) => it != null)
-            .toList(growable: false);
-
-    return _drillDown(value, selectors, parentPath: path, context: context);
-  }
-
-  @override
-  Map<String, dynamic> get context => _context;
-  final Map<String, dynamic> _context;
-
-  @override
-  @Deprecated('Use asStringOrNull() to pick a String value')
-  String toString() => 'RequiredPick(value=$value, path=$path)';
-
-  @override
-  RequiredPick get _builder => this;
-
-  /// Converts the picked value to a nullable type [Pick]
-  ///
-  /// Inverse of [Pick.required]
-  Pick nullable() => Pick(value, path: path, context: context);
-}
-
-/// Used internally with [PickContext.withContext] to add additional information
-/// to the error message
-const requiredPickErrorHintKey = '_required_pick_error_hint';
-
-class PickException implements Exception {
-  PickException(this.message);
-
-  final String message;
-
-  @override
-  String toString() {
-    return 'PickException($message)';
-  }
-}
-
-/// Context API allows storing additional information in a [Map]
-mixin PickContext<T> {
-  /// Attaches additional information which can be used during parsing.
-  /// i.e the HTTP request/response including headers
-  Map<String, dynamic> get context;
-
-  /// Reference to mixer class
-  T get _builder;
 
   /// Attaches additional information which can be used during parsing.
   /// i.e the HTTP request/response including headers
@@ -285,14 +208,14 @@ mixin PickContext<T> {
   ///     }
   ///   }
   /// ```
-  T withContext(String key, dynamic value) {
+  Pick withContext(String key, dynamic value) {
     context[key] = value;
-    return _builder;
+    return this;
   }
 
   // Has been removed in 0.5.0
   @Deprecated('Use withContext')
-  T Function(String key, dynamic value) get addContext => withContext;
+  Pick Function(String key, dynamic value) get addContext => withContext;
 
   /// Pick values from the context using the [Pick] API
   ///
@@ -310,49 +233,44 @@ mixin PickContext<T> {
     dynamic arg6,
     dynamic arg7,
     dynamic arg8,
-    dynamic arg9,
   ]) {
     return pick(
-      context,
-      key,
-      arg0,
-      arg1,
-      arg2,
-      arg3,
-      arg4,
-      arg5,
-      arg6,
-      arg7,
-      arg8,
-    );
+        context, key, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
   }
-}
 
-mixin PickLocation {
-  /// The full path to [value] inside of the object
+  /// Returns a human readable String of the requested [path] and the actual
+  /// parsed value following the path along ([followablePath]).
   ///
-  /// I.e. ['shoes', 0, 'name']
-  List<dynamic> get path;
-
-  /// The path segments containing non-null values parsing could follow along
-  ///
-  /// I.e. ['shoes'] for an empty shoes list
-  List<dynamic> get followablePath;
-
-  String location() {
+  /// Examples:
+  /// picked value "b" using pick(json, "a"(b))
+  /// picked value "null" using pick(json, "a" (null))
+  /// picked value "Instance of \'Object\'" using pick(<root>)
+  /// "unknownKey" in pick(json, "unknownKey" (absent))
+  String get debugParsingExit {
     final access = <String>[];
+
+    // The full path to [value] inside of the object
+    // I.e. ['shoes', 0, 'name']
     final fullPath = path;
+
+    // The path segments containing non-null values parsing could follow along
+    // I.e. ['shoes'] for an empty shoes list
     final followable = followablePath;
-    final isSet = followable.length == fullPath.length;
+
+    final foundValue = followable.length == fullPath.length;
     var foundNullPart = false;
     for (var i = 0; i < fullPath.length; i++) {
       final full = fullPath[i];
       final part = followable.length > i ? followable[i] : null;
       final nullPart = () {
         if (foundNullPart) return '';
-        if (isSet && i + 1 == fullPath.length) {
-          foundNullPart = true;
-          return ' (null)';
+        if (foundValue && i + 1 == fullPath.length) {
+          if (value == null) {
+            foundNullPart = true;
+            return ' (null)';
+          } else {
+            return '($value)';
+          }
         }
         if (part == null) {
           foundNullPart = true;
@@ -368,14 +286,68 @@ mixin PickLocation {
       }
     }
 
-    final firstMissing = fullPath.isEmpty
-        ? '<root>'
-        : fullPath[followable.isEmpty ? 0 : followable.length - 1];
-    final formattedMissing =
-        firstMissing is int ? 'list index $firstMissing' : '"$firstMissing"';
+    var valueOrExit = '';
+    if (foundValue) {
+      valueOrExit = 'picked value "$value" using';
+    } else {
+      final firstMissing = fullPath.isEmpty
+          ? '<root>'
+          : fullPath[followable.isEmpty ? 0 : followable.length];
+      final formattedMissing =
+          firstMissing is int ? 'list index $firstMissing' : '"$firstMissing"';
+      valueOrExit = '$formattedMissing in';
+    }
 
     final params = access.isNotEmpty ? ', ${access.join(', ')}' : '';
     final root = access.isEmpty ? '<root>' : 'json';
-    return '$formattedMissing in pick($root$params)';
+    return '$valueOrExit pick($root$params)';
+  }
+}
+
+/// A picked object holding the [value] (never null) and giving access to useful parsing functions
+class RequiredPick extends Pick {
+  RequiredPick(
+    // using dynamic here to match the return type of jsonDecode
+    dynamic value, {
+    List<dynamic> path = const [],
+    Map<String, dynamic> context,
+  })  : value = value as Object,
+        super(value, path: path, context: context);
+
+  @override
+  // ignore: overridden_fields
+  covariant Object value;
+
+  @override
+  @Deprecated('Use asStringOrNull() to pick a String value')
+  String toString() => 'RequiredPick(value=$value, path=$path)';
+
+  Pick nullable() => Pick(value, path: path, context: context);
+
+  // Has been removed in 0.5.0
+  @Deprecated('Use withContext')
+  @override
+  RequiredPick Function(String key, dynamic value) get addContext =>
+      withContext;
+
+  @override
+  RequiredPick withContext(String key, Object/*?*/ value) {
+    super.withContext(key, value);
+    return this;
+  }
+}
+
+/// Used internally with [PickContext.withContext] to add additional information
+/// to the error message
+const requiredPickErrorHintKey = '_required_pick_error_hint';
+
+class PickException implements Exception {
+  PickException(this.message);
+
+  final String message;
+
+  @override
+  String toString() {
+    return 'PickException($message)';
   }
 }

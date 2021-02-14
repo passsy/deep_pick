@@ -1,9 +1,10 @@
-// ignore_for_file: avoid_print, always_require_non_null_named_parameters
+// ignore_for_file: avoid_print, always_require_non_null_named_parameters, non_constant_identifier_names, omit_local_variable_types
 import 'dart:convert';
 
 import 'package:deep_pick/deep_pick.dart';
+import 'package:http/http.dart' as http;
 
-void main() {
+Future<void> main() async {
   final json = jsonDecode('''
 {
   "shoes": [
@@ -24,7 +25,7 @@ void main() {
 }
 ''');
 
-  // pick a value deep down the json structure
+  // pick a value deep down the json structure or crash
   final firstTag = pick(json, 'shoes', 1, 'tags', 0).asStringOrThrow();
   print(firstTag); // adidas
 
@@ -36,10 +37,6 @@ void main() {
   final manufacturer = pick(json, 'shoes', 0, 'manufacturer').asStringOrNull();
   print(manufacturer); // null
 
-  // use required() to crash if a object doesn't exist
-  final name = pick(json, 'shoes', 0, 'name').required().asString();
-  print(name); // Nike Zoom Fly 3
-
   // you decide which type you want
   final id = pick(json, 'shoes', 0, 'id');
   print(id.asIntOrNull()); // 421
@@ -47,12 +44,12 @@ void main() {
   print(id.asStringOrNull()); // "421"
 
   // pick lists
-  final tags =
-      pick(json, 'shoes', 0, 'tags').asListOrEmpty((it) => it.asString());
+  final tags = pick(json, 'shoes', 0, 'tags')
+      .asListOrEmpty((it) => it.asStringOrThrow());
   print(tags); // [nike, JustDoIt]
 
   // pick maps
-  final shoe = pick(json, 'shoes', 0).required().asMap();
+  final shoe = pick(json, 'shoes', 0).required().asMapOrThrow();
   print(shoe); // {id: 421, name: Nike Zoom Fly 3, tags: [nike, JustDoIt]}
 
   // easily pick and map objects to dart objects
@@ -83,6 +80,10 @@ void main() {
   final puma = pick(json, 'shoes', 1);
   print(puma.isAbsent); // true;
   print(puma.value); // null
+
+  // Load data from an API
+  final stats = await getStats();
+  print(stats.requests);
 }
 
 /// A data class representing a shoe model
@@ -102,13 +103,13 @@ class Shoe {
     final newApi = pick.fromContext('newApi').asBoolOrFalse();
     final pricePick = pick('price');
     return Shoe(
-      id: pick('id').required().asString(),
-      name: pick('name').required().asString(),
+      id: pick('id').asStringOrThrow(),
+      name: pick('name').asStringOrThrow(),
       // manufacturer is a required field in the new API
       manufacturer: newApi
-          ? pick('manufacturer').required().asString()
+          ? pick('manufacturer').asStringOrThrow()
           : pick('manufacturer').asStringOrNull(),
-      tags: pick('tags').asListOrEmpty((it) => it.asString()),
+      tags: pick('tags').asListOrEmpty((it) => it.asStringOrThrow()),
       price: () {
         // when server doesn't send the price field the shoe is not available
         if (pricePick.isAbsent) return 'Not for sale';
@@ -148,4 +149,50 @@ class Shoe {
 
   @override
   int get hashCode => id.hashCode ^ name.hashCode ^ tags.hashCode;
+}
+
+Future<CounterApiStats> getStats() async {
+  final response = await http.get(Uri.parse('https://api.countapi.xyz/stats'));
+  final json = jsonDecode(response.body);
+
+  // Parse individual fields
+  final int/*?*/ requests = pick(json, 'requests').asIntOrNull();
+  final int keys_created = pick(json, 'keys_created').asIntOrThrow();
+  final int/*?*/ keys_updated = pick(json, 'keys_updated').asIntOrNull();
+  final String/*?*/  version = pick(json, 'version').asStringOrNull();
+  print('requests $requests, keys_created $keys_created, '
+      'keys_updated: $keys_updated, version: "$version"');
+
+  // Parse the full object
+  final CounterApiStats stats = CounterApiStats.fromPick(RequiredPick(json));
+
+  // Parse lists
+  final List<CounterApiStats> multipleStats = pick(json, 'items')
+      .asListOrEmpty((pick) => CounterApiStats.fromPick(pick));
+  print(multipleStats); // always empty [], the countapi doesn't have items
+
+  return stats;
+}
+
+class CounterApiStats {
+  const CounterApiStats({
+    this.requests,
+    this.keys_created,
+    this.keys_updated,
+    this.version,
+  });
+
+  final int requests;
+  final int keys_created;
+  final int keys_updated;
+  final String/*?*/  version;
+
+  factory CounterApiStats.fromPick(RequiredPick pick) {
+    return CounterApiStats(
+      requests: pick('requests').asIntOrThrow(),
+      keys_created: pick('keys_created').asIntOrThrow(),
+      keys_updated: pick('keys_updated').asIntOrThrow(),
+      version: pick('version').asStringOrNull(),
+    );
+  }
 }

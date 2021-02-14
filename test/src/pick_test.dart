@@ -11,46 +11,78 @@ void main() {
 
     test('required pick from null show good error message', () {
       expect(
-          () => pick(null).required(),
-          throwsA(isA<PickException>().having(
-            (e) => e.message,
-            'message',
-            contains(
-                'required value at location "<root>" in pick(<root>) is null'),
-          )));
+        () => pick(null).required(),
+        throwsA(isA<PickException>().having(
+          (e) => e.message,
+          'message',
+          contains(
+              'Expected a non-null value but location picked value "null" using pick(<root>) is null'),
+        )),
+      );
     });
 
-    test('pick null but require - show good error message', () {
-      expect(
-          () => pick([null], 0).required(),
-          throwsA(isA<PickException>().having(
-            (e) => e.message,
-            'message',
-            contains(
-                'required value at location list index 0 in pick(json, 0 (null)) is null'),
-          )));
+    group('location', () {
+      test('root with value', () {
+        expect(
+            pick('a').debugParsingExit, 'picked value "a" using pick(<root>)');
+      });
+      test('root with null', () {
+        expect(pick(null).debugParsingExit,
+            'picked value "null" using pick(<root>)');
+      });
+
+      test('absent in map', () {
+        expect(pick({'a': 1}, 'b').debugParsingExit,
+            '"b" in pick(json, "b" (absent))');
+      });
+      test('null in map', () {
+        expect(pick({'a': null}, 'a').debugParsingExit,
+            'picked value "null" using pick(json, "a" (null))');
+      });
+      test('value in map', () {
+        expect(pick({'a': 'b'}, 'a').debugParsingExit,
+            'picked value "b" using pick(json, "a"(b))');
+      });
+
+      test('long path', () {
+        expect(pick({'a': 'b'}, 'a', 'b', 'c', 'd').debugParsingExit,
+            '"b" in pick(json, "a", "b" (absent), "c", "d")');
+      });
     });
 
-    test('required pick from null with args show good error message', () {
-      expect(
-          () => pick(null, 'some', 'path').required(),
-          throwsA(isA<PickException>().having(
-            (e) => e.message,
-            'message',
-            contains(
-                'required value at location "some" in pick(json, "some" (absent), "path") is absent'),
-          )));
-    });
+    group('required', () {
+      test('pick null but require - show good error message', () {
+        expect(
+            () => pick([null], 0).required(),
+            throwsA(isA<PickException>().having(
+              (e) => e.message,
+              'message',
+              contains(
+                  'Expected a non-null value but location picked value "null" using pick(json, 0 (null)) is null'),
+            )));
+      });
 
-    test('not matching required pick show good error message', () {
-      expect(
-          () => pick('a', 'some', 'path').required(),
-          throwsA(isA<PickException>().having(
-            (e) => e.message,
-            'message',
-            contains(
-                'required value at location "some" in pick(json, "some" (absent), "path") is absent'),
-          )));
+      test('required pick from null with args show good error message', () {
+        expect(
+            () => pick(null, 'some', 'path').required(),
+            throwsA(isA<PickException>().having(
+              (e) => e.message,
+              'message',
+              contains(
+                  'Expected a non-null value but location "some" in pick(json, "some" (absent), "path") is absent'),
+            )));
+      });
+
+      test('not matching required pick show good error message', () {
+        expect(
+            () => pick('a', 'some', 'path').required(),
+            throwsA(isA<PickException>().having(
+              (e) => e.message,
+              'message',
+              contains(
+                  'Expected a non-null value but location "some" in pick(json, "some" (absent), "path") is absent.'),
+            )));
+      });
     });
 
     test('toString() prints value and path', () {
@@ -280,7 +312,7 @@ class Person {
 
   factory Person.fromPick(RequiredPick pick) {
     return Person(
-      name: pick('name').required().asString(),
+      name: pick('name').required().asStringOrThrow(),
     );
   }
 

@@ -1,3 +1,17 @@
+## 0.8.0
+
+- Deprecated parsing extensions of `RequiredPick` to acknowledge that all parsers eventually causes errors. 
+  From now on, always use `.asIntOrThrow()` instead of `.required().asInt()`. Only exception is `.required().toString()`.
+  Read more in [#34](https://github.com/passsy/deep_pick/pull/34)
+- Replace `dynamic` with `Object` where possible
+- Rename `Pick.location()` to `Pick.debugParsingExit`
+- Removal of `PickLocaiton` and `PickContext` mixins. They are now part of `Pick`
+- `RequiredPick` now extends `Pick` making it easier to write parsers for custom types
+
+## 0.7.0
+
+- Enable nullsafety (requires Dart >=2.12)
+
 ## 0.6.0
 
 ### API changes

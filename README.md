@@ -23,6 +23,279 @@ dependencies:
   deep_pick: ^0.6.0
 ```
 
+### Example
+
+This example demonstrates parsing of an HTTP response using `deep_pick`. You can either use it to parse individual values of a json response or parse whole objects using the `fromPick` constructor.
+
+<table>
+<tr>
+<td>
+
+```dart
+
+  final response = await http.get(Uri.parse('https://api.countapi.xyz/stats'));
+  final json = jsonDecode(response.body);
+
+  // Parse individual fields (nullable)
+  final int? requests = pick(json, 'requests').asIntOrNull();
+  
+  // Require values to be non-null or throw a useful error message
+  final int keys_created = pick(json, 'keys_created').asIntOrThrow();
+  
+  // Pick deep nested values without parsing all objects in between
+  final String? version = pick(json, 'meta', 'version', 'commit').asStringOrNull();
+  
+  
+  // Parse a full object using a fromPick factory constructor
+  final CounterApiStats stats = CounterApiStats.fromPick(RequiredPick(json));
+
+  
+  // Parse lists with a fromPick constructor 
+  final List<CounterApiStats> multipleStats = pick(json, 'items')
+      .asListOrEmpty((pick) => CounterApiStats.fromPick(pick));
+  
+
+```
+
+</td>
+<td>
+
+```dart
+// Http response model
+class CounterApiStats {
+  const CounterApiStats({
+    required this.requests,
+    required this.keys_created,
+    required this.keys_updated,
+    this.version,
+  });
+
+  final int requests;
+  final int keys_created;
+  final int keys_updated;
+  final String? version;
+
+  factory CounterApiStats.fromPick(RequiredPick pick) {
+    return CounterApiStats(
+      requests: pick('requests').asIntOrThrow(),
+      keys_created: pick('keys_created').asIntOrThrow(),
+      keys_updated: pick('keys_updated').asIntOrThrow(),
+      version: pick('version').asStringOrNull(),
+    );
+  }
+}
+```
+</td>
+</tr>
+</table>
+
+
+
+
+## Supported types
+
+### `String`
+Returns the picked `Object` as String representation.
+It doesn't matter if the value is actually a `int`, `double`, `bool` or any other Object.
+`pick` calls the objects `toString` method.
+
+```dart
+pick('a').asStringOrThrow(); // "a"
+pick(1).asStringOrNull(); // "1"
+pick(1.0).asStringOrNull(); // "1.0"
+pick(true).asStringOrNull(); // "true"
+pick(User(name: "Jason")).asStringOrNull(); // User{name: Jason}
+```
+
+### `int` & `double`
+`pick` tries to parse Strings with `int.tryParse` and `double.tryParse`.
+A `int` can be parsed as `double` (no precision loss) but not vice versa because it could lead to mistakes.
+
+```dart
+pick(3).asIntOrThrow(); // 3
+pick("3").asIntOrNull(); // 3
+pick(1).asDoubleOrThrow(); // 1.0
+pick("2.7").asDoubleOrNull(); // 2.7
+```
+
+### `bool`
+
+Parsing a bool couldn't be easier with those self-explaining methods
+```dart
+pick(true).asBoolOrThrow(); // true
+pick(false).asBoolOrThrow(); // true
+pick(null).asBoolOrTrue(); // true
+pick(null).asBoolOrFalse(); // false
+pick(null).asBoolOrNull(); // null
+pick('true').asBoolOrNull(); // true;
+pick('false').asBoolOrNull(); // false;
+```
+
+`deep_pick` does not treat the `int` values `0` and `1` as `bool` as some other languages do.
+Write your own logic using `.let` instead.
+
+```dart
+pick(1).asBoolOrNull(); // null
+pick(1).letOrNull((pick) => pick.value == 1 ? true : pick.value == 0 ? false : null); // true 
+```
+
+### `DateTime`
+
+Accepts most common date formats such as `ISO 8601`. For more supported formats see [`DateTime.parse`](https://api.dart.dev/stable/1.24.2/dart-core/DateTime/parse.html).
+
+```dart
+pick('2020-03-01T13:00:00Z').asDateTimeOrNull(); // a valid DateTime object
+pick('20200227 13:27:00').asDateTimeOrThrow(); // a valid DateTime object
+```
+
+### `List`
+
+When the JSON object contains a List of items that List can be mapped to a `List<T>` of objects (`T`).
+
+```dart
+pick([]).asListOrNull(SomeObject.fromPick);
+pick([]).asListOrThrow(SomeObject.fromPick);
+pick([]).asListOrEmpty(SomeObject.fromPick);
+```
+
+```dart
+final users = [
+  {'name': 'John Snow'},
+  {'name': 'Daenerys Targaryen'},
+];
+List<Person> persons = pick(users).asListOrEmpty((pick) {
+  return Person(
+    name: pick('name').required().asString(),
+  );
+});
+
+class Person {
+  final String name;
+
+  Person({required this.name});
+}
+```
+
+#### Note 1
+Extract the mapper function and use it as a reference allows to write it in a single line again :smile:
+
+```dart
+List<Person> persons = pick(users).asListOrEmpty(Person.fromPick);
+```
+
+Replacing the static function with a factory constructor doesn't work.
+Constructors cannot be referenced as functions, yet ([dart-lang/language/issues/216](https://github.com/dart-lang/language/issues/216)).
+Meanwhile, use `.asListOrEmpty((it) => Person.fromPick(it))` when using a factory constructor.
+
+#### Note 2
+`pick` called in the `fromPick` function uses the parameter `pick`, not the top-level function.
+This is possible because `Pick` implements the `.call()` method.
+This allows chaining indefinitely on the same `Pick` object while maintaining internal references for useful error messages.
+
+Both versions produce the same result and shows you're not limited to 10 arguments.
+```dart
+pick(json, 'shoes', 1, 'tags', 0).asStringOrThrow();
+pick(json)('shoes')(1)('tags')(0).asStringOrThrow();
+```
+
+#### whenNull
+
+To simplify the `asList` API, the functions ignores `null` values in the `List`.
+This allows the usage of `RequiredPick` over `Pick` in the `map` function.
+
+When `null` is important for your logic you can process the `null` value by providing an optional `whenNull` mapper function.
+
+```dart
+pick([1, null, 3]).asListOrNull(
+  (it) => it.asInt(), 
+  whenNull: (Pick pick) => 25;
+); 
+// [1, 25, 3]
+``` 
+
+### `Map`
+
+Picking the `Map` is rarely used, because `Pick` itself grants further picking using the `.call(args)` method.
+Converting back to a `Map` is usually only used for existing `fromMap` mapper functions.
+
+```dart
+pick(json).asMapOrNull<String, dynamic>();
+pick(json).asMapOrThrow<String, dynamic>();
+pick(json).asMapOrEmpty<String, dynamic>();
+```
+
+
+## Custom parsers
+
+Parsers in `deep_pick` are based on extension functions on the classes `Pick` and `RequiredPick`.
+This makes it flexible and easy for 3rd-party types to add custom parers.
+
+This example parses a `int` as Firestore `Timestamp`.
+```dart
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:deep_pick/deep_pick.dart';
+
+extension NullableTimestampPick on Pick {
+  Timestamp asFirestoreTimeStampOrThrow() {
+    final value = required().value;
+    if (value is Timestamp) {
+      return value;
+    }
+    if (value is int) {
+      return Timestamp.fromMillisecondsSinceEpoch(value);
+    }
+    throw PickException(
+        "value $value of type ${value.runtimeType} at location ${location()} can't be casted to Timestamp");
+  }
+
+  Timestamp? asFirestoreTimeStampOrNull() {
+    if (value == null) return null;
+    try {
+      return asFirestoreTimeStampOrThrow();
+    } catch (_) {
+      return null;
+    }
+  }
+}
+```
+
+### let
+
+When using a custom type in only a few places, it might be overkill to create all the extensions.
+For those cases use the [let function](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/let.html) borrowed from Kotlin to creating neat one-liners.
+
+```dart
+final UserId id = pick(json, 'id').letOrNull((it) => UserId(it.asString()));
+final Timestamp timestamp = pick(json, 'time')
+    .letOrThrow((it) => Timestamp.fromMillisecondsSinceEpoch(it.asInt()));
+```
+
+## Examples
+
+### Reading documents from Firestore
+Picking values from a Firebase `DocumentSnapshot` is usually very selective.
+Only a fraction of the properties have to be parsed.
+In this scenario it would be overkill to map the whole document to a Dart object.
+Instead, parse the values in place while staying type-safe.
+
+Use `.asStringOrThrow()` when confident that the value is never `null` and **always** exists.
+The return type then becomes non-nullable (`String` instead of `String?`).
+When the `data` doesn't contain the `full_name` field (against your assumption) it would crash throwing a `PickException`.
+
+```dart
+final DocumentSnapshot userDoc = 
+    await FirebaseFirestore.instance.collection('users').doc(userId).get();
+final data = userDoc.data();
+final String fullName = pick(data, 'full_name').asStringOrThrow();
+final String? level = pick(data, 'level').asIntOrNull();
+```
+
+`deep_pick` offers an alternative `required()` API with the same result.
+
+```dart
+final String fullName = pick(data, 'full_name').required().asString();
+```
+
 ## Background & Justification
 
 Before Dart 2.12 and the new `?[]` operator one had to write a lot of code to prevent crashes when a value isn't set! 
@@ -64,7 +337,7 @@ But even with the latest Dart version, `deep_pick` offers fantastic features ove
 ### 1. Flexible input types 
 
 Different languages and their JSON libraries generate different JSON. 
-Sometimes `id`s are `String`, sometimes `int`. Bools are provided as `true` or with quotes as String `"true"`. 
+Sometimes `id`s are `String`, sometimes `int`. Booleans are provided as `true` or with quotes as String `"true"`. 
 The meaning is the same but from a type perspective they are not.
 
 `deep_pick` does the basic conversions automatically. 
@@ -176,221 +449,6 @@ final UserId id = value == null ? null : UserId(value);
 
 ```dart
 final UserId id = pick(json, 'id').letOrNull((it) => UserId(it.asString()));
-```
-
-## Supported types
-
-### `String`
-Returns the picked `Object` as String representation.
-It doesn't matter if the value is actually a `int`, `double`, `bool` or any other Object.
-`pick` calls the objects `toString` method.
-
-```dart
-pick('a').asStringOrThrow(); // "a"
-pick(1).asStringOrNull(); // "1"
-pick(1.0).asStringOrNull(); // "1.0"
-pick(true).asStringOrNull(); // "true"
-pick(User(name: "Jason")).asStringOrNull(); // User{name: Jason}
-```
-
-### `int` & `double`
-`pick` tries to parse Strings with `int.tryParse` and `double.tryParse`.
-A `int` can be parsed as `double` (no precision loss) but not vice versa because it could lead to mistakes.
-
-```dart
-pick(3).asIntOrThrow(); // 3
-pick("3").asIntOrNull(); // 3
-pick(1).asDoubleOrThrow(); // 1.0
-pick("2.7").asDoubleOrNull(); // 2.7
-```
-
-### `bool`
-
-Parsing a bool is easy. Use any of the self-explaining methods
-```dart
-pick(true).asBoolOrThrow(); // true
-pick(false).asBoolOrThrow(); // true
-pick(null).asBoolOrTrue(); // true
-pick(null).asBoolOrFalse(); // false
-pick(null).asBoolOrNull(); // null
-pick('true').asBoolOrNull(); // true;
-pick('false').asBoolOrNull(); // false;
-```
-
-`deep_pick` does not treat the `int` values `0` and `1` as `bool` as some other languages do.
-Write your own logic using `.let` instead.
-
-```dart
-pick(1).asBoolOrNull(); // null
-pick(1).letOrNull((pick) => pick.value == 1 ? true : pick.value == 0 ? false : null); // true 
-```
-
-### `DateTime`
-
-Accepts most common date formats such as `ISO 8601`. For more supported formats see [`DateTime.parse`](https://api.dart.dev/stable/1.24.2/dart-core/DateTime/parse.html).
-
-```dart
-pick('2020-03-01T13:00:00Z').asDateTimeOrNull(); // a valid DateTime object
-pick('20200227 13:27:00').asDateTimeOrThrow(); // a valid DateTime object
-```
-
-### `List`
-
-When the JSON object contains a List of items that List can be mapped to a `List<T>` of objects (`T`).
-
-```dart
-pick([]).asListOrNull(SomeObject.fromPick);
-pick([]).asListOrThrow(SomeObject.fromPick);
-pick([]).asListOrEmpty(SomeObject.fromPick);
-```
-
-```dart
-final users = [
-  {'name': 'John Snow'},
-  {'name': 'Daenerys Targaryen'},
-];
-List<Person> persons = pick(users).asListOrEmpty((pick) {
-  return Person(
-    name: pick('name').required().asString(),
-  );
-});
-
-class Person {
-  final String name;
-
-  Person({required this.name});
-
-  static Person fromPick(RequiredPick pick) {
-    return Person(
-      name: pick('name').required().asString(),
-    );
-  }
-}
-```
-
-#### Note 1
-Extract the mapper function and using it as a reference allows to write it in a single line again :smile:
-```dart
-List<Person> persons = pick(users).asListOrEmpty(Person.fromPick);
-```
-
-Replacing the static function with a factory constructor doesn't work.
-Constructors cannot be referenced as functions, yet ([dart-lang/language/issues/216](https://github.com/dart-lang/language/issues/216)).
-Meanwhile, use `.asListOrEmpty((it) => Person.fromPick(it))` when using a factory constructor.
- 
-#### Note 2
-`pick` called in the `fromPick` function uses the parameter `pick`, not the top-level function.
-This is possible because `Pick` implements the `.call()` method.
-This allows chaining indefinitely on the same `Pick` object while maintaining internal references for useful error messages.
-
-Both versions produce the same result
-```dart
-pick(json, 'shoes', 1, 'tags', 0).asStringOrThrow();
-pick(json)('shoes')(1)('tags')(0).asStringOrThrow();
-```
-
-#### whenNull
-
-To simplify the API the `asList` functions ignores `null` values in the `List`.
-This allows the usage of `RequiredPick` over `Pick` in the `map` function.
-
-When `null` is important for you logic you can process the `null` value by providing an optional `whenNull` mapper function.
-
-```dart
-pick([1, null, 3]).asListOrNull(
-  (it) => it.asInt(), 
-  whenNull: (Pick pick) => 25;
-); 
-// [1, 25, 3]
-``` 
-
-### `Map`
-
-Picking the `Map` is rarely used, because `Pick` itself grants further picking using the `.call(args)` method.
-Converting back to a `Map` is usally only used for existing `fromMap` mapper functions.
-
-```dart
-pick(json).asMapOrNull<String, dynamic>();
-pick(json).asMapOrThrow<String, dynamic>();
-pick(json).asMapOrEmpty<String, dynamic>();
-```
-
-
-## Custom parsers
-
-Parsers in `deep_pick` are based on extension functions on the classes `Pick` and `RequiredPick`.
-This makes it flexible and easy for 3rd-party types to add custom parers.
-
-This example parses a `int` as Firestore `Timestamp`.
-```dart
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:deep_pick/deep_pick.dart';
-
-extension TimestampPick on RequiredPick {
-  Timestamp asFirestoreTimeStamp() {
-    final value = this.value;
-    if (value is Timestamp) {
-      return value;
-    }
-    if (value is int) {
-      return Timestamp.fromMillisecondsSinceEpoch(value);
-    }
-    throw PickException(
-        "value $value of type ${value.runtimeType} at location ${location()} can't be casted to Timestamp");
-  }
-}
-
-extension NullableTimestampPick on Pick {
-  Timestamp asFirestoreTimeStampOrThrow() {
-    return required().asFirestoreTimeStamp();
-  }
-
-  Timestamp? asFirestoreTimeStampOrNull() {
-    if (value == null) return null;
-    try {
-      return required().asFirestoreTimeStamp();
-    } catch (_) {
-      return null;
-    }
-  }
-}
-```
-
-### let
-
-When using a custom type in only a few places it might be overkill to create all the extensions.
-For those cases use the [let function](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/let.html) borrowed from Kotlin to creating neat one-liners.
-
-```dart
-final UserId id = pick(json, 'id').letOrNull((it) => UserId(it.asString()));
-final Timestamp timestamp = pick(json, 'time')
-    .letOrThrow((it) => Timestamp.fromMillisecondsSinceEpoch(it.asInt()));
-```
-
-## Examples
-
-### Reading documents from Firestore
-Picking values from a Firebase `DocumentSnapshot` is usually very selective.
-Only a fraction of the properties have to be parsed.
-In this scenario it would be overkill to map the whole document to a Dart object.
-Instead, parse the values in place while staying type-safe. 
-
-Use `.asStringOrThrow()` when confident that the value is never `null` and **always** exists. 
-The return type then becomes non-nullable (`String` instead of `String?`).
-When the `data` doesn't contain the `full_name` field (against your assumption) it would crash throwing a `PickException`.
-
-```dart
-final DocumentSnapshot userDoc = 
-    await FirebaseFirestore.instance.collection('users').doc(userId).get();
-final data = userDoc.data();
-final String fullName = pick(data, 'full_name').asStringOrThrow();
-final String? level = pick(data, 'level').asIntOrNull();
-```
-
-`deep_pick` offers an alternative `required()` API with the same result.
-
-```dart
-final String fullName = pick(data, 'full_name').required().asString();
 ```
 
 ## License

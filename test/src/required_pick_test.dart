@@ -8,6 +8,15 @@ void main() {
       expect(RequiredPick('a', path: ['b', 0]).toString(),
           'RequiredPick(value=a, path=[b, 0])');
     });
+
+    test('value is non nullable', () {
+      final nullable = pick('a');
+      // doesn't work pre Dart 2.12
+      // expect([nullable.value].runtimeType.toString(), 'List<Object?>');
+
+      final nonNull = nullable.required();
+      expect([nonNull.value].runtimeType.toString(), 'List<Object>');
+    });
   });
 
   group('.call()', () {
@@ -70,7 +79,7 @@ void main() {
       root.context['lang'] = 'de';
       expect(root.context, {'lang': 'de'});
 
-      final contexts = root.asList((pick) => pick.context);
+      final contexts = root.asListOrEmpty((pick) => pick.context);
       expect(contexts, [
         {'lang': 'de'},
         {'lang': 'de'}
