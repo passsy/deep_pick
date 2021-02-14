@@ -11,7 +11,7 @@ extension NullableIntPick on Pick {
   /// via [int.tryParse]
   /// {@endtemplate}
   int _parse() {
-    final value = this.value;
+    final value = required().value;
     if (value is int) {
       return value;
     }
@@ -31,7 +31,7 @@ extension NullableIntPick on Pick {
   int asIntOrThrow() {
     withContext(requiredPickErrorHintKey,
         'Use asIntOrNull() when the value may be null/absent at some point (int?).');
-    return required()._parse();
+    return _parse();
   }
 
   /// Returns the picked [value] as [int?] or returns `null` when the picked

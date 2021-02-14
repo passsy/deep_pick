@@ -22,7 +22,7 @@ extension BoolPick on Pick {
   /// ```
   /// {@endtemplate}
   bool _parse() {
-    final value = this.value;
+    final value = required().value;
     if (value is bool) {
       return value;
     }
@@ -43,7 +43,7 @@ extension BoolPick on Pick {
   bool asBoolOrThrow() {
     withContext(requiredPickErrorHintKey,
         'Use asBoolOrNull() when the value may be null/absent at some point (bool?).');
-    return required()._parse();
+    return _parse();
   }
 
   /// Returns the picked [value] as [bool] or `null` if it can't be interpreted
@@ -53,7 +53,7 @@ extension BoolPick on Pick {
   bool? asBoolOrNull() {
     if (value == null) return null;
     try {
-      return required()._parse();
+      return _parse();
     } catch (_) {
       return null;
     }
@@ -66,7 +66,7 @@ extension BoolPick on Pick {
   bool asBoolOrTrue() {
     if (value == null) return true;
     try {
-      return required()._parse();
+      return _parse();
     } catch (_) {
       return true;
     }
@@ -79,7 +79,7 @@ extension BoolPick on Pick {
   bool asBoolOrFalse() {
     if (value == null) return false;
     try {
-      return required()._parse();
+      return _parse();
     } catch (_) {
       return false;
     }

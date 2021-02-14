@@ -235,9 +235,9 @@ This example parses a `int` as Firestore `Timestamp`.
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:deep_pick/deep_pick.dart';
 
-extension TimestampPick on RequiredPick {
-  Timestamp asFirestoreTimeStamp() {
-    final value = this.value;
+extension NullableTimestampPick on Pick {
+  Timestamp asFirestoreTimeStampOrThrow() {
+    final value = required().value;
     if (value is Timestamp) {
       return value;
     }
@@ -247,17 +247,11 @@ extension TimestampPick on RequiredPick {
     throw PickException(
         "value $value of type ${value.runtimeType} at location ${location()} can't be casted to Timestamp");
   }
-}
-
-extension NullableTimestampPick on Pick {
-  Timestamp asFirestoreTimeStampOrThrow() {
-    return required().asFirestoreTimeStamp();
-  }
 
   Timestamp? asFirestoreTimeStampOrNull() {
     if (value == null) return null;
     try {
-      return required().asFirestoreTimeStamp();
+      return asFirestoreTimeStampOrThrow();
     } catch (_) {
       return null;
     }

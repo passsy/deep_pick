@@ -22,7 +22,7 @@ extension NullableDateTimePick on Pick {
   /// - `'2002-02-27T14:00:00-0500'`: Same as `'2002-02-27T19:00:00Z'`
   /// {@endtemplate}
   DateTime _parse() {
-    final value = this.value;
+    final value = required().value;
     if (value is DateTime) {
       return value;
     }
@@ -44,7 +44,7 @@ extension NullableDateTimePick on Pick {
   DateTime asDateTimeOrThrow() {
     withContext(requiredPickErrorHintKey,
         'Use asDateTimeOrNull() when the value may be null/absent at some point (DateTime?).');
-    return required()._parse();
+    return _parse();
   }
 
   /// Parses the picked [value] as [DateTime] or returns `null`

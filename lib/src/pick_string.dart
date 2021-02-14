@@ -19,7 +19,7 @@ extension NullableStringPick on Pick {
   /// for [int], [double] and any other [Object].
   /// {@endtemplate}
   String _parse() {
-    final value = this.value;
+    final value = required().value;
     if (value is String) {
       return value;
     }
@@ -33,7 +33,7 @@ extension NullableStringPick on Pick {
   String asStringOrThrow() {
     withContext(requiredPickErrorHintKey,
         'Use asStringOrNull() when the value may be null/absent at some point (String?).');
-    return required()._parse();
+    return _parse();
   }
 
   /// Returns the picked [value] as [String] or returns `null` when the picked value isn't available

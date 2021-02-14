@@ -5,7 +5,7 @@ extension NullableDoublePick on Pick {
   double Function() get asDouble => asDoubleOrThrow;
 
   double _parse() {
-    final value = this.value;
+    final value = required().value;
     if (value is double) {
       return value;
     }
@@ -56,7 +56,7 @@ extension NullableDoublePick on Pick {
   double asDoubleOrThrow() {
     withContext(requiredPickErrorHintKey,
         'Use asDoubleOrNull() when the value may be null/absent at some point (double?).');
-    return required()._parse();
+    return _parse();
   }
 
   double? asDoubleOrNull() {

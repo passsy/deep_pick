@@ -11,7 +11,7 @@ extension NullableListPick on Pick {
 
   List<T> _parse<T>(T Function(RequiredPick) map,
       {T Function(Pick pick)? whenNull}) {
-    final value = this.value;
+    final value = required().value;
     if (value is List) {
       final result = <T>[];
       var index = -1;
@@ -48,7 +48,7 @@ extension NullableListPick on Pick {
       {T Function(Pick pick)? whenNull}) {
     withContext(requiredPickErrorHintKey,
         'Use asListOrEmpty()/asListOrNull() when the value may be null/absent at some point (List<$T>?).');
-    return required()._parse(map, whenNull: whenNull);
+    return _parse(map, whenNull: whenNull);
   }
 
   List<T> asListOrEmpty<T>(T Function(RequiredPick) map,
