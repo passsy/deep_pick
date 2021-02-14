@@ -36,7 +36,7 @@ void main() {
         // ignore: deprecated_member_use_from_same_package
         () => pick('Bubblegum').asBool(),
         throwsA(pickException(
-            containing: ['Bubblegum', 'String', '<root>', 'bool'])),
+            containing: ['String', 'Bubblegum', '<root>', 'bool'])),
       );
       expect(
         // ignore: deprecated_member_use_from_same_package
@@ -53,12 +53,66 @@ void main() {
       expect(
         () => pick('Bubblegum').asBoolOrThrow(),
         throwsA(pickException(
-            containing: ['Bubblegum', 'String', '<root>', 'bool'])),
+            containing: ['String', 'Bubblegum', '<root>', 'bool'])),
       );
       expect(
         () => nullPick().asBoolOrThrow(),
         throwsA(pickException(
             containing: ['unknownKey', 'asBoolOrNull', 'null', 'bool?'])),
+      );
+    });
+  });
+
+  group('pick().required().asBool*', () {
+    test('asBoolOrNull()', () {
+      expect(pick(true).required().asBoolOrNull(), isTrue);
+      expect(pick('a').required().asBoolOrNull(), isNull);
+    });
+
+    test('asBoolOrTrue()', () {
+      expect(pick(true).required().asBoolOrTrue(), isTrue);
+      expect(pick(false).required().asBoolOrTrue(), isFalse);
+      expect(pick('a').required().asBoolOrTrue(), isTrue);
+    });
+
+    test('asBoolOrFalse()', () {
+      expect(pick(true).required().asBoolOrFalse(), isTrue);
+      expect(pick(false).required().asBoolOrFalse(), isFalse);
+      expect(pick('a').required().asBoolOrFalse(), isFalse);
+    });
+
+    test('deprecated asBool forwards to asBoolOrThrow', () {
+      // ignore: deprecated_member_use_from_same_package
+      expect(pick(true).required().asBool(), isTrue);
+      // ignore: deprecated_member_use_from_same_package
+      expect(pick('true').required().asBool(), isTrue);
+      // ignore: deprecated_member_use_from_same_package
+      expect(pick('false').required().asBool(), isFalse);
+      expect(
+        // ignore: deprecated_member_use_from_same_package
+        () => pick('Bubblegum').required().asBool(),
+        throwsA(pickException(
+            containing: ['String', 'Bubblegum', '<root>', 'bool'])),
+      );
+      expect(
+        // ignore: deprecated_member_use_from_same_package
+        () => nullPick().required().asBool(),
+        throwsA(pickException(containing: ['unknownKey', 'absent'])),
+      );
+    });
+
+    test('asBoolOrThrow()', () {
+      expect(pick(true).required().asBoolOrThrow(), isTrue);
+      expect(pick('true').required().asBoolOrThrow(), isTrue);
+      expect(pick('false').required().asBoolOrThrow(), isFalse);
+      expect(
+        () => pick('Bubblegum').required().asBoolOrThrow(),
+        throwsA(pickException(
+            containing: ['String', 'Bubblegum', '<root>', 'bool'])),
+      );
+      expect(
+        () => nullPick().required().asBoolOrThrow(),
+        throwsA(pickException(containing: ['unknownKey', 'absent'])),
       );
     });
   });

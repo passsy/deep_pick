@@ -1,42 +1,39 @@
 import 'package:deep_pick/src/pick.dart';
 
-extension StringPick on RequiredPick {
-  /// Returns the picked [value] as String representation; only throws when
-  /// the value is `null`.
+extension RequiredStringPick on RequiredPick {
+  /// Returns the picked [value] as [String] representation
   ///
-  /// {@template Pick.asString}
-  /// Parses the picked value as String. If the value is not already a [String]
-  /// its [Object.toString()] will be called. This means that this method works
-  /// for [int], [double] and any other [Object] which isn't a collection of
-  /// values such as a [List] or [Map]
-  /// {@endtemplate}
-  String asString() {
-    final value = this.value;
-    if (value is String) {
-      return value;
-    }
-    if (value is List || value is Map) {
-      throw PickException(
-          'value at location ${location()} is of type ${value.runtimeType}. '
-          'Drill further down to a value which is not a List or Map. '
-          'value: $value');
-    }
-    return value.toString();
-  }
+  /// {@macro Pick.asString}
+  String asString() => _parse();
 }
 
 extension NullableStringPick on Pick {
   @Deprecated('Use .asStringOrThrow()')
   String Function() get asString => asStringOrThrow;
 
-  /// Returns the picked [value] as String representation; only throws when
-  /// the value is `null`.
+  /// Returns the picked [value] as [String] representation
+  ///
+  /// {@template Pick.asString}
+  /// Parses the picked [value] as String. If the value is not already a [String]
+  /// its [Object.toString()] will be called. This means that this method works
+  /// for [int], [double] and any other [Object].
+  /// {@endtemplate}
+  String _parse() {
+    final value = required().value;
+    if (value is String) {
+      return value;
+    }
+    return value.toString();
+  }
+
+  /// Returns the picked [value] as String representation; only throws a
+  /// [PickException] when the value is `null` or [isAbsent].
   ///
   /// {@macro Pick.asString}
   String asStringOrThrow() {
     withContext(requiredPickErrorHintKey,
         'Use asStringOrNull() when the value may be null/absent at some point (String?).');
-    return required().asString();
+    return _parse();
   }
 
   /// Returns the picked [value] as [String] or returns `null` when the picked value isn't available
@@ -45,7 +42,7 @@ extension NullableStringPick on Pick {
   String? asStringOrNull() {
     if (value == null) return null;
     try {
-      return required().asString();
+      return _parse();
     } catch (_) {
       return null;
     }

@@ -14,42 +14,20 @@ void main() {
             pick(DateTime(2000)).asStringOrThrow(), '2000-01-01 00:00:00.000');
       });
 
-      test("asString() doesn't transform Maps and Lists with toString", () {
-        expect(
-          () => pick(['a', 'b']).asStringOrThrow(),
-          throwsA(pickException(
-              containing: ['List<String>', 'not a List or Map', '[a, b]'])),
-        );
-        expect(
-          () => pick({'a': 'b'}).asStringOrThrow(),
-          throwsA(pickException(containing: [
-            'Map<String, String>',
-            'not a List or Map',
-            '{a: b}'
-          ])),
-        );
+      test('asString() alsow works for Maps and Lists calling their toString',
+          () {
+        expect(pick(['a', 'b']).asStringOrThrow(), '[a, b]');
+        expect(pick({'a': 1}).asStringOrThrow(), '{a: 1}');
       });
 
       test('null throws', () {
         expect(
           () => nullPick().asStringOrThrow(),
           throwsA(pickException(containing: [
-            'required value at location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asStringOrNull() when the value may be null/absent at some point (String?).'
+            'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asStringOrNull() when the value may be null/absent at some point (String?).'
           ])),
         );
       });
-    });
-
-    test('deprecated asString forwards to asStringOrThrow', () {
-      // ignore: deprecated_member_use_from_same_package
-      expect(pick('1').asString(), '1');
-      expect(
-        // ignore: deprecated_member_use_from_same_package
-        () => nullPick().asString(),
-        throwsA(pickException(containing: [
-          'required value at location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asStringOrNull() when the value may be null/absent at some point (String?).'
-        ])),
-      );
     });
 
     group('asStringOrNull', () {
@@ -64,6 +42,55 @@ void main() {
       test('as long it is not null it prints toString', () {
         expect(pick(Object()).asStringOrNull(), "Instance of 'Object'");
       });
+    });
+
+    test('deprecated asString forwards to asStringOrThrow', () {
+      // ignore: deprecated_member_use_from_same_package
+      expect(pick('adam').asString(), 'adam');
+      // ignore: deprecated_member_use_from_same_package
+      expect(pick([]).asString(), '[]');
+    });
+  });
+
+  group('pick().required().asString*', () {
+    group('asStringOrThrow', () {
+      test('parse anything to String', () {
+        expect(pick('adam').required().asStringOrThrow(), 'adam');
+        expect(pick(1).required().asStringOrThrow(), '1');
+        expect(pick(2.0).required().asStringOrThrow(), '2.0');
+        expect(pick(DateTime(2000)).required().asStringOrThrow(),
+            '2000-01-01 00:00:00.000');
+      });
+
+      test("asString() doesn't transform Maps and Lists with toString", () {
+        expect(pick(['a', 'b']).required().asStringOrThrow(), '[a, b]');
+        expect(pick({'a': 1}).required().asStringOrThrow(), '{a: 1}');
+      });
+
+      test('null throws', () {
+        expect(
+          () => nullPick().required().asStringOrThrow(),
+          throwsA(pickException(containing: [
+            'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent.'
+          ])),
+        );
+      });
+    });
+
+    group('asStringOrNull', () {
+      test('parse String', () {
+        expect(pick('2012').required().asStringOrNull(), '2012');
+      });
+
+      test('as long it is not null it prints toString', () {
+        expect(
+            pick(Object()).required().asStringOrNull(), "Instance of 'Object'");
+      });
+    });
+
+    test('required().asString()', () {
+      expect(pick('adam').required().asString(), 'adam');
+      expect(pick([]).required().asString(), '[]');
     });
   });
 }
