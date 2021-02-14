@@ -49,7 +49,7 @@ This example demonstrates parsing of an HTTP response using `deep_pick`. You can
   
   
   // Parse a full object using a fromPick factory constructor
-  final CounterApiStats stats = CounterApiStats.fromPick(RequiredPick(json));
+  final CounterApiStats stats = CounterApiStats.fromPick(pick(json).required());
 
   
   // Parse lists with a fromPick constructor 
