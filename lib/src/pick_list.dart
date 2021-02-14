@@ -34,14 +34,14 @@ extension NullableListPick on Pick {
         } catch (e) {
           // ignore: avoid_print
           print(
-              'whenNull at location ${location()} index: $index crashed instead of returning a $T');
+              'whenNull at location $debugParsingExit index: $index crashed instead of returning a $T');
           rethrow;
         }
       }
       return result;
     }
-    throw PickException('value $value of type ${value.runtimeType} '
-        'at location ${location()} can not be casted to List<dynamic>');
+    throw PickException(
+        'Type ${value.runtimeType} of $debugParsingExit can not be casted to List<dynamic>');
   }
 
   List<T> asListOrThrow<T>(T Function(RequiredPick) map,

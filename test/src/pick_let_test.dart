@@ -48,14 +48,14 @@ void main() {
       expect(
         () => pick('a').letOrNull((pick) => Person.fromPick(pick)),
         throwsA(pickException(containing: [
-          'required value at location "name" in pick(json, "name" (absent)) is absent.'
+          'Expected a non-null value but location "name" in pick(json, "name" (absent)) is absent.'
         ])),
       );
       expect(
         () => pick({'asdf': 'John Snow'})
             .letOrNull((pick) => Person.fromPick(pick)),
         throwsA(pickException(containing: [
-          'required value at location "name" in pick(json, "name" (absent)) is absent.'
+          'Expected a non-null value but location "name" in pick(json, "name" (absent)) is absent.'
         ])),
       );
     });
@@ -68,7 +68,7 @@ void main() {
       expect(
         () => nullPick().letOrThrow((pick) => Person.fromPick(pick)),
         throwsA(pickException(containing: [
-          'required value at location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use letOrNull() when the value may be null/absent at some point.'
+          'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use letOrNull() when the value may be null/absent at some point.'
         ])),
       );
       expect(
@@ -76,7 +76,7 @@ void main() {
             .letOrThrow((pick) => Person.fromPick(pick)),
         throwsA(
           pickException(containing: [
-            'required value at location "name" in pick(json, "name" (absent)) is absent. Use letOrNull() when the value may be null/absent at some point.'
+            'Expected a non-null value but location "name" in pick(json, "name" (absent)) is absent. Use letOrNull() when the value may be null/absent at some point'
           ]),
         ),
       );

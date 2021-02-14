@@ -23,7 +23,7 @@ void main() {
         expect(
           () => nullPick().asDateTimeOrThrow(),
           throwsA(pickException(containing: [
-            'required value at location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asDateTimeOrNull() when the value may be null/absent at some point (DateTime?).'
+            'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asDateTimeOrNull() when the value may be null/absent at some point (DateTime?).'
           ])),
         );
       });
@@ -32,13 +32,13 @@ void main() {
         expect(
           () => pick(Object()).asDateTimeOrThrow(),
           throwsA(pickException(containing: [
-            "value Instance of 'Object' of type Object at location \"<root>\" in pick(<root>) can not be parsed as DateTime"
+            'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as DateTime'
           ])),
         );
         expect(
           () => pick('Bubblegum').asDateTimeOrThrow(),
           throwsA(
-              pickException(containing: ['Bubblegum', 'String', 'DateTime'])),
+              pickException(containing: ['String', 'Bubblegum', 'DateTime'])),
         );
       });
     });
@@ -51,7 +51,7 @@ void main() {
         // ignore: deprecated_member_use_from_same_package
         () => nullPick().asDateTime(),
         throwsA(pickException(containing: [
-          'required value at location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asDateTimeOrNull() when the value may be null/absent at some point (DateTime?).'
+          'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asDateTimeOrNull() when the value may be null/absent at some point (DateTime?).'
         ])),
       );
     });
@@ -92,7 +92,7 @@ void main() {
         expect(
           () => nullPick().required().asDateTimeOrThrow(),
           throwsA(pickException(containing: [
-            'required value at location "unknownKey" in pick(json, "unknownKey" (absent)) is absent.'
+            'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent.'
           ])),
         );
       });
@@ -101,13 +101,13 @@ void main() {
         expect(
           () => pick(Object()).required().asDateTimeOrThrow(),
           throwsA(pickException(containing: [
-            "value Instance of 'Object' of type Object at location \"<root>\" in pick(<root>) can not be parsed as DateTime"
+            'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as DateTime'
           ])),
         );
         expect(
           () => pick('Bubblegum').required().asDateTimeOrThrow(),
           throwsA(
-              pickException(containing: ['Bubblegum', 'String', 'DateTime'])),
+              pickException(containing: ['String', 'Bubblegum', 'DateTime'])),
         );
       });
     });
@@ -120,7 +120,7 @@ void main() {
         // ignore: deprecated_member_use_from_same_package
         () => nullPick().required().asDateTime(),
         throwsA(pickException(containing: [
-          'required value at location "unknownKey" in pick(json, "unknownKey" (absent)) is absent.'
+          'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent.'
         ])),
       );
     });

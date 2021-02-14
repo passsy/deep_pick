@@ -21,8 +21,8 @@ extension NullableIntPick on Pick {
         return parsed;
       }
     }
-    throw PickException('value $value of type ${value.runtimeType} '
-        'at location ${location()} can not be parsed as int');
+    throw PickException(
+        'Type ${value.runtimeType} of $debugParsingExit can not be parsed as int');
   }
 
   /// Returns the picked [value] as [int] or throws

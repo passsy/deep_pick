@@ -15,7 +15,7 @@ void main() {
         expect(
           () => nullPick().asListOrThrow((it) => it.asStringOrThrow()),
           throwsA(pickException(containing: [
-            'required value at location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asListOrEmpty()/asListOrNull() when the value may be null/absent at some point (List<String>?).'
+            'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asListOrEmpty()/asListOrNull() when the value may be null/absent at some point (List<String>?).'
           ])),
         );
       });
@@ -80,7 +80,7 @@ void main() {
             {'asdf': 'Daenerys Targaryen'}, // <-- missing name key
           ]).asListOrThrow((pick) => Person.fromPick(pick)),
           throwsA(pickException(containing: [
-            'required value at location list index 1 in pick(json, 1 (absent), "name") is absent. Use asListOrEmpty()/asListOrNull() when the value may be null/absent at some point (List<Person>?).'
+            'Expected a non-null value but location list index 1 in pick(json, 1 (absent), "name") is absent. Use asListOrEmpty()/asListOrNull() when the value may be null/absent at some point (List<Person>?).'
           ])),
         );
       });
@@ -89,12 +89,12 @@ void main() {
         expect(
           () => pick('Bubblegum').asListOrThrow((it) => it.asStringOrThrow()),
           throwsA(pickException(
-              containing: ['Bubblegum', 'String', 'List<dynamic>'])),
+              containing: ['String', 'Bubblegum', 'List<dynamic>'])),
         );
         expect(
           () => pick(Object()).asListOrThrow((it) => it.asStringOrThrow()),
           throwsA(pickException(containing: [
-            'value Instance of \'Object\' of type Object at location "<root>" in pick(<root>) can not be casted to List<dynamic>'
+            'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be casted to List<dynamic>'
           ])),
         );
       });
@@ -107,7 +107,7 @@ void main() {
         // ignore: deprecated_member_use_from_same_package
         () => pick(Object()).asList(),
         throwsA(pickException(containing: [
-          'value Instance of \'Object\' of type Object at location "<root>" in pick(<root>) can not be casted to List<dynamic>'
+          'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be casted to List<dynamic>'
         ])),
       );
     });
@@ -193,7 +193,7 @@ void main() {
             {'asdf': 'Daenerys Targaryen'}, // <-- missing name key
           ]).asListOrEmpty((pick) => Person.fromPick(pick)),
           throwsA(pickException(containing: [
-            'required value at location list index 1 in pick(json, 1 (absent), "name") is absent.'
+            'Expected a non-null value but location list index 1 in pick(json, 1 (absent), "name") is absent.'
           ])),
         );
       });
@@ -281,7 +281,7 @@ void main() {
         expect(
           () => pick(data).asListOrNull((pick) => Person.fromPick(pick)),
           throwsA(pickException(containing: [
-            'required value at location list index 1 in pick(json, 1 (absent), "name") is absent.'
+            'Expected a non-null value but location list index 1 in pick(json, 1 (absent), "name") is absent.'
           ])),
         );
       });

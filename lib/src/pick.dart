@@ -104,7 +104,7 @@ class Pick {
   /// used to check if a [Map] contains `null` for a key or the key being absent
   ///
   /// Not available could mean:
-  /// - Accessing a key which doesn't exist in a
+  /// - Accessing a key which doesn't exist in a [Map]
   /// - Reading the value from [List] when the index is greater than the length
   /// - Trying to access a key in a [Map] but the found data structure is a [List]
   ///
@@ -171,7 +171,8 @@ class Pick {
     if (value == null) {
       final more = fromContext(requiredPickErrorHintKey).value as String?;
       final moreSegment = more == null ? '' : ' $more';
-      throw PickException('required value at location ${location()} '
+      throw PickException(
+          'Expected a non-null value but location $debugParsingExit '
           'is ${isAbsent ? 'absent' : 'null'}.$moreSegment');
     }
     return RequiredPick(value, path: path, context: context);
@@ -239,20 +240,39 @@ class Pick {
         context, key, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
   }
 
-  String location() {
+  /// Returns a human readable String of the requested [path] and the actual
+  /// parsed value following the path along ([followablePath]).
+  ///
+  /// Examples:
+  /// picked value "b" using pick(json, "a"(b))
+  /// picked value "null" using pick(json, "a" (null))
+  /// picked value "Instance of \'Object\'" using pick(<root>)
+  /// "unknownKey" in pick(json, "unknownKey" (absent))
+  String get debugParsingExit {
     final access = <String>[];
+
+    // The full path to [value] inside of the object
+    // I.e. ['shoes', 0, 'name']
     final fullPath = path;
+
+    // The path segments containing non-null values parsing could follow along
+    // I.e. ['shoes'] for an empty shoes list
     final followable = followablePath;
-    final isSet = followable.length == fullPath.length;
+
+    final foundValue = followable.length == fullPath.length;
     var foundNullPart = false;
     for (var i = 0; i < fullPath.length; i++) {
       final full = fullPath[i];
       final part = followable.length > i ? followable[i] : null;
       final nullPart = () {
         if (foundNullPart) return '';
-        if (isSet && i + 1 == fullPath.length) {
-          foundNullPart = true;
-          return ' (null)';
+        if (foundValue && i + 1 == fullPath.length) {
+          if (value == null) {
+            foundNullPart = true;
+            return ' (null)';
+          } else {
+            return '($value)';
+          }
         }
         if (part == null) {
           foundNullPart = true;
@@ -268,15 +288,21 @@ class Pick {
       }
     }
 
-    final firstMissing = fullPath.isEmpty
-        ? '<root>'
-        : fullPath[followable.isEmpty ? 0 : followable.length - 1];
-    final formattedMissing =
-        firstMissing is int ? 'list index $firstMissing' : '"$firstMissing"';
+    var valueOrExit = '';
+    if (foundValue) {
+      valueOrExit = 'picked value "$value" using';
+    } else {
+      final firstMissing = fullPath.isEmpty
+          ? '<root>'
+          : fullPath[followable.isEmpty ? 0 : followable.length];
+      final formattedMissing =
+          firstMissing is int ? 'list index $firstMissing' : '"$firstMissing"';
+      valueOrExit = '$formattedMissing in';
+    }
 
     final params = access.isNotEmpty ? ', ${access.join(', ')}' : '';
     final root = access.isEmpty ? '<root>' : 'json';
-    return '$formattedMissing in pick($root$params)';
+    return '$valueOrExit pick($root$params)';
   }
 }
 

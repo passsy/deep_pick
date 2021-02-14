@@ -14,7 +14,8 @@ void main() {
             pick(DateTime(2000)).asStringOrThrow(), '2000-01-01 00:00:00.000');
       });
 
-      test('asString() alsow works for Maps and Lists calling their toString', () {
+      test('asString() alsow works for Maps and Lists calling their toString',
+          () {
         expect(pick(['a', 'b']).asStringOrThrow(), '[a, b]');
         expect(pick({'a': 1}).asStringOrThrow(), '{a: 1}');
       });
@@ -23,7 +24,7 @@ void main() {
         expect(
           () => nullPick().asStringOrThrow(),
           throwsA(pickException(containing: [
-            'required value at location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asStringOrNull() when the value may be null/absent at some point (String?).'
+            'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asStringOrNull() when the value may be null/absent at some point (String?).'
           ])),
         );
       });
@@ -70,7 +71,7 @@ void main() {
         expect(
           () => nullPick().required().asStringOrThrow(),
           throwsA(pickException(containing: [
-            'required value at location "unknownKey" in pick(json, "unknownKey" (absent)) is absent.'
+            'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent.'
           ])),
         );
       });

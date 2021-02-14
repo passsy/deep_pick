@@ -49,8 +49,8 @@ extension NullableDoublePick on Pick {
         }
       }
     }
-    throw PickException('value $value of type ${value.runtimeType} '
-        'at location ${location()} can not be parsed as double');
+    throw PickException(
+        'Type ${value.runtimeType} of $debugParsingExit can not be parsed as double');
   }
 
   double asDoubleOrThrow() {

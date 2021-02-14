@@ -36,7 +36,7 @@ void main() {
         // ignore: deprecated_member_use_from_same_package
         () => pick('Bubblegum').asBool(),
         throwsA(pickException(
-            containing: ['Bubblegum', 'String', '<root>', 'bool'])),
+            containing: ['String', 'Bubblegum', '<root>', 'bool'])),
       );
       expect(
         // ignore: deprecated_member_use_from_same_package
@@ -53,7 +53,7 @@ void main() {
       expect(
         () => pick('Bubblegum').asBoolOrThrow(),
         throwsA(pickException(
-            containing: ['Bubblegum', 'String', '<root>', 'bool'])),
+            containing: ['String', 'Bubblegum', '<root>', 'bool'])),
       );
       expect(
         () => nullPick().asBoolOrThrow(),
@@ -92,7 +92,7 @@ void main() {
         // ignore: deprecated_member_use_from_same_package
         () => pick('Bubblegum').required().asBool(),
         throwsA(pickException(
-            containing: ['Bubblegum', 'String', '<root>', 'bool'])),
+            containing: ['String', 'Bubblegum', '<root>', 'bool'])),
       );
       expect(
         // ignore: deprecated_member_use_from_same_package
@@ -108,7 +108,7 @@ void main() {
       expect(
         () => pick('Bubblegum').required().asBoolOrThrow(),
         throwsA(pickException(
-            containing: ['Bubblegum', 'String', '<root>', 'bool'])),
+            containing: ['String', 'Bubblegum', '<root>', 'bool'])),
       );
       expect(
         () => nullPick().required().asBoolOrThrow(),

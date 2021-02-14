@@ -39,7 +39,7 @@ void main() {
         expect(
           () => nullPick().asDoubleOrThrow(),
           throwsA(pickException(containing: [
-            'required value at location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asDoubleOrNull() when the value may be null/absent at some point (double?).'
+            'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asDoubleOrNull() when the value may be null/absent at some point (double?).'
           ])),
         );
       });
@@ -48,13 +48,13 @@ void main() {
         expect(
           () => pick(Object()).asDoubleOrThrow(),
           throwsA(pickException(containing: [
-            'value Instance of \'Object\' of type Object at location "<root>" in pick(<root>) can not be parsed as double'
+            'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as double'
           ])),
         );
 
         expect(
           () => pick('Bubblegum').asDoubleOrThrow(),
-          throwsA(pickException(containing: ['Bubblegum', 'String', 'double'])),
+          throwsA(pickException(containing: ['String', 'Bubblegum', 'double'])),
         );
       });
     });
@@ -66,7 +66,7 @@ void main() {
         // ignore: deprecated_member_use_from_same_package
         () => pick(Object()).asDouble(),
         throwsA(pickException(containing: [
-          "value Instance of 'Object' of type Object at location \"<root>\" in pick(<root>) can not be parsed as double"
+          'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as double'
         ])),
       );
     });
@@ -122,7 +122,7 @@ void main() {
         expect(
           () => nullPick().required().asDoubleOrThrow(),
           throwsA(pickException(containing: [
-            'required value at location "unknownKey" in pick(json, "unknownKey" (absent)) is absent.'
+            'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent.'
           ])),
         );
       });
@@ -131,13 +131,13 @@ void main() {
         expect(
           () => pick(Object()).required().asDoubleOrThrow(),
           throwsA(pickException(containing: [
-            'value Instance of \'Object\' of type Object at location "<root>" in pick(<root>) can not be parsed as double'
+            'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as double'
           ])),
         );
 
         expect(
           () => pick('Bubblegum').required().asDoubleOrThrow(),
-          throwsA(pickException(containing: ['Bubblegum', 'String', 'double'])),
+          throwsA(pickException(containing: ['String', 'Bubblegum', 'double'])),
         );
       });
     });
@@ -149,7 +149,7 @@ void main() {
         // ignore: deprecated_member_use_from_same_package
         () => pick(Object()).required().asDouble(),
         throwsA(pickException(containing: [
-          "value Instance of 'Object' of type Object at location \"<root>\" in pick(<root>) can not be parsed as double"
+          'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as double'
         ])),
       );
     });

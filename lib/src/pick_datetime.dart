@@ -32,8 +32,8 @@ extension NullableDateTimePick on Pick {
         return dateTime;
       }
     }
-    throw PickException('value $value of type ${value.runtimeType} '
-        'at location ${location()} can not be parsed as DateTime');
+    throw PickException(
+        'Type ${value.runtimeType} of $debugParsingExit can not be parsed as DateTime');
   }
 
   /// Parses the picked [value] as [DateTime] or throws

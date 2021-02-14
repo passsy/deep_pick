@@ -20,7 +20,7 @@ void main() {
         expect(
           () => nullPick().asIntOrThrow(),
           throwsA(pickException(containing: [
-            'required value at location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asIntOrNull() when the value may be null/absent at some point (int?).'
+            'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asIntOrNull() when the value may be null/absent at some point (int?).'
           ])),
         );
       });
@@ -29,13 +29,13 @@ void main() {
         expect(
           () => pick(Object()).asIntOrThrow(),
           throwsA(pickException(containing: [
-            "value Instance of 'Object' of type Object at location \"<root>\" in pick(<root>) can not be parsed as int"
+            'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as int'
           ])),
         );
 
         expect(
           () => pick('Bubblegum').asIntOrThrow(),
-          throwsA(pickException(containing: ['Bubblegum', 'String', 'int'])),
+          throwsA(pickException(containing: ['String', 'Bubblegum', 'int'])),
         );
       });
     });
@@ -47,7 +47,7 @@ void main() {
         // ignore: deprecated_member_use_from_same_package
         () => pick(Object()).asInt(),
         throwsA(pickException(containing: [
-          "value Instance of 'Object' of type Object at location \"<root>\" in pick(<root>) can not be parsed as int"
+          'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as int'
         ])),
       );
     });
@@ -83,7 +83,7 @@ void main() {
         expect(
           () => nullPick().required().asIntOrThrow(),
           throwsA(pickException(containing: [
-            'required value at location "unknownKey" in pick(json, "unknownKey" (absent)) is absent.'
+            'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent.'
           ])),
         );
       });
@@ -92,13 +92,13 @@ void main() {
         expect(
           () => pick(Object()).required().asIntOrThrow(),
           throwsA(pickException(containing: [
-            "value Instance of 'Object' of type Object at location \"<root>\" in pick(<root>) can not be parsed as int"
+            'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as int'
           ])),
         );
 
         expect(
           () => pick('Bubblegum').required().asIntOrThrow(),
-          throwsA(pickException(containing: ['Bubblegum', 'String', 'int'])),
+          throwsA(pickException(containing: ['String', 'Bubblegum', 'int'])),
         );
       });
     });
@@ -110,7 +110,7 @@ void main() {
         // ignore: deprecated_member_use_from_same_package
         () => pick(Object()).asInt(),
         throwsA(pickException(containing: [
-          "value Instance of 'Object' of type Object at location \"<root>\" in pick(<root>) can not be parsed as int"
+          'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as int'
         ])),
       );
     });
