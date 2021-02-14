@@ -1,5 +1,12 @@
 import 'package:deep_pick/src/pick.dart';
 
+extension RequiredStringPick on RequiredPick {
+  /// Returns the picked [value] as [String] representation
+  ///
+  /// {@macro Pick.asString}
+  String asString() => _parse();
+}
+
 extension NullableStringPick on Pick {
   @Deprecated('Use .asStringOrThrow()')
   String Function() get asString => asStringOrThrow;

@@ -88,10 +88,8 @@ void main() {
       });
     });
 
-    test('deprecated asString forwards to asStringOrThrow', () {
-      // ignore: deprecated_member_use_from_same_package
+    test('required().asString()', () {
       expect(pick('adam').required().asString(), 'adam');
-      // ignore: deprecated_member_use_from_same_package
       expect(pick([]).required().asString(), '[]');
     });
   });
