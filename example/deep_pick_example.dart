@@ -164,7 +164,7 @@ Future<CounterApiStats> getStats() async {
       'keys_updated: $keys_updated, version: "$version"');
 
   // Parse the full object
-  final CounterApiStats stats = CounterApiStats.fromPick(RequiredPick(json));
+  final CounterApiStats stats = CounterApiStats.fromPick(pick(json).required());
 
   // Parse lists
   final List<CounterApiStats> multipleStats = pick(json, 'items')

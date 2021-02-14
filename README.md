@@ -227,8 +227,8 @@ pick(json).asMapOrEmpty<String, dynamic>();
 
 ## Custom parsers
 
-Parsers in `deep_pick` are based on extension functions on the classes `Pick` and `RequiredPick`.
-This makes it flexible and easy for 3rd-party types to add custom parers.
+Parsers in `deep_pick` are based on extension functions on the classes `Pick`.
+This makes it flexible and easy for 3rd-party types to add custom parsers.
 
 This example parses a `int` as Firestore `Timestamp`.
 ```dart
@@ -290,7 +290,9 @@ final String fullName = pick(data, 'full_name').asStringOrThrow();
 final String? level = pick(data, 'level').asIntOrNull();
 ```
 
-`deep_pick` offers an alternative `required()` API with the same result.
+`deep_pick` offers an alternative `required()` API with the same result. 
+This is useful to make sure a value exists before parsing it. 
+In case it is `null` or absent a useful error message is printed.
 
 ```dart
 final String fullName = pick(data, 'full_name').required().asString();
@@ -391,7 +393,7 @@ final milestoneCreator = pick(json, 'milestone', 'creator', 'login').asStringOrT
 
 // Unhandled exception:
 // PickException(
-//   required value at location "milestone" in pick(json, "milestone" (absent), "creator", "login") is absent. 
+//   Expected a non-null value but location "milestone" in pick(json, "milestone" (absent), "creator", "login") is absent. 
 //   Use asStringOrNull() when the value may be null at some point (String?).
 // )
 ```
