@@ -1,3 +1,23 @@
+import 'dart:convert';
+
+Pick pickFromJson(
+  String json, [
+  Object? arg0,
+  Object? arg1,
+  Object? arg2,
+  Object? arg3,
+  Object? arg4,
+  Object? arg5,
+  Object? arg6,
+  Object? arg7,
+  Object? arg8,
+  Object? arg9,
+]) {
+  final parsed = jsonDecode(json);
+  return pick(parsed, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+}
+
+
 /// Picks the value of [json] at location arg0, arg1 ... arg9
 ///
 /// args may be
@@ -48,7 +68,7 @@ Pick _drillDown(
 }) {
   final fullPath = [...parentPath, ...selectors];
   final path = <dynamic>[];
-  dynamic data = json;
+  /*Map?|List?*/ dynamic data = json;
   for (final selector in selectors) {
     path.add(selector);
     if (data is List) {

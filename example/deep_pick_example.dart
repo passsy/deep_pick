@@ -4,8 +4,7 @@ import 'dart:convert';
 import 'package:deep_pick/deep_pick.dart';
 import 'package:http/http.dart' as http;
 
-Future<void> main() async {
-  final json = jsonDecode('''
+const String rawJson = '''
 {
   "shoes": [
      { 
@@ -23,8 +22,14 @@ Future<void> main() async {
      }
   ]
 }
-''');
+''';
 
+Future<void> main() async {
+  final firstTag3 =
+      pickFromJson(rawJson, 'shoes', 1, 'tags', 0).asStringOrThrow();
+  print(firstTag3);
+
+  final json = jsonDecode(rawJson);
   // pick a value deep down the json structure or crash
   final firstTag = pick(json, 'shoes', 1, 'tags', 0).asStringOrThrow();
   print(firstTag); // adidas
