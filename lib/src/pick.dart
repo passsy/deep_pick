@@ -3,18 +3,20 @@
 /// args may be
 /// - a [String] to pick values from a [Map]
 /// - or [int] when you want to pick a value at index from a [List]
+///
+/// If objects are deeper than 10, use [pickDeep]
 Pick pick(
   /*Map?|List?*/ dynamic json, [
-  Object? arg0,
-  Object? arg1,
-  Object? arg2,
-  Object? arg3,
-  Object? arg4,
-  Object? arg5,
-  Object? arg6,
-  Object? arg7,
-  Object? arg8,
-  Object? arg9,
+  /*String?|int?*/ Object? arg0,
+  /*String?|int?*/ Object? arg1,
+  /*String?|int?*/ Object? arg2,
+  /*String?|int?*/ Object? arg3,
+  /*String?|int?*/ Object? arg4,
+  /*String?|int?*/ Object? arg5,
+  /*String?|int?*/ Object? arg6,
+  /*String?|int?*/ Object? arg7,
+  /*String?|int?*/ Object? arg8,
+  /*String?|int?*/ Object? arg9,
 ]) {
   final selectors = [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9]
       // null is a sign for unused 'varargs'
@@ -24,8 +26,24 @@ Pick pick(
   return _drillDown(json, selectors);
 }
 
-Pick _drillDown(dynamic json, List<Object> selectors,
-    {List<Object> parentPath = const [], Map<String, dynamic>? context}) {
+/// Picks the value of [json] by traversing the object along the values in [selector] one by one
+///
+/// Valid values for the items in selector are
+/// - a [String] to pick values from a [Map]
+/// - or [int] when you want to pick a value at index from a [List]
+Pick pickDeep(
+    /*Map?|List?*/ dynamic json,
+    List< /*String|int*/ Object> selector) {
+  return _drillDown(json, selector);
+}
+
+/// Traverses the object along [selectors]
+Pick _drillDown(
+  /*Map?|List?*/ dynamic json,
+  List< /*String|int*/ Object> selectors, {
+  List< /*String|int*/ Object> parentPath = const [],
+  Map<String, dynamic>? context,
+}) {
   final fullPath = [...parentPath, ...selectors];
   final path = <dynamic>[];
   dynamic data = json;

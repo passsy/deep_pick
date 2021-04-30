@@ -2,6 +2,53 @@ import 'package:deep_pick/deep_pick.dart';
 import 'package:test/test.dart';
 
 void main() {
+  group('pick', () {
+    test('pick a value with one arg', () {
+      final data = {'name': 'John Snow'};
+      final p = pick(data, 'name');
+      expect(p.value, 'John Snow');
+      expect(p.path, ['name']);
+    });
+
+    test('pick a value with two args', () {
+      final data = {
+        'name': {'first': 'John', 'last': 'Snow'}
+      };
+      final p = pick(data, 'name', 'first');
+      expect(p.value, 'John');
+      expect(p.path, ['name', 'first']);
+    });
+
+    test('ignores null args', () {
+      final data = {
+        'name': {'first': 'John', 'last': 'Snow'}
+      };
+      // Probably nobody is using it that way. It's a byproduct of faking varargs.
+      // But it is the public API and shouldn't break
+      final p = pick(data, null, 'name', null, 'first');
+      expect(p.value, 'John');
+      expect(p.path, ['name', 'first']);
+    });
+  });
+
+  group('pickDeep', () {
+    test('pickDeep a value with one arg', () {
+      final data = {'name': 'John Snow'};
+      final p = pickDeep(data, ['name']);
+      expect(p.value, 'John Snow');
+      expect(p.path, ['name']);
+    });
+
+    test('pickDeep a value with two args', () {
+      final data = {
+        'name': {'first': 'John', 'last': 'Snow'}
+      };
+      final p = pickDeep(data, ['name', 'first']);
+      expect(p.value, 'John');
+      expect(p.path, ['name', 'first']);
+    });
+  });
+
   group('Pick', () {
     test('null pick carries full location', () {
       final p = pick(null, 'some', 'path');
