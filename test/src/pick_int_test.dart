@@ -11,6 +11,11 @@ void main() {
         expect(pick(35).asIntOrThrow(), 35);
       });
 
+      test('round double to int', () {
+        expect(pick(1.234).asIntOrThrow(roundDoubleToInt: true), 1);
+        expect(pick(12.945).asIntOrThrow(roundDoubleToInt: true), 13);
+      });
+
       test('parse int String', () {
         expect(pick('1').asIntOrThrow(), 1);
         expect(pick('123').asIntOrThrow(), 123);
