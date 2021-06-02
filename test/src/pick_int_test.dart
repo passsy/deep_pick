@@ -12,13 +12,25 @@ void main() {
       });
 
       test('round double to int', () {
-        expect(pick(1.234).asIntOrThrow(roundDoubleToInt: true), 1);
-        expect(pick(12.945).asIntOrThrow(roundDoubleToInt: true), 13);
+        expect(pick(1.234).asIntOrThrow(roundDouble: true), 1);
+        expect(pick(12.945).asIntOrThrow(roundDouble: true), 13);
+      });
+
+      test('truncate double to int', () {
+        expect(pick(1.234).asIntOrThrow(truncateDouble: true), 1);
+        expect(pick(12.945).asIntOrThrow(truncateDouble: true), 12);
       });
 
       test('parse int String', () {
         expect(pick('1').asIntOrThrow(), 1);
         expect(pick('123').asIntOrThrow(), 123);
+      });
+
+      test('round and truncate true at the same time throws', () {
+        expect(
+          () => pick(123).asIntOrThrow(roundDouble: true, truncateDouble: true),
+          throwsA(pickException(containing: ['[roundDouble] and [truncateDouble] can not be true at the same time'])),
+        );
       });
 
       test('null throws', () {
