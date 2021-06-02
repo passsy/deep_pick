@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: ["2.12-dev", "dev"]
+        version: ["2.12", "2.13", "dev"]
 
     container:
       image: google/dart:${{ matrix.version }}
@@ -47,6 +47,5 @@ jobs:
       run: pub get --no-precompile
     - name: lint
       run: dartanalyzer .
-    # TODO enable when 2.12 is published to overcome or this is fixed https://github.com/dart-lang/pub/issues/2535
-    #- name: Verify package completness
-    #  run: pub publish -n
+    - name: Verify package completness
+      run: pub publish -n
