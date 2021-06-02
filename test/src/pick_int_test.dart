@@ -29,7 +29,9 @@ void main() {
       test('round and truncate true at the same time throws', () {
         expect(
           () => pick(123).asIntOrThrow(roundDouble: true, truncateDouble: true),
-          throwsA(pickException(containing: ['[roundDouble] and [truncateDouble] can not be true at the same time'])),
+          throwsA(pickException(containing: [
+            '[roundDouble] and [truncateDouble] can not be true at the same time'
+          ])),
         );
       });
 
