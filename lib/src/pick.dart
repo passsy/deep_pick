@@ -1,4 +1,49 @@
-/// Picks the value of [json] at location arg0, arg1 ... arg9
+import 'dart:convert';
+
+/// Picks a values from a [json] String at location arg0, arg1...
+///
+/// args may be
+/// - a [String] to pick values from a [Map]
+/// - or [int] when you want to pick a value at index from a [List]
+///
+///
+/// It's quite common that pick is used when parsing json from a String, such
+/// as a http response body. To easy this process [pickFromJson] parses a json
+/// String directly.
+///
+/// ```dart
+/// pickFromJson(rawJson, arg0, arg1)
+/// ```
+///
+/// is a shorthand for
+///
+/// ```dart
+/// final json = jsonDecode(rawJson);
+/// pick(json, arg0, arg1);
+/// ```
+///
+/// If objects are deeper than 10, use [pickDeep], which requires a manual call
+/// to [jsonDecode].
+Pick pickFromJson(
+  String json, [
+  Object? arg0,
+  Object? arg1,
+  Object? arg2,
+  Object? arg3,
+  Object? arg4,
+  Object? arg5,
+  Object? arg6,
+  Object? arg7,
+  Object? arg8,
+  Object? arg9,
+]) {
+  final parsed = jsonDecode(json);
+  return pick(
+      parsed, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+}
+
+/// Picks the value of a [json]-like dart data structure consisting of Maps,
+/// Lists and objects at location arg0, arg1 ... arg9
 ///
 /// args may be
 /// - a [String] to pick values from a [Map]
@@ -41,14 +86,14 @@ Pick pickDeep(
 
 /// Traverses the object along [selectors]
 Pick _drillDown(
-  /*Map?|List?*/ dynamic json,
+  /*Map|List|null*/ dynamic json,
   List< /*String|int*/ Object> selectors, {
   List< /*String|int*/ Object> parentPath = const [],
   Map<String, dynamic>? context,
 }) {
   final fullPath = [...parentPath, ...selectors];
   final path = <dynamic>[];
-  dynamic data = json;
+  /*Map|List|null*/ dynamic data = json;
   for (final selector in selectors) {
     path.add(selector);
     if (data is List) {
