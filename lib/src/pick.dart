@@ -6,17 +6,17 @@
 ///
 /// If objects are deeper than 10, use [pickDeep]
 Pick pick(
-  /*Map?|List?*/ dynamic json, [
-  /*String?|int?*/ Object? arg0,
-  /*String?|int?*/ Object? arg1,
-  /*String?|int?*/ Object? arg2,
-  /*String?|int?*/ Object? arg3,
-  /*String?|int?*/ Object? arg4,
-  /*String?|int?*/ Object? arg5,
-  /*String?|int?*/ Object? arg6,
-  /*String?|int?*/ Object? arg7,
-  /*String?|int?*/ Object? arg8,
-  /*String?|int?*/ Object? arg9,
+  /*Map|List|null*/ dynamic json, [
+  /*String|int|null*/ Object? arg0,
+  /*String|int|null*/ Object? arg1,
+  /*String|int|null*/ Object? arg2,
+  /*String|int|null*/ Object? arg3,
+  /*String|int|null*/ Object? arg4,
+  /*String|int|null*/ Object? arg5,
+  /*String|int|null*/ Object? arg6,
+  /*String|int|null*/ Object? arg7,
+  /*String|int|null*/ Object? arg8,
+  /*String|int|null*/ Object? arg9,
 ]) {
   final selectors = [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9]
       // null is a sign for unused 'varargs'
@@ -32,7 +32,7 @@ Pick pick(
 /// - a [String] to pick values from a [Map]
 /// - or [int] when you want to pick a value at index from a [List]
 Pick pickDeep(
-    /*Map?|List?*/ dynamic json,
+    /*Map|List|null*/ dynamic json,
     List< /*String|int*/ Object> selector) {
   return _drillDown(json, selector);
 }
