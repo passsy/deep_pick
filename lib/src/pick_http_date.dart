@@ -22,9 +22,11 @@ extension NullableDateHeaderPick on Pick {
       // not using HttpDate.parse because it is not available in the browsers
       try {
         // 95% of all date headers use RFC1123 these days
-        final match = _rfc1123Regex.firstMatch(value)!;
+        final rfc1123Regex = RegExp(
+            r'^\s*(\S{3}),\s*(\d+)\s*(\S{3})\s*(\d+)\s+(\d+):(\d+):(\d+)\s*GMT');
+        final match = rfc1123Regex.firstMatch(value)!;
         final day = int.parse(match.group(2)!);
-        final month = _months.indexOf(match.group(3)!) + 1;
+        final month = _months[match.group(3)!]!;
         final year = int.parse(match.group(4)!);
         final hour = int.parse(match.group(5)!);
         final minute = int.parse(match.group(6)!);
@@ -36,8 +38,10 @@ extension NullableDateHeaderPick on Pick {
 
       try {
         // fallback to  ANSI C's asctime()
-        final match = _asctimeRegex.firstMatch(value)!;
-        final month = _months.indexOf(match.group(2)!) + 1;
+        final asctimeRegex = RegExp(
+            r'^\s*(\S{3})\s+(\S{3})\s*(\d+)\s+(\d+):(\d+):(\d+)\s+(\d+)');
+        final match = asctimeRegex.firstMatch(value)!;
+        final month = _months[match.group(2)!]!;
         final day = int.parse(match.group(3)!);
         final hour = int.parse(match.group(4)!);
         final minute = int.parse(match.group(5)!);
@@ -50,9 +54,11 @@ extension NullableDateHeaderPick on Pick {
 
       try {
         // fallback to ancient rfc850
-        final match = _rfc850Regex.firstMatch(value)!;
+        final rfc850Regex = RegExp(
+            r'^\s*(\S+),\s*(\d+)-(\S{3})-(\d+)\s+(\d+):(\d+):(\d+)\s*GMT');
+        final match = rfc850Regex.firstMatch(value)!;
         final day = int.parse(match.group(2)!);
-        final month = _months.indexOf(match.group(3)!) + 1;
+        final month = _months[match.group(3)!]!;
         var year = int.parse(match.group(4)!);
         if (year < 100) {
           year = 1900 + year;
@@ -92,24 +98,17 @@ extension NullableDateHeaderPick on Pick {
   }
 }
 
-final _rfc1123Regex =
-    RegExp(r'^\s*(\S{3}),\s*(\d+)\s*(\S{3})\s*(\d+)\s+(\d+):(\d+):(\d+)\s*GMT');
-final _rfc850Regex =
-    RegExp(r'^\s*(\S+),\s*(\d+)-(\S{3})-(\d+)\s+(\d+):(\d+):(\d+)\s*GMT');
-final _asctimeRegex =
-    RegExp(r'^\s*(\S{3})\s+(\S{3})\s*(\d+)\s+(\d+):(\d+):(\d+)\s+(\d+)');
-
-const _months = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
-];
+const _months = {
+  'Jan': 1,
+  'Feb': 2,
+  'Mar': 3,
+  'Apr': 4,
+  'May': 5,
+  'Jun': 6,
+  'Jul': 7,
+  'Aug': 8,
+  'Sep': 9,
+  'Oct': 10,
+  'Nov': 11,
+  'Dec': 12,
+};
