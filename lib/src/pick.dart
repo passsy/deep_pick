@@ -145,19 +145,19 @@ class Pick {
     return null;
   }
 
-  /// When the picked value is unavailable ([Pick..absent]) the index in
+  /// When the picked value is unavailable ([Pick.isAbsent]) the index in
   /// [path] which couldn't be found
   int? get missingValueAtIndex => _missingValueAtIndex;
   int? _missingValueAtIndex;
 
   /// The full path to [value] inside of the object
   ///
-  /// I.e. ['shoes', 0, 'name']
+  /// I.e. `['shoes', 0, 'name']`
   final List<Object> path;
 
   /// The path segments containing non-null values parsing could follow along
   ///
-  /// I.e. ['shoes'] for an empty shoes list
+  /// I.e. `['shoes']` for an empty shoes list
   List<Object> get followablePath =>
       path.take(_missingValueAtIndex ?? path.length).toList();
 
