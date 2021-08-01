@@ -303,8 +303,14 @@ void main() {
           (pick) => MapEntry(pick.asStringOrThrow(), pick.index),
           whenNull: (pick) => MapEntry(pick.index, pick.index! * 2),
         );
-        expect(Map.fromEntries(entries),
-            {'a': 0, 1: 2, 2: 4, 'b': 3, 4: 8, 'c': 5});
+        expect(Map.fromEntries(entries), {
+          'a': 0,
+          1: 2,
+          2: 4,
+          'b': 3,
+          4: 8,
+          'c': 5,
+        });
       });
     });
   });
