@@ -26,7 +26,8 @@ Pick pick(
   return _drillDown(json, selectors);
 }
 
-/// Picks the value of [json] by traversing the object along the values in [selector] one by one
+/// Picks the value of [json] by traversing the object along the values in
+/// [selector] one by one
 ///
 /// Valid values for the items in selector are
 /// - a [String] to pick values from a [Map]
