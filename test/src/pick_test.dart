@@ -49,6 +49,53 @@ void main() {
     });
   });
 
+  group('pickFromJson', () {
+    test('pick a value with one arg', () {
+      const json = '{"name": "John Snow"}';
+      final p = pickFromJson(json, 'name');
+      expect(p.value, 'John Snow');
+      expect(p.path, ['name']);
+    });
+
+    test('pick a value with two args', () {
+      const json = '{"name": {"first": "John", "last": "Snow"}}';
+      final p = pickFromJson(json, 'name', 'first');
+      expect(p.value, 'John');
+      expect(p.path, ['name', 'first']);
+    });
+
+    test('parse empty string', () {
+      expect(
+        () => pickFromJson('', 'name'),
+        throwsA(
+          isA<FormatException>()
+              .having((it) => it.message, 'message', 'Unexpected end of input'),
+        ),
+      );
+    });
+
+    test('has to start with object {} or list []', () {
+      pickFromJson('{}');
+      pickFromJson('[]');
+      expect(
+        () => pickFromJson('someValue'),
+        throwsA(
+          isA<FormatException>()
+              .having((it) => it.message, 'message', 'Unexpected character'),
+        ),
+      );
+    });
+
+    test('ignores null args', () {
+      const json = '{"name": {"first": "John", "last": "Snow"}}';
+      // Probably nobody is using it that way. It's a byproduct of faking varargs.
+      // But it is the public API and shouldn't break
+      final p = pickFromJson(json, null, 'name', null, 'first');
+      expect(p.value, 'John');
+      expect(p.path, ['name', 'first']);
+    });
+  });
+
   group('Pick', () {
     test('null pick carries full location', () {
       final p = pick(null, 'some', 'path');
