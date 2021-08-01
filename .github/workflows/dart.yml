@@ -47,5 +47,8 @@ jobs:
       run: pub get --no-precompile
     - name: lint
       run: dartanalyzer .
+    - name: docs
+      run: dartdoc .
     - name: Verify package completness
       run: pub publish -n
+
