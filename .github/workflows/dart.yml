@@ -33,7 +33,7 @@ jobs:
     - name: Install dependencies
       run: pub get --no-precompile
     - name: check formatting
-      run: dartfmt lib test --fix --set-exit-if-changed -w
+      run: dart format --fix --set-exit-if-changed .
 
   lint:
     runs-on: ubuntu-latest

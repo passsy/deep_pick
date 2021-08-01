@@ -84,6 +84,9 @@ Future<void> main() async {
   // Load data from an API
   final stats = await getStats();
   print(stats.requests);
+
+  // pick values with a dynamic selector
+  pickDeep(json, 'some.key.inside.the.object'.split('.')).asStringOrNull();
 }
 
 /// A data class representing a shoe model
