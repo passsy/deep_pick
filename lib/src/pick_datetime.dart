@@ -36,7 +36,7 @@ extension NullableDateTimePick on Pick {
         'Type ${value.runtimeType} of $debugParsingExit can not be parsed as DateTime');
   }
 
-  /// Parses the picked [value] as [DateTime] or throws
+  /// Parses the picked [value] as ISO 8601 String to [DateTime] or throws
   ///
   /// Shorthand for `.required().asDateTime()`
   ///
@@ -47,7 +47,7 @@ extension NullableDateTimePick on Pick {
     return _parse();
   }
 
-  /// Parses the picked [value] as [DateTime] or returns `null`
+  /// Parses the picked [value] as ISO 8601 String to [DateTime] or returns `null`
   ///
   /// {@macro Pick.asDateTime}
   DateTime? asDateTimeOrNull() {

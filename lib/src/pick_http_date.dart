@@ -3,13 +3,14 @@ import 'package:deep_pick/src/pick.dart';
 extension NullableDateHeaderPick on Pick {
   /// {@template Pick.asHttpDate}
   /// Parses the `Date` http header String of the formats
-  /// [RFC-1123](http://tools.ietf.org/html/rfc1123 'RFC-1123'),
+  /// [RFC-1123](http://tools.ietf.org/html/rfc1123) (specifically
+  /// [RFC-5322 Section 3.3](https://datatracker.ietf.org/doc/html/rfc5322#section-3.3)),
   /// [RFC-850](http://tools.ietf.org/html/rfc850 'RFC-850') or
   /// ANSI C's asctime() format. These formats are listed here.
   ///
-  ///     Thu, 1 Jan 1970 00:00:00 GMT
-  ///     Thursday, 1-Jan-1970 00:00:00 GMT
-  ///     Thu Jan  1 00:00:00 1970
+  /// - Thu, 1 Jan 1970 00:00:00 GMT
+  /// - Thursday, 1-Jan-1970 00:00:00 GMT
+  /// - Thu Jan  1 00:00:00 1970
   ///
   /// See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Date
   /// {@endtemplate}
@@ -76,7 +77,8 @@ extension NullableDateHeaderPick on Pick {
         'Type ${value.runtimeType} of $debugParsingExit can not be parsed as DateTime');
   }
 
-  /// Parses the picked [value] as [DateTime] or throws
+  /// Parses the picked [value] as [RFC-5322 Section 3.3](https://datatracker.ietf.org/doc/html/rfc5322#section-3.3)
+  /// date-time String to [DateTime] or throws
   ///
   /// {@macro Pick.asHttpDate}
   DateTime asHttpDateOrThrow() {
@@ -85,7 +87,8 @@ extension NullableDateHeaderPick on Pick {
     return _parse();
   }
 
-  /// Parses the picked [value] as [DateTime] or returns `null`
+  /// Parses the picked [value] as [RFC-5322 Section 3.3](https://datatracker.ietf.org/doc/html/rfc5322#section-3.3)
+  /// date-time String to [DateTime] or returns `null`
   ///
   /// {@macro Pick.asHttpDate}
   DateTime? asHttpDateOrNull() {

@@ -43,6 +43,12 @@ void main() {
         expect(date.timeZoneName, equals('UTC'));
       });
 
+      test('mozilla example', () {
+        // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Date
+        expect(pick('Wed, 21 Oct 2015 07:28:00 GMT').asHttpDateOrThrow(),
+            DateTime.utc(2015, 10, 21, 7, 28, 00));
+      });
+
       test('be flexible on whitespace', () {
         expect(pick('Sun,06 Nov 1994 08:49:37 GMT').asHttpDateOrThrow(),
             DateTime.utc(1994, 11, 6, 8, 49, 37));
