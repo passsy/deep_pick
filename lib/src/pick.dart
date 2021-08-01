@@ -33,8 +33,9 @@ Pick pick(
 /// - a [String] to pick values from a [Map]
 /// - or [int] when you want to pick a value at index from a [List]
 Pick pickDeep(
-    /*Map|List|null*/ dynamic json,
-    List< /*String|int*/ Object> selector) {
+  /*Map|List|null*/ dynamic json,
+  List< /*String|int*/ Object> selector,
+) {
   return _drillDown(json, selector);
 }
 
