@@ -20,7 +20,51 @@ extension NullableDateHeaderPick on Pick {
     }
     if (value is String) {
       // not using HttpDate.parse because it is not available in the browsers
-      return _parseHttpDate(value);
+      try {
+        // 95% of all date headers use RFC1123 these days
+        final match = _rfc1123Regex.firstMatch(value)!;
+        final day = int.parse(match.group(2)!);
+        final month = _months.indexOf(match.group(3)!) + 1;
+        final year = int.parse(match.group(4)!);
+        final hour = int.parse(match.group(5)!);
+        final minute = int.parse(match.group(6)!);
+        final seconds = int.parse(match.group(7)!);
+        return DateTime.utc(year, month, day, hour, minute, seconds);
+      } catch (_) {
+        // ignore
+      }
+
+      try {
+        // fallback to  ANSI C's asctime()
+        final match = _asctimeRegex.firstMatch(value)!;
+        final month = _months.indexOf(match.group(2)!) + 1;
+        final day = int.parse(match.group(3)!);
+        final hour = int.parse(match.group(4)!);
+        final minute = int.parse(match.group(5)!);
+        final seconds = int.parse(match.group(6)!);
+        final year = int.parse(match.group(7)!);
+        return DateTime.utc(year, month, day, hour, minute, seconds);
+      } catch (_) {
+        // ignore
+      }
+
+      try {
+        // fallback to ancient rfc850
+        final match = _rfc850Regex.firstMatch(value)!;
+        final day = int.parse(match.group(2)!);
+        final month = _months.indexOf(match.group(3)!) + 1;
+        var year = int.parse(match.group(4)!);
+        if (year < 100) {
+          year = 1900 + year;
+        }
+        final hour = int.parse(match.group(5)!);
+        final minute = int.parse(match.group(6)!);
+        final seconds = int.parse(match.group(7)!);
+        return DateTime.utc(year, month, day, hour, minute, seconds);
+      } catch (_) {
+        // ignore
+      }
+      throw PickException('"$value" can not be parsed as DateTime');
     }
     throw PickException(
         'Type ${value.runtimeType} of $debugParsingExit can not be parsed as DateTime');
@@ -48,168 +92,24 @@ extension NullableDateHeaderPick on Pick {
   }
 }
 
-enum _DateHeaderFormat {
-  formatRfc1123,
-  formatRfc850,
-  formatAsctime,
-}
+final _rfc1123Regex =
+    RegExp(r'^\s*(\S{3}),\s*(\d+)\s*(\S{3})\s*(\d+)\s+(\d+):(\d+):(\d+)\s*GMT');
+final _rfc850Regex =
+    RegExp(r'^\s*(\S+),\s*(\d+)-(\S{3})-(\d+)\s+(\d+):(\d+):(\d+)\s*GMT');
+final _asctimeRegex =
+    RegExp(r'^\s*(\S{3})\s+(\S{3})\s*(\d+)\s+(\d+):(\d+):(\d+)\s+(\d+)');
 
-DateTime _parseHttpDate(String date) {
-  const asciiSpace = 32;
-  const wkdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  const weekdays = [
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday',
-    'Saturday',
-    'Sunday'
-  ];
-  const months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec'
-  ];
-
-  var index = 0;
-  String tmp;
-
-  _DateHeaderFormat expectWeekday() {
-    int weekday;
-    // The formatting of the weekday signals the format of the date string.
-    final pos = date.indexOf(',', index);
-    if (pos == -1) {
-      final pos = date.indexOf(' ', index);
-      if (pos == -1) throw FormatException('Invalid HTTP date $date');
-      tmp = date.substring(index, pos);
-      index = pos + 1;
-      weekday = wkdays.indexOf(tmp);
-      if (weekday != -1) {
-        return _DateHeaderFormat.formatAsctime;
-      }
-    } else {
-      tmp = date.substring(index, pos);
-      index = pos + 1;
-      weekday = wkdays.indexOf(tmp);
-      if (weekday != -1) {
-        return _DateHeaderFormat.formatRfc1123;
-      }
-      weekday = weekdays.indexOf(tmp);
-      if (weekday != -1) {
-        return _DateHeaderFormat.formatRfc850;
-      }
-    }
-    throw FormatException('Invalid HTTP date $date');
-  }
-
-  void expect(String s) {
-    if (date.length - index < s.length) {
-      throw FormatException('Invalid HTTP date $date');
-    }
-    final tmp = date.substring(index, index + s.length);
-    if (tmp != s) {
-      throw FormatException('Invalid HTTP date $date');
-    }
-    index += s.length;
-  }
-
-  int expectMonth(String separator) {
-    final pos = date.indexOf(separator, index);
-    if (pos - index != 3) throw FormatException('Invalid HTTP date $date');
-    tmp = date.substring(index, pos);
-    index = pos + 1;
-    final month = months.indexOf(tmp);
-    if (month != -1) return month;
-    throw FormatException('Invalid HTTP date $date');
-  }
-
-  int expectNum(String separator, {int? maxDigits, int? minDigits}) {
-    int pos;
-    if (separator.isNotEmpty) {
-      pos = date.indexOf(separator, index);
-    } else {
-      pos = date.length;
-    }
-    try {
-      final tmp = date.substring(index, pos);
-      if (maxDigits != null && tmp.length > maxDigits) {
-        throw FormatException('Expected max a $maxDigits-digits number');
-      }
-      if (minDigits != null && tmp.length < minDigits) {
-        throw FormatException('Expected a least a $minDigits-digits number');
-      }
-
-      index = pos + separator.length;
-      final value = int.parse(tmp);
-      return value;
-      // ignore: avoid_catching_errors
-    } on RangeError {
-      throw FormatException('Expected a $maxDigits-digits number');
-    }
-  }
-
-  void expectEnd() {
-    if (index != date.length) {
-      throw FormatException('Invalid HTTP date $date');
-    }
-  }
-
-  final format = expectWeekday();
-  int year;
-  int month;
-  int day;
-  int hours;
-  int minutes;
-  int seconds;
-
-  switch (format) {
-    case _DateHeaderFormat.formatRfc1123:
-      expect(' ');
-      day = expectNum(' ', minDigits: 1, maxDigits: 2);
-      month = expectMonth(' ');
-      year = expectNum(' ', minDigits: 4, maxDigits: 4);
-      hours = expectNum(':', minDigits: 1, maxDigits: 2);
-      minutes = expectNum(':', minDigits: 1, maxDigits: 2);
-      seconds = expectNum(' ', minDigits: 1, maxDigits: 2);
-      expect('GMT');
-      break;
-    case _DateHeaderFormat.formatRfc850:
-      expect(' ');
-      day = expectNum('-', minDigits: 1, maxDigits: 2);
-      month = expectMonth('-');
-      year = expectNum(' ', minDigits: 2, maxDigits: 4);
-      if (year < 100) {
-        year = 1900 + year;
-      }
-      hours = expectNum(':', minDigits: 1, maxDigits: 2);
-      minutes = expectNum(':', minDigits: 1, maxDigits: 2);
-      seconds = expectNum(' ', minDigits: 1, maxDigits: 2);
-      expect('GMT');
-      break;
-    case _DateHeaderFormat.formatAsctime:
-      month = expectMonth(' ');
-      if (date.codeUnitAt(index) == asciiSpace) index++;
-      day = expectNum(' ', minDigits: 1, maxDigits: 3);
-      hours = expectNum(':', minDigits: 1, maxDigits: 2);
-      minutes = expectNum(':', minDigits: 1, maxDigits: 2);
-      seconds = expectNum(' ', minDigits: 1, maxDigits: 2);
-      year = expectNum('', minDigits: 2, maxDigits: 4);
-      if (year < 100) {
-        year = 1900 + year;
-      }
-      break;
-  }
-  expectEnd();
-  //ignore: avoid_redundant_argument_values
-  return DateTime.utc(year, month + 1, day, hours, minutes, seconds, 0, 0);
-}
+const _months = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];

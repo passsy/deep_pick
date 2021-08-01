@@ -1,6 +1,8 @@
 import 'package:deep_pick/deep_pick.dart';
 import 'package:test/test.dart';
 
+import 'pick_test.dart';
+
 void main() {
   group('asHttpDateHeaderOrThrow', () {
     group('official dart tests', () {
@@ -41,38 +43,30 @@ void main() {
         expect(date.timeZoneName, equals('UTC'));
       });
 
-      test('whitespace is required', () {
-        expect(() => pick('Sun,06 Nov 1994 08:49:37 GMT').asHttpDateOrThrow(),
-            throwsFormatException);
+      test('be flexible on whitespace', () {
+        expect(pick('Sun,06 Nov 1994 08:49:37 GMT').asHttpDateOrThrow(),
+            DateTime.utc(1994, 11, 6, 8, 49, 37));
 
-        expect(() => pick('Sun, 06Nov 1994 08:49:37 GMT').asHttpDateOrThrow(),
-            throwsFormatException);
+        expect(pick('Sun, 06Nov 1994 08:49:37 GMT').asHttpDateOrThrow(),
+            DateTime.utc(1994, 11, 6, 8, 49, 37));
 
-        expect(() => pick('Sun, 06 Nov1994 08:49:37 GMT').asHttpDateOrThrow(),
-            throwsFormatException);
+        expect(pick('Sun, 06 Nov1994 08:49:37 GMT').asHttpDateOrThrow(),
+            DateTime.utc(1994, 11, 6, 8, 49, 37));
 
-        expect(() => pick('Sun, 06 Nov 199408:49:37 GMT').asHttpDateOrThrow(),
-            throwsFormatException);
+        expect(pick('Sun, 06 Nov 1994 08:49:37GMT').asHttpDateOrThrow(),
+            DateTime.utc(1994, 11, 6, 8, 49, 37));
 
-        expect(() => pick('Sun, 06 Nov 1994 08:49:37GMT').asHttpDateOrThrow(),
-            throwsFormatException);
+        expect(pick(' Sun,06Nov1994 08:49:37GMT ').asHttpDateOrThrow(),
+            DateTime.utc(1994, 11, 6, 8, 49, 37));
       });
 
-      test('exactly one space is required', () {
-        expect(() => pick('Sun,  06 Nov 1994 08:49:37 GMT').asHttpDateOrThrow(),
-            throwsFormatException);
-
-        expect(() => pick('Sun, 06  Nov 1994 08:49:37 GMT').asHttpDateOrThrow(),
-            throwsFormatException);
-
-        expect(() => pick('Sun, 06 Nov  1994 08:49:37 GMT').asHttpDateOrThrow(),
-            throwsFormatException);
-
-        expect(() => pick('Sun, 06 Nov 1994  08:49:37 GMT').asHttpDateOrThrow(),
-            throwsFormatException);
-
-        expect(() => pick('Sun, 06 Nov 1994 08:49:37  GMT').asHttpDateOrThrow(),
-            throwsFormatException);
+      test('require whitespace', () {
+        // year and minutes need to be separated
+        expect(
+          () => pick('Sun, 06 Nov 199408:49:37 GMT').asHttpDateOrThrow(),
+          throwsA(pickException(
+              containing: ['Sun, 06 Nov 199408:49:37 GMT', 'DateTime'])),
+        );
       });
 
       // Be flexible on input
@@ -121,31 +115,52 @@ void main() {
       });
 
       test('requires reasonable numbers', () {
-        // short year
-        expect(() => pick('Sun, 06 Nov 94 08:49:37 GMT').asHttpDateOrThrow(),
-            throwsFormatException);
+        // Don't parse two digit year as 19XX
+        expect(pick('Sun, 06 Nov 94 08:49:37 GMT').asHttpDateOrThrow(),
+            DateTime.utc(94, 11, 6, 8, 49, 37));
       });
 
       test('only allows short weekday names', () {
         expect(
-            () => pick('Sunday, 6 Nov 1994 08:49:37 GMT').asHttpDateOrThrow(),
-            throwsFormatException);
+          () => pick('Sunday, 6 Nov 1994 08:49:37 GMT').asHttpDateOrThrow(),
+          throwsA(pickException(
+              containing: ['Sunday, 6 Nov 1994 08:49:37 GMT', 'DateTime'])),
+        );
       });
 
       test('only allows short month names', () {
         expect(
-            () => pick('Sun, 6 November 1994 08:49:37 GMT').asHttpDateOrThrow(),
-            throwsFormatException);
+          () => pick('Sun, 6 November 1994 08:49:37 GMT').asHttpDateOrThrow(),
+          throwsA(pickException(
+              containing: ['Sun, 6 November 1994 08:49:37 GMT', 'DateTime'])),
+        );
       });
 
       test('only allows GMT', () {
-        expect(() => pick('Sun, 6 Nov 1994 08:49:37 PST').asHttpDateOrThrow(),
-            throwsFormatException);
+        expect(
+          () => pick('Sun, 6 Nov 1994 08:49:37 PST').asHttpDateOrThrow(),
+          throwsA(pickException(
+              containing: ['Sun, 6 Nov 1994 08:49:37 PST', 'DateTime'])),
+        );
       });
 
-      test('disallows trailing whitespace', () {
-        expect(() => pick('Sun, 6 Nov 1994 08:49:37 GMT ').asHttpDateOrThrow(),
-            throwsFormatException);
+      test('ignore whitespaces when possible', () {
+        expect(pick('Sun, 6 Nov 1994 08:49:37 GMT ').asHttpDateOrThrow(),
+            DateTime.utc(1994, 11, 6, 8, 49, 37));
+        expect(pick('Sun,  06 Nov 1994 08:49:37 GMT').asHttpDateOrThrow(),
+            DateTime.utc(1994, 11, 6, 8, 49, 37));
+
+        expect(pick('Sun, 06  Nov 1994 08:49:37 GMT').asHttpDateOrThrow(),
+            DateTime.utc(1994, 11, 6, 8, 49, 37));
+
+        expect(pick('Sun, 06 Nov  1994 08:49:37 GMT').asHttpDateOrThrow(),
+            DateTime.utc(1994, 11, 6, 8, 49, 37));
+
+        expect(pick('Sun, 06 Nov 1994  08:49:37 GMT').asHttpDateOrThrow(),
+            DateTime.utc(1994, 11, 6, 8, 49, 37));
+
+        expect(pick('Sun, 06 Nov 1994 08:49:37  GMT').asHttpDateOrThrow(),
+            DateTime.utc(1994, 11, 6, 8, 49, 37));
       });
     });
 
@@ -161,29 +176,29 @@ void main() {
         expect(date.timeZoneName, equals('UTC'));
       });
 
-      test('whitespace is required', () {
-        expect(() => pick('Sunday,06-Nov-94 08:49:37 GMT').asHttpDateOrThrow(),
-            throwsFormatException);
-
-        expect(() => pick('Sunday, 06-Nov-9408:49:37 GMT').asHttpDateOrThrow(),
-            throwsFormatException);
-
-        expect(() => pick('Sunday, 06-Nov-94 08:49:37GMT').asHttpDateOrThrow(),
-            throwsFormatException);
+      test('require whitespace between year and hour', () {
+        expect(
+          () => pick('Sunday, 06-Nov-9408:49:37 GMT').asHttpDateOrThrow(),
+          throwsA(pickException(
+              containing: ['Sunday, 06-Nov-9408:49:37 GMT', 'DateTime'])),
+        );
       });
 
-      test('exactly one space is required', () {
-        expect(
-            () => pick('Sunday,  06-Nov-94 08:49:37 GMT').asHttpDateOrThrow(),
-            throwsFormatException);
+      test('be flexible on spacing', () {
+        expect(pick('Sunday,  06-Nov-94 08:49:37 GMT').asHttpDateOrThrow(),
+            DateTime.utc(1994, 11, 6, 8, 49, 37));
 
-        expect(
-            () => pick('Sunday, 06-Nov-94  08:49:37 GMT').asHttpDateOrThrow(),
-            throwsFormatException);
+        expect(pick('Sunday, 06-Nov-94  08:49:37 GMT').asHttpDateOrThrow(),
+            DateTime.utc(1994, 11, 6, 8, 49, 37));
 
-        expect(
-            () => pick('Sunday, 06-Nov-94 08:49:37  GMT').asHttpDateOrThrow(),
-            throwsFormatException);
+        expect(pick('Sunday, 06-Nov-94 08:49:37  GMT').asHttpDateOrThrow(),
+            DateTime.utc(1994, 11, 6, 8, 49, 37));
+
+        expect(pick('Sunday,06-Nov-94 08:49:37 GMT').asHttpDateOrThrow(),
+            DateTime.utc(1994, 11, 6, 8, 49, 37));
+
+        expect(pick('Sunday, 06-Nov-94 08:49:37GMT').asHttpDateOrThrow(),
+            DateTime.utc(1994, 11, 6, 8, 49, 37));
       });
 
       test('Do not require precise number lengths', () {
@@ -236,26 +251,30 @@ void main() {
             DateTime.utc(1994, 11, 06, 8, 50));
       });
 
-      test('only allows long weekday names', () {
-        expect(() => pick('Sun, 6-Nov-94 08:49:37 GMT').asHttpDateOrThrow(),
-            throwsFormatException);
+      test('short weekday names are ok', () {
+        expect(pick('Sun, 6-Nov-94 08:49:37 GMT').asHttpDateOrThrow(),
+            DateTime.utc(1994, 11, 6, 8, 49, 37));
       });
 
       test('only allows short month names', () {
         expect(
-            () =>
-                pick('Sunday, 6-November-94 08:49:37 GMT').asHttpDateOrThrow(),
-            throwsFormatException);
+          () => pick('Sunday, 6-November-94 08:49:37 GMT').asHttpDateOrThrow(),
+          throwsA(pickException(
+              containing: ['Sunday, 6-November-94 08:49:37 GMT', 'DateTime'])),
+        );
       });
 
       test('only allows GMT', () {
-        expect(() => pick('Sunday, 6-Nov-94 08:49:37 PST').asHttpDateOrThrow(),
-            throwsFormatException);
+        expect(
+          () => pick('Sunday, 6-Nov-94 08:49:37 PST').asHttpDateOrThrow(),
+          throwsA(pickException(
+              containing: ['Sunday, 6-Nov-94 08:49:37 PST', 'DateTime'])),
+        );
       });
 
-      test('disallows trailing whitespace', () {
-        expect(() => pick('Sunday, 6-Nov-94 08:49:37 GMT ').asHttpDateOrThrow(),
-            throwsFormatException);
+      test('allow trailing whitespace', () {
+        expect(pick('Sunday, 6-Nov-94 08:49:37 GMT ').asHttpDateOrThrow(),
+            DateTime.utc(1994, 11, 6, 8, 49, 37));
       });
     });
 
@@ -294,50 +313,42 @@ void main() {
       });
 
       test('whitespace is required', () {
-        expect(() => pick('SunNov  6 08:49:37 1994').asHttpDateOrThrow(),
-            throwsFormatException);
+        expect(
+          () => pick('SunNov  6 08:49:37 1994').asHttpDateOrThrow(),
+          throwsA(pickException(
+              containing: ['SunNov  6 08:49:37 1994', 'DateTime'])),
+        );
 
-        expect(() => pick('Sun Nov6 08:49:37 1994').asHttpDateOrThrow(),
-            throwsFormatException);
+        expect(
+          () => pick('Sun Nov  608:49:37 1994').asHttpDateOrThrow(),
+          throwsA(pickException(
+              containing: ['Sun Nov  608:49:37 1994', 'DateTime'])),
+        );
 
-        expect(() => pick('Sun Nov  608:49:37 1994').asHttpDateOrThrow(),
-            throwsFormatException);
-
-        expect(() => pick('Sun Nov  6 08:49:371994').asHttpDateOrThrow(),
-            throwsFormatException);
+        expect(
+          () => pick('Sun Nov  6 08:49:371994').asHttpDateOrThrow(),
+          throwsA(pickException(
+              containing: ['Sun Nov  6 08:49:371994', 'DateTime'])),
+        );
       });
 
-      test('the right amount of whitespace is required', () {
-        expect(() => pick('Sun  Nov  6 08:49:37 1994').asHttpDateOrThrow(),
-            throwsFormatException);
+      test('be flexible on spacing', () {
+        expect(pick('Sun  Nov  6 08:49:37 1994').asHttpDateOrThrow(),
+            DateTime.utc(1994, 11, 6, 8, 49, 37));
 
-        expect(() => pick('Sun Nov   6 08:49:37 1994').asHttpDateOrThrow(),
-            throwsFormatException);
+        expect(pick('Sun Nov   6 08:49:37 1994').asHttpDateOrThrow(),
+            DateTime.utc(1994, 11, 6, 8, 49, 37));
 
         expect(pick('Sun Nov 6 08:49:37 1994').asHttpDateOrThrow(),
             DateTime.utc(1994, 11, 6, 8, 49, 37));
 
-        expect(() => pick('Sun Nov  6  08:49:37 1994').asHttpDateOrThrow(),
-            throwsFormatException);
-
-        expect(() => pick('Sun Nov  6 08:49:37  1994').asHttpDateOrThrow(),
-            throwsFormatException);
-      });
-
-      test('requires precise number lengths', () {
-        expect(pick('Sun Nov 016 08:49:37 1994').asHttpDateOrThrow(),
-            DateTime.utc(1994, 11, 16, 8, 49, 37));
-
-        expect(pick('Sun Nov  6 8:49:37 1994').asHttpDateOrThrow(),
+        expect(pick('Sun Nov  6  08:49:37 1994').asHttpDateOrThrow(),
             DateTime.utc(1994, 11, 6, 8, 49, 37));
 
-        expect(pick('Sun Nov  6 08:9:37 1994').asHttpDateOrThrow(),
-            DateTime.utc(1994, 11, 6, 8, 9, 37));
+        expect(pick('Sun Nov  6 08:49:37  1994').asHttpDateOrThrow(),
+            DateTime.utc(1994, 11, 6, 8, 49, 37));
 
-        expect(pick('Sun Nov  6 08:49:7 1994').asHttpDateOrThrow(),
-            DateTime.utc(1994, 11, 6, 8, 49, 7));
-
-        expect(pick('Sun Nov  6 08:49:37 94').asHttpDateOrThrow(),
+        expect(pick(' Sun Nov6 08:49:37 1994 ').asHttpDateOrThrow(),
             DateTime.utc(1994, 11, 6, 8, 49, 37));
       });
 
@@ -368,18 +379,27 @@ void main() {
       });
 
       test('only allows short weekday names', () {
-        expect(() => pick('Sunday Nov 0 08:49:37 1994').asHttpDateOrThrow(),
-            throwsFormatException);
+        expect(
+          () => pick('Sunday Nov 0 08:49:37 1994').asHttpDateOrThrow(),
+          throwsA(pickException(
+              containing: ['Sunday Nov 0 08:49:37 1994', 'DateTime'])),
+        );
       });
 
       test('only allows short month names', () {
-        expect(() => pick('Sun November 0 08:49:37 1994').asHttpDateOrThrow(),
-            throwsFormatException);
+        expect(
+          () => pick('Sun November 0 08:49:37 1994').asHttpDateOrThrow(),
+          throwsA(pickException(
+              containing: ['Sun November 0 08:49:37 1994', 'DateTime'])),
+        );
       });
 
       test('disallows trailing whitespace', () {
-        expect(() => pick('Sun November 0 08:49:37 1994 ').asHttpDateOrThrow(),
-            throwsFormatException);
+        expect(
+          () => pick('Sun November 0 08:49:37 1994 ').asHttpDateOrThrow(),
+          throwsA(pickException(
+              containing: ['Sun November 0 08:49:37 1994 ', 'DateTime'])),
+        );
       });
     });
   });
