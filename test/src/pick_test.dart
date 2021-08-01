@@ -293,6 +293,30 @@ void main() {
       expect(root.context, {'lang': 'de', 'hello': 'world'});
       expect(afterCall.context, {'lang': 'de'});
     });
+
+    group('index', () {
+      test('index is available in lists', () {
+        final picked0 = pick(['a', 'b', 'c'], 0);
+        expect(picked0.index, 0);
+        expect(picked0.value, 'a');
+
+        final picked1 = pick(['a', 'b', 'c'], 1);
+        expect(picked1.index, 1);
+        expect(picked1.value, 'b');
+
+        final picked2 = pick(['a', 'b', 'c'], 2);
+        expect(picked2.index, 2);
+        expect(picked2.value, 'c');
+      });
+      test('index increments for null values', () {
+        final picked = pick(['a', null, 'c'], 1);
+        expect(picked.index, 1);
+        expect(picked.value, null);
+      });
+      test('no index for maps', () {
+        expect(pick({'a': 'apple', 'b': 'beer'}, 'a').index, isNull);
+      });
+    });
   });
 }
 

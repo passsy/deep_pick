@@ -123,6 +123,28 @@ class Pick {
   /// i.e the HTTP request/response including headers
   final Map<String, dynamic> context;
 
+  /// The index of the object when it is an element in a `List`
+  ///
+  /// Usage:
+  ///
+  /// ```dart
+  /// pick(["John", "Paul", "George", "Ringo"]).asListOrThrow((pick) {
+  ///  final index = pick.index!;
+  ///  return Artist(id: index, name: pick.asStringOrThrow());
+  /// );
+  /// ```
+  int? get index {
+    final lastPathSegment = path.isNotEmpty ? path.last : null;
+    if (lastPathSegment == null) {
+      return null;
+    }
+    if (lastPathSegment is int) {
+      // within a List
+      return lastPathSegment;
+    }
+    return null;
+  }
+
   /// When the picked value is unavailable ([Pick..absent]) the index in
   /// [path] which couldn't be found
   int? get missingValueAtIndex => _missingValueAtIndex;

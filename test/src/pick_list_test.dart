@@ -286,5 +286,32 @@ void main() {
         );
       });
     });
+
+    group('index in asList* items', () {
+      test('index is available in lists', () {
+        final entries = pick(['a', 'b', 'c']).asListOrThrow(
+            (pick) => MapEntry(pick.asStringOrThrow(), pick.index));
+        expect(Map.fromEntries(entries), {'a': 0, 'b': 1, 'c': 2});
+      });
+      test('index increments for null values', () {
+        final entries = pick(['a', null, null, 'b', null, 'c']).asListOrThrow(
+            (pick) => MapEntry(pick.asStringOrThrow(), pick.index));
+        expect(Map.fromEntries(entries), {'a': 0, 'b': 3, 'c': 5});
+      });
+      test('whenNull has access to index', () {
+        final entries = pick(['a', null, null, 'b', null, 'c']).asListOrThrow(
+          (pick) => MapEntry(pick.asStringOrThrow(), pick.index),
+          whenNull: (pick) => MapEntry(pick.index, pick.index! * 2),
+        );
+        expect(Map.fromEntries(entries), {
+          'a': 0,
+          1: 2,
+          2: 4,
+          'b': 3,
+          4: 8,
+          'c': 5,
+        });
+      });
+    });
   });
 }
