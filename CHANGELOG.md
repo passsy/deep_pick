@@ -1,6 +1,24 @@
-## 0.8.0 (and 0.6.10 for Dart <2.12) 
+# Changelog
 
-- Deprecated parsing extensions of `RequiredPick` to acknowledge that all parsers eventually causes errors. 
+## 0.9.0 (`02.08.21`)
+
+- New: `pickFromJson(json, args...)` allows parsing of a json String, without manually calling `jsonDecode` [#41](https://github.com/passsy/deep_pick/pull/41)
+- New: `pickDeep(json, 'some.key.inside.the.object'.split('.'))` allows picking with a dynamic depth [#40](https://github.com/passsy/deep_pick/pull/40)
+- Add `Pick.index` to get the element index for list items [#38](https://github.com/passsy/deep_pick/pull/38)
+
+  ```dart
+  pick(["John", "Paul", "George", "Ringo"]).asListOrThrow((pick) {
+    final index = pick.index!;
+    return Artist(id: index, name: pick.asStringOrThrow());
+  );
+  ```
+
+- `Pick.asIntOrThrow()` now allows parsing of doubles when one of the new `roundDouble` or `truncateDouble` parameters is `true` [#37](https://github.com/passsy/deep_pick/pull/37). Thx @stevendz
+- Add dartdoc to `asList*()` extensions
+
+## 0.8.0 (and 0.6.10 for Dart <2.12) (`12.02.21`)
+
+- Deprecated parsing extensions of `RequiredPick` to acknowledge that all parsers eventually causes errors.
   From now on, always use `.asIntOrThrow()` instead of `.required().asInt()`. Only exception is `.required().toString()`.
   Read more in [#34](https://github.com/passsy/deep_pick/pull/34)
 - Replace `dynamic` with `Object` where possible
@@ -19,6 +37,7 @@ Backports 0.8.0 to pre-nullsafety
 ## 0.6.0
 
 ### API changes
+
 - Remove long deprecated `parseJsonTo*` methods. Use the `pick(json, args*)` api
 - New `asXyzOrThrow()` methods as shorthand for `.required().asXyz()` featuring better error messages
   - `asBoolOrThrow()`
@@ -45,6 +64,7 @@ Backports 0.8.0 to pre-nullsafety
   In rare cases, where your lists contain `null` values with meaning, use the second parameter `whenNull` to map those null values `.asList((pick) => Person.fromPick(pick), whenNull: (Pick it) => null)`. The function still receives a `Pick` which gives access to the `context` api or the `PickLocation`. But the `Pick` never holds any value.
 
 ### Parsing changes
+
 - The String `"true"` and `"false"` are now parsed as boolean
 - **Breaking** Don't parse doubles as int because the is no rounding method which satisfies all [#31](https://github.com/passsy/deep_pick/pull/31)
 - **Breaking** Allow parsing of "german" doubles with `,` as decimal separator [#30](https://github.com/passsy/deep_pick/pull/30)
@@ -91,6 +111,7 @@ Backports 0.8.0 to pre-nullsafety
 - Improve dartdoc
 
 ## 0.5.1
+
 - Rename `Pick.addContext` to `Pick.withContext` using deprecation
 - `Pick.fromContext` now accepts 10 arguments for nested structures
 - Fix `Pick.fromContext` always returning `context` not the value for `key` in context `Map`
@@ -99,41 +120,41 @@ Backports 0.8.0 to pre-nullsafety
 
 - New context API. You can now attach relevant additional information for parsing directly to the `Pick` object. This allows passing information into `fromPick` constructors without adding new parameters to all constructors in between.
 
-```dart
-// Add context
-final shoes = pick(json, 'shoes')
-    .addContext('apiVersion', "2.3.0")
-    .addContext('lang', "en-US")
-    .asListOrEmpty((p) => Shoe.fromPick(p.required()));
-``` 
+  ```dart
+  // Add context
+  final shoes = pick(json, 'shoes')
+      .addContext('apiVersion', "2.3.0")
+      .addContext('lang', "en-US")
+      .asListOrEmpty((p) => Shoe.fromPick(p.required()));
+  ```
 
-```dart
-import 'package:version/version.dart';
+  ```dart
+  import 'package:version/version.dart';
 
-// Read context
-factory Shoe.fromPick(RequiredPick pick) {
-  // read context API
-  final version = pick.fromContext('newApi').required().let((pick) => Version(pick.asString()));
-  return Shoe(
-    id: pick('id').required().asString(),
-    name: pick('name').required().asString(),
-    // manufacturer is a required field in the new API
-    manufacturer: version >= Version(2, 3, 0)
-        ? pick('manufacturer').required().asString()
-        : pick('manufacturer').asStringOrNull(),
-    tags: pick('tags').asListOrEmpty(),
-  );
-}
-```
-- Breaking: `Pick` and `RequiredPick` have chained their constructor signature. `path` is now a named argument 
-and `context` has been added.
+  // Read context
+  factory Shoe.fromPick(RequiredPick pick) {
+    // read context API
+    final version = pick.fromContext('newApi').required().let((pick) => Version(pick.asString()));
+    return Shoe(
+      id: pick('id').required().asString(),
+      name: pick('name').required().asString(),
+      // manufacturer is a required field in the new API
+      manufacturer: version >= Version(2, 3, 0)
+          ? pick('manufacturer').required().asString()
+          : pick('manufacturer').asStringOrNull(),
+      tags: pick('tags').asListOrEmpty(),
+    );
+  }
+  ```
+
+- Breaking: `Pick` and `RequiredPick` have chained their constructor signature. `path` is now a named argument and `context` has been added.
 
 ```diff
 - RequiredPick(this.value, [this.path = const []])
 + RequiredPick(this.value, {this.path = const [], Map<String, dynamic> context})
 ```
 
-- The `path` is now correctly forwarded after `Pick#call` or `Pick#asListOrEmpty` and always shows the full path since origin 
+- The `path` is now correctly forwarded after `Pick#call` or `Pick#asListOrEmpty` and always shows the full path since origin
 
 ## 0.4.3
 
@@ -211,10 +232,10 @@ Ever got a `Pick`/`RequiredPick` and you wanted to pick even further. This is no
 
 Also the lib has been converted to use static extension methods which were introduced in Dart 2.6
 
-
 ## 0.3.0
 
 `asMap` now expects the key type, defaults to `dynamic` instead of `String`
+
 ```diff
 -Pick.asMap(): Map<String, dynamic>
 +Pick.asMap<T>(): Map<T, dynamic>
@@ -222,7 +243,7 @@ Also the lib has been converted to use static extension methods which were intro
 
 ## 0.2.0
 
-New API! 
+New API!
 The old `parse*` methods are now deprecated, but still work.
 Replace them with the new `pick(json, arg0-9...)` method.
 
@@ -233,7 +254,7 @@ Replace them with the new `pick(json, arg0-9...)` method.
 
 `pick` returns a `Pick` which offers a rich API to parse values.
 
-```
+```text
 .asString()
 .asStringOrNull()
 .asMap()
@@ -253,7 +274,6 @@ Replace them with the new `pick(json, arg0-9...)` method.
 .asDateTime()
 .asDateTimeOrNull()
 ```
-
 
 ## 0.1.1
 
