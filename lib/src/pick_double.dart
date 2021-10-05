@@ -4,6 +4,12 @@ extension NullableDoublePick on Pick {
   @Deprecated('Use .asDoubleOrThrow()')
   double Function() get asDouble => asDoubleOrThrow;
 
+  /// Returns the picked [value] as [double]
+  ///
+  /// {@template Pick.asDouble}
+  /// Parses the picked value as [double]. Also tries to parse [String] as [double]
+  /// via [double.tryParse]
+  /// {@endtemplate}
   double _parse() {
     final value = required().value;
     if (value is double) {
@@ -53,12 +59,19 @@ extension NullableDoublePick on Pick {
         'Type ${value.runtimeType} of $debugParsingExit can not be parsed as double');
   }
 
+  /// Returns the picked [value] as [double] or throws
+  ///
+  /// {@macro Pick.asDouble}
   double asDoubleOrThrow() {
     withContext(requiredPickErrorHintKey,
         'Use asDoubleOrNull() when the value may be null/absent at some point (double?).');
     return _parse();
   }
 
+  /// Returns the picked [value] as [double?] or returns `null` when the picked
+  /// value is absent
+  ///
+  /// {@macro Pick.asDouble}
   double? asDoubleOrNull() {
     if (value == null) return null;
     try {
