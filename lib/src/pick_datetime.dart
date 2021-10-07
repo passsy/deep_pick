@@ -1,6 +1,7 @@
 // ignore_for_file: constant_identifier_names
 import 'package:deep_pick/src/pick.dart';
 
+/// The format of the to-be-parsed String that will be converted to [DateTime]
 enum PickDateFormat {
   /// ISO 8601 is the most common data time representation
   ///
@@ -102,13 +103,16 @@ extension NullableDateTimePick on Pick {
       if (dateTime != null) {
         return dateTime;
       }
-    } else {
-      // without format, try all formats
-      for (final entry in formats.entries) {
-        final dateTime = entry.value();
-        if (dateTime != null) {
-          return dateTime;
-        }
+
+      throw PickException(
+          'Type ${value.runtimeType} of $debugParsingExit can not be parsed as DateTime using $format');
+    }
+
+    // without format, try all formats
+    for (final entry in formats.entries) {
+      final dateTime = entry.value();
+      if (dateTime != null) {
+        return dateTime;
       }
     }
 
