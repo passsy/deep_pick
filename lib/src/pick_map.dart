@@ -12,14 +12,31 @@ extension NullableMapPick on Pick {
   ///
   /// If this map is already a `Map<RK, RV>`, it is returned unchanged.
   ///
-  /// If this set contains only keys of type [RK] and values of type [RV],
-  /// all read operations will work correctly.
   /// If any operation exposes a non-[RK] key or non-[RV] value,
   /// the operation will throw instead.
+  ///
+  /// If any operation exposes a duplicate [RK] key [RV] value is replaced
+  /// with new one,
   ///
   /// Entries added to the map must be valid for both a `Map<K, V>` and a
   /// `Map<RK, RV>`.
   /// via [Map] cast function
+  ///
+  /// ```dart
+  /// final map = pick({
+  ///   'a': 'John Snow',
+  ///   'b': 1,
+  ///   'c': null,
+  ///   'a': 'John Snow updated',
+  /// }).asMapOrThrow()
+  ///
+  /// // map
+  /// {
+  ///   'a': 'John Snow updated',
+  ///   'b': 1,
+  ///   'c': null,
+  /// }
+  /// ```
   /// {@endtemplate}
   Map<RK, RV> _parse<RK, RV>() {
     final value = required().value;
@@ -34,7 +51,7 @@ extension NullableMapPick on Pick {
   }
 
   /// Returns the picked [value] as [Map]. This method throws when [value] is
-  /// not a `Map` or [isAbsent]
+  /// not a [Map] or [isAbsent]
   ///
   /// {@macro Pick.asMap}
   Map<RK, RV> asMapOrThrow<RK, RV>() {
