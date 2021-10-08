@@ -18,11 +18,13 @@ import 'package:deep_pick/deep_pick.dart';
 pick(json, 'parsing', 'is', 'fun').asBool(); // true
 ```
 
+```bash
+$ dart pub add deep_pick
+```
+
 ```yaml
 dependencies:
-  deep_pick: ^0.6.10
-  
-  deep_pick: ^0.8.0 # Dart >=2.12 (nullsafety)
+  deep_pick: ^0.9.0
 ```
 
 ### Example
