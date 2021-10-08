@@ -167,9 +167,8 @@ extension NullableDateTimePick on Pick {
       final seconds = int.parse(match.group(7)!);
       return DateTime.utc(year, month, day, hour, minute, seconds);
     } catch (_) {
-      // ignore
+      return null;
     }
-    return null;
   }
 
   /// [PickDateFormat.ANSI_C_asctime]
@@ -188,9 +187,8 @@ extension NullableDateTimePick on Pick {
       final year = int.parse(match.group(7)!);
       return DateTime.utc(year, month, day, hour, minute, seconds);
     } catch (_) {
-      // ignore
+      return null;
     }
-    return null;
   }
 
   /// [PickDateFormat.RFC_850]
@@ -212,9 +210,8 @@ extension NullableDateTimePick on Pick {
       final seconds = int.parse(match.group(7)!);
       return DateTime.utc(year, month, day, hour, minute, seconds);
     } catch (_) {
-      // ignore
+      return null;
     }
-    return null;
   }
 }
 
