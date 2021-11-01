@@ -136,51 +136,110 @@ void main() {
       });
     });
 
-    group('official dart tests', () {
-      test('1', () {
-        final date = DateTime.utc(1999, DateTime.june, 11, 18, 46, 53);
-        expect(pick('Fri, 11 Jun 1999 18:46:53 GMT').asDateTimeOrThrow(), date);
-        expect(
-            pick('Friday, 11-Jun-1999 18:46:53 GMT').asDateTimeOrThrow(), date);
-        expect(pick('Fri Jun 11 18:46:53 1999').asDateTimeOrThrow(), date);
+    group('ISO 8601', () {
+      group('official dart tests', () {
+        test('1', () {
+          final date = DateTime.utc(1999, DateTime.june, 11, 18, 46, 53);
+          expect(
+              pick('Fri, 11 Jun 1999 18:46:53 GMT').asDateTimeOrThrow(), date);
+          expect(pick('Friday, 11-Jun-1999 18:46:53 GMT').asDateTimeOrThrow(),
+              date);
+          expect(pick('Fri Jun 11 18:46:53 1999').asDateTimeOrThrow(), date);
+        });
+
+        test('2', () {
+          final date = DateTime.utc(1970, DateTime.january);
+          expect(
+              pick('Thu, 1 Jan 1970 00:00:00 GMT').asDateTimeOrThrow(), date);
+          expect(pick('Thursday, 1-Jan-1970 00:00:00 GMT').asDateTimeOrThrow(),
+              date);
+          expect(pick('Thu Jan  1 00:00:00 1970').asDateTimeOrThrow(), date);
+        });
+
+        test('3', () {
+          final date = DateTime.utc(2012, DateTime.march, 5, 23, 59, 59);
+          expect(
+              pick('Mon, 5 Mar 2012 23:59:59 GMT').asDateTimeOrThrow(), date);
+          expect(pick('Monday, 5-Mar-2012 23:59:59 GMT').asDateTimeOrThrow(),
+              date);
+          expect(pick('Mon Mar  5 23:59:59 2012').asDateTimeOrThrow(), date);
+        });
       });
 
-      test('2', () {
-        final date = DateTime.utc(1970, DateTime.january);
-        expect(pick('Thu, 1 Jan 1970 00:00:00 GMT').asDateTimeOrThrow(), date);
-        expect(pick('Thursday, 1-Jan-1970 00:00:00 GMT').asDateTimeOrThrow(),
-            date);
-        expect(pick('Thu Jan  1 00:00:00 1970').asDateTimeOrThrow(), date);
+      group('explicit format uses only one parser', () {
+        test(
+            'asDateTimeOrNull: ISO-8601 String ca not be parsed by ansi c asctime',
+            () {
+          final iso8601 = '2005-08-15T15:52:01+0000';
+          final value = pick(iso8601)
+              .asDateTimeOrNull(format: PickDateFormat.ANSI_C_asctime);
+          expect(value, isNull);
+        });
+        test(
+            'asDateTimeOrThrow: ISO-8601 String ca not be parsed by ansi c asctime',
+            () {
+          final iso8601 = '2005-08-15T15:52:01+0000';
+          expect(
+            () => pick(iso8601)
+                .asDateTimeOrThrow(format: PickDateFormat.ANSI_C_asctime),
+            throwsA(pickException(
+                containing: ['2005-08-15T15:52:01+0000', 'DateTime'])),
+          );
+        });
       });
 
-      test('3', () {
-        final date = DateTime.utc(2012, DateTime.march, 5, 23, 59, 59);
-        expect(pick('Mon, 5 Mar 2012 23:59:59 GMT').asDateTimeOrThrow(), date);
-        expect(
-            pick('Monday, 5-Mar-2012 23:59:59 GMT').asDateTimeOrThrow(), date);
-        expect(pick('Mon Mar  5 23:59:59 2012').asDateTimeOrThrow(), date);
-      });
-    });
+      group('RFC 3339', () {
+        test('parses the example date', () {
+          final date = pick('2021-11-01T11:53:15+00:00')
+              .asDateTimeOrThrow(format: PickDateFormat.ISO_8601);
+          expect(date.day, equals(1));
+          expect(date.month, equals(DateTime.november));
+          expect(date.year, equals(2021));
+          expect(date.hour, equals(11));
+          expect(date.minute, equals(53));
+          expect(date.second, equals(15));
+          expect(date.timeZoneName, equals('UTC'));
+        });
 
-    group('explicit format uses only one parser', () {
-      test(
-          'asDateTimeOrNull: ISO-8601 String ca not be parsed by ansi c asctime',
-          () {
-        final iso8601 = '2005-08-15T15:52:01+0000';
-        final value = pick(iso8601)
-            .asDateTimeOrNull(format: PickDateFormat.ANSI_C_asctime);
-        expect(value, isNull);
-      });
-      test(
-          'asDateTimeOrThrow: ISO-8601 String ca not be parsed by ansi c asctime',
-          () {
-        final iso8601 = '2005-08-15T15:52:01+0000';
-        expect(
-          () => pick(iso8601)
-              .asDateTimeOrThrow(format: PickDateFormat.ANSI_C_asctime),
-          throwsA(pickException(
-              containing: ['2005-08-15T15:52:01+0000', 'DateTime'])),
-        );
+        // examples from https://datatracker.ietf.org/doc/html/rfc3339#section-5.8
+        test('rfc339 examples 1', () {
+          final date = pick('1985-04-12T23:20:50.52Z').asDateTimeOrThrow();
+          expect(date.day, equals(12));
+          expect(date.month, equals(DateTime.april));
+          expect(date.year, equals(1985));
+          expect(date.hour, equals(23));
+          expect(date.minute, equals(20));
+          expect(date.second, equals(50));
+          expect(date.millisecond, equals(520));
+          expect(date.timeZoneName, equals('UTC'));
+        });
+        test('rfc339 examples 2 - time zone', () {
+          final date = pick('1996-12-19T16:39:57-08:00').asDateTimeOrThrow();
+          expect(date.day, equals(20));
+          expect(date.month, equals(DateTime.december));
+          expect(date.year, equals(1996));
+          expect(date.hour, equals(0));
+          expect(date.minute, equals(39));
+          expect(date.second, equals(57));
+          expect(date.millisecond, equals(0));
+          expect(date.timeZoneName, equals('UTC'));
+        });
+        test('rfc339 examples 3 - leap second', () {
+          final date = pick('1990-12-31T23:59:60Z').asDateTimeOrThrow();
+          expect(date.day, equals(1));
+          expect(date.month, equals(DateTime.january));
+          expect(date.year, equals(1991));
+          expect(date.hour, equals(0));
+          expect(date.minute, equals(0));
+          expect(date.second, equals(0));
+          expect(date.millisecond, equals(0));
+          expect(date.timeZoneName, equals('UTC'));
+
+          // example 4
+          // same leap second, different time zone
+          final date2 = pick('1990-12-31T23:59:60Z').asDateTimeOrThrow();
+          expect(date2, date);
+        });
       });
     });
 
