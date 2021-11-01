@@ -1,5 +1,11 @@
 # Changelog
 
+## future release
+
+- Remove long deprecated methods: `addContext`, `asBool`, `asDateTime`, `asDouble`, `asInt`, `asList`, `asMap`, `asString`. Use their `as*OrThrow` replacements.
+- 
+
+
 ## 0.10.0 (`01.10.21`)
 
 - New: Support for more date formats. `asDateTime*` received an optional `format` parameter. By default, all possible formats will be parsed. To the existing `ISO 8601` format, `RFC 1123`, `RFC 850` and `asctime` have been added which are typically used for the HTTP header or cookies.

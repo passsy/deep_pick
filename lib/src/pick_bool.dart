@@ -35,9 +35,6 @@ extension BoolPick on Pick {
     );
   }
 
-  @Deprecated('Use .asBoolOrThrow()')
-  bool Function() get asBool => asBoolOrThrow;
-
   /// Returns the picked [value] as [bool] or throws a [PickException]
   ///
   /// {@macro Pick.asBool}

@@ -25,31 +25,6 @@ void main() {
       expect(nullPick().asBoolOrFalse(), isFalse);
     });
 
-    test('deprecated asBool forwards to asBoolOrThrow', () {
-      // ignore: deprecated_member_use_from_same_package
-      expect(pick(true).asBool(), isTrue);
-      // ignore: deprecated_member_use_from_same_package
-      expect(pick('true').asBool(), isTrue);
-      // ignore: deprecated_member_use_from_same_package
-      expect(pick('false').asBool(), isFalse);
-      expect(
-        // ignore: deprecated_member_use_from_same_package
-        () => pick('Bubblegum').asBool(),
-        throwsA(
-          pickException(containing: ['String', 'Bubblegum', '<root>', 'bool']),
-        ),
-      );
-      expect(
-        // ignore: deprecated_member_use_from_same_package
-        () => nullPick().asBool(),
-        throwsA(
-          pickException(
-            containing: ['unknownKey', 'asBoolOrNull', 'null', 'bool?'],
-          ),
-        ),
-      );
-    });
-
     test('asBoolOrThrow()', () {
       expect(pick(true).asBoolOrThrow(), isTrue);
       expect(pick('true').asBoolOrThrow(), isTrue);
@@ -87,27 +62,6 @@ void main() {
       expect(pick(true).required().asBoolOrFalse(), isTrue);
       expect(pick(false).required().asBoolOrFalse(), isFalse);
       expect(pick('a').required().asBoolOrFalse(), isFalse);
-    });
-
-    test('deprecated asBool forwards to asBoolOrThrow', () {
-      // ignore: deprecated_member_use_from_same_package
-      expect(pick(true).required().asBool(), isTrue);
-      // ignore: deprecated_member_use_from_same_package
-      expect(pick('true').required().asBool(), isTrue);
-      // ignore: deprecated_member_use_from_same_package
-      expect(pick('false').required().asBool(), isFalse);
-      expect(
-        // ignore: deprecated_member_use_from_same_package
-        () => pick('Bubblegum').required().asBool(),
-        throwsA(
-          pickException(containing: ['String', 'Bubblegum', '<root>', 'bool']),
-        ),
-      );
-      expect(
-        // ignore: deprecated_member_use_from_same_package
-        () => nullPick().required().asBool(),
-        throwsA(pickException(containing: ['unknownKey', 'absent'])),
-      );
     });
 
     test('asBoolOrThrow()', () {

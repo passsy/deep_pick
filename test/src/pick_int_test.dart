@@ -71,22 +71,6 @@ void main() {
       });
     });
 
-    test('deprecated asInt forwards to asIntOrThrow', () {
-      // ignore: deprecated_member_use_from_same_package
-      expect(pick('1').asInt(), 1.0);
-      expect(
-        // ignore: deprecated_member_use_from_same_package
-        () => pick(Object()).asInt(),
-        throwsA(
-          pickException(
-            containing: [
-              'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as int'
-            ],
-          ),
-        ),
-      );
-    });
-
     group('asIntOrNull', () {
       test('parse String', () {
         expect(pick('2012').asIntOrNull(), 2012);
@@ -144,22 +128,6 @@ void main() {
           throwsA(pickException(containing: ['String', 'Bubblegum', 'int'])),
         );
       });
-    });
-
-    test('deprecated asInt forwards to asIntOrThrow', () {
-      // ignore: deprecated_member_use_from_same_package
-      expect(pick('1').asInt(), 1.0);
-      expect(
-        // ignore: deprecated_member_use_from_same_package
-        () => pick(Object()).asInt(),
-        throwsA(
-          pickException(
-            containing: [
-              'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as int'
-            ],
-          ),
-        ),
-      );
     });
 
     group('asIntOrNull', () {

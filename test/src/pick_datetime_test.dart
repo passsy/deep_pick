@@ -56,25 +56,6 @@ void main() {
       });
     });
 
-    test('deprecated asDateTime forwards to asDateTimeOrThrow', () {
-      expect(
-        // ignore: deprecated_member_use_from_same_package
-        pick('2012-02-27 13:27:00').asDateTime(),
-        DateTime(2012, 2, 27, 13, 27),
-      );
-      expect(
-        // ignore: deprecated_member_use_from_same_package
-        () => nullPick().asDateTime(),
-        throwsA(
-          pickException(
-            containing: [
-              'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asDateTimeOrNull() when the value may be null/absent at some point (DateTime?).'
-            ],
-          ),
-        ),
-      );
-    });
-
     group('asDateTimeOrNull', () {
       test('parse String', () {
         expect(
@@ -143,25 +124,6 @@ void main() {
           ),
         );
       });
-    });
-
-    test('deprecated asDateTime forwards to asDateTimeOrThrow', () {
-      expect(
-        // ignore: deprecated_member_use_from_same_package
-        pick('2012-02-27 13:27:00').required().asDateTime(),
-        DateTime(2012, 2, 27, 13, 27),
-      );
-      expect(
-        // ignore: deprecated_member_use_from_same_package
-        () => nullPick().required().asDateTime(),
-        throwsA(
-          pickException(
-            containing: [
-              'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent.'
-            ],
-          ),
-        ),
-      );
     });
 
     group('asDateTimeOrNull', () {

@@ -49,13 +49,6 @@ void main() {
         expect(pick(Object()).asStringOrNull(), "Instance of 'Object'");
       });
     });
-
-    test('deprecated asString forwards to asStringOrThrow', () {
-      // ignore: deprecated_member_use_from_same_package
-      expect(pick('adam').asString(), 'adam');
-      // ignore: deprecated_member_use_from_same_package
-      expect(pick([]).asString(), '[]');
-    });
   });
 
   group('pick().required().asString*', () {

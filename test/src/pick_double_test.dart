@@ -67,22 +67,6 @@ void main() {
       });
     });
 
-    test('deprecated asDouble forwards to asDoubleOrThrow', () {
-      // ignore: deprecated_member_use_from_same_package
-      expect(pick('1').asDouble(), 1.0);
-      expect(
-        // ignore: deprecated_member_use_from_same_package
-        () => pick(Object()).asDouble(),
-        throwsA(
-          pickException(
-            containing: [
-              'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as double'
-            ],
-          ),
-        ),
-      );
-    });
-
     group('asDoubleOrNull', () {
       test('parse String', () {
         expect(pick('2012').asDoubleOrNull(), 2012);
@@ -162,22 +146,6 @@ void main() {
           throwsA(pickException(containing: ['String', 'Bubblegum', 'double'])),
         );
       });
-    });
-
-    test('deprecated asDouble forwards to asDoubleOrThrow', () {
-      // ignore: deprecated_member_use_from_same_package
-      expect(pick('1').required().asDouble(), 1.0);
-      expect(
-        // ignore: deprecated_member_use_from_same_package
-        () => pick(Object()).required().asDouble(),
-        throwsA(
-          pickException(
-            containing: [
-              'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as double'
-            ],
-          ),
-        ),
-      );
     });
 
     group('asDoubleOrNull', () {

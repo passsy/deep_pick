@@ -8,9 +8,6 @@ extension RequiredStringPick on RequiredPick {
 }
 
 extension NullableStringPick on Pick {
-  @Deprecated('Use .asStringOrThrow()')
-  String Function() get asString => asStringOrThrow;
-
   /// Returns the picked [value] as [String] representation
   ///
   /// {@template Pick.asString}
