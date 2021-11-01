@@ -3,10 +3,13 @@ import 'package:deep_pick/src/pick.dart';
 extension NullableListPick on Pick {
   @Deprecated('Use .asListOrThrow()')
   List<T> asList<T>([T Function(Pick)? map]) {
-    return asListOrThrow((it) {
-      final mapFn = map ?? (Pick it) => it.value as T;
-      return mapFn(it.nullable());
-    }, whenNull: (it) => it.value as T);
+    return asListOrThrow(
+      (it) {
+        final mapFn = map ?? (Pick it) => it.value as T;
+        return mapFn(it.nullable());
+      },
+      whenNull: (it) => it.value as T,
+    );
   }
 
   /// Returns the items of the [List] as list, mapped each item with [map]
@@ -48,8 +51,10 @@ extension NullableListPick on Pick {
   /// );
   /// ```
   /// {@endtemplate}
-  List<T> _parse<T>(T Function(RequiredPick) map,
-      {T Function(Pick pick)? whenNull}) {
+  List<T> _parse<T>(
+    T Function(RequiredPick) map, {
+    T Function(Pick pick)? whenNull,
+  }) {
     final value = required().value;
     if (value is List) {
       final result = <T>[];
@@ -73,24 +78,30 @@ extension NullableListPick on Pick {
         } catch (e) {
           // ignore: avoid_print
           print(
-              'whenNull at location $debugParsingExit index: $index crashed instead of returning a $T');
+            'whenNull at location $debugParsingExit index: $index crashed instead of returning a $T',
+          );
           rethrow;
         }
       }
       return result;
     }
     throw PickException(
-        'Type ${value.runtimeType} of $debugParsingExit can not be casted to List<dynamic>');
+      'Type ${value.runtimeType} of $debugParsingExit can not be casted to List<dynamic>',
+    );
   }
 
   /// Returns the picked [value] as [List]. This method throws when [value] is
   /// not a `List` or [isAbsent]
   ///
   /// {@macro Pick.asList}
-  List<T> asListOrThrow<T>(T Function(RequiredPick) map,
-      {T Function(Pick pick)? whenNull}) {
-    withContext(requiredPickErrorHintKey,
-        'Use asListOrEmpty()/asListOrNull() when the value may be null/absent at some point (List<$T>?).');
+  List<T> asListOrThrow<T>(
+    T Function(RequiredPick) map, {
+    T Function(Pick pick)? whenNull,
+  }) {
+    withContext(
+      requiredPickErrorHintKey,
+      'Use asListOrEmpty()/asListOrNull() when the value may be null/absent at some point (List<$T>?).',
+    );
     return _parse(map, whenNull: whenNull);
   }
 
@@ -98,8 +109,10 @@ extension NullableListPick on Pick {
   /// isn't a [List] or [isAbsent].
   ///
   /// {@macro Pick.asList}
-  List<T> asListOrEmpty<T>(T Function(RequiredPick) map,
-      {T Function(Pick pick)? whenNull}) {
+  List<T> asListOrEmpty<T>(
+    T Function(RequiredPick) map, {
+    T Function(Pick pick)? whenNull,
+  }) {
     if (value == null) return <T>[];
     if (value is! List) return <T>[];
     return _parse(map, whenNull: whenNull);
@@ -109,8 +122,10 @@ extension NullableListPick on Pick {
   /// isn't a [List] or [isAbsent].
   ///
   /// {@macro Pick.asList}
-  List<T>? asListOrNull<T>(T Function(RequiredPick) map,
-      {T Function(Pick pick)? whenNull}) {
+  List<T>? asListOrNull<T>(
+    T Function(RequiredPick) map, {
+    T Function(Pick pick)? whenNull,
+  }) {
     if (value == null) return null;
     if (value is! List) return null;
     return _parse(map, whenNull: whenNull);

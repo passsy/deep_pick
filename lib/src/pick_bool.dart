@@ -31,7 +31,8 @@ extension BoolPick on Pick {
       if (value == 'false') return false;
     }
     throw PickException(
-        'Type ${value.runtimeType} of $debugParsingExit can not be casted to bool');
+      'Type ${value.runtimeType} of $debugParsingExit can not be casted to bool',
+    );
   }
 
   @Deprecated('Use .asBoolOrThrow()')
@@ -41,8 +42,10 @@ extension BoolPick on Pick {
   ///
   /// {@macro Pick.asBool}
   bool asBoolOrThrow() {
-    withContext(requiredPickErrorHintKey,
-        'Use asBoolOrNull() when the value may be null/absent at some point (bool?).');
+    withContext(
+      requiredPickErrorHintKey,
+      'Use asBoolOrNull() when the value may be null/absent at some point (bool?).',
+    );
     return _parse();
   }
 

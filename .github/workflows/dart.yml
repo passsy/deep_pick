@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: google/dart:dev
+      image: google/dart:2.14
 
     steps:
     - uses: actions/checkout@v1
@@ -39,14 +39,14 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: google/dart:dev
+      image: google/dart:2.14
 
     steps:
     - uses: actions/checkout@v1
     - name: Install dependencies
       run: pub get --no-precompile
     - name: lint
-      run: dartanalyzer .
+      run: dart analyze --fatal-infos
     - name: docs
       run: dartdoc .
     - name: Verify package completness

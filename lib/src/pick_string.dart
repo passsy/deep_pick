@@ -31,8 +31,10 @@ extension NullableStringPick on Pick {
   ///
   /// {@macro Pick.asString}
   String asStringOrThrow() {
-    withContext(requiredPickErrorHintKey,
-        'Use asStringOrNull() when the value may be null/absent at some point (String?).');
+    withContext(
+      requiredPickErrorHintKey,
+      'Use asStringOrNull() when the value may be null/absent at some point (String?).',
+    );
     return _parse();
   }
 

@@ -47,7 +47,8 @@ extension NullableMapPick on Pick {
       return Map.of(view);
     }
     throw PickException(
-        'Type ${value.runtimeType} of $debugParsingExit can not be casted to Map<dynamic, dynamic>');
+      'Type ${value.runtimeType} of $debugParsingExit can not be casted to Map<dynamic, dynamic>',
+    );
   }
 
   /// Returns the picked [value] as [Map]. This method throws when [value] is
@@ -55,8 +56,10 @@ extension NullableMapPick on Pick {
   ///
   /// {@macro Pick.asMap}
   Map<RK, RV> asMapOrThrow<RK, RV>() {
-    withContext(requiredPickErrorHintKey,
-        'Use asMapOrEmpty()/asMapOrNull() when the value may be null/absent at some point (Map<$RK, $RV>?).');
+    withContext(
+      requiredPickErrorHintKey,
+      'Use asMapOrEmpty()/asMapOrNull() when the value may be null/absent at some point (Map<$RK, $RV>?).',
+    );
     return _parse();
   }
 

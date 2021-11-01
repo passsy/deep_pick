@@ -106,76 +106,103 @@ void main() {
     test('required pick from null show good error message', () {
       expect(
         () => pick(null).required(),
-        throwsA(isA<PickException>().having(
-          (e) => e.message,
-          'message',
-          contains(
-              'Expected a non-null value but location picked value "null" using pick(<root>) is null'),
-        )),
+        throwsA(
+          isA<PickException>().having(
+            (e) => e.message,
+            'message',
+            contains(
+              'Expected a non-null value but location picked value "null" using pick(<root>) is null',
+            ),
+          ),
+        ),
       );
     });
 
     group('location', () {
       test('root with value', () {
         expect(
-            pick('a').debugParsingExit, 'picked value "a" using pick(<root>)');
+          pick('a').debugParsingExit,
+          'picked value "a" using pick(<root>)',
+        );
       });
       test('root with null', () {
-        expect(pick(null).debugParsingExit,
-            'picked value "null" using pick(<root>)');
+        expect(
+          pick(null).debugParsingExit,
+          'picked value "null" using pick(<root>)',
+        );
       });
 
       test('absent in map', () {
-        expect(pick({'a': 1}, 'b').debugParsingExit,
-            '"b" in pick(json, "b" (absent))');
+        expect(
+          pick({'a': 1}, 'b').debugParsingExit,
+          '"b" in pick(json, "b" (absent))',
+        );
       });
       test('null in map', () {
-        expect(pick({'a': null}, 'a').debugParsingExit,
-            'picked value "null" using pick(json, "a" (null))');
+        expect(
+          pick({'a': null}, 'a').debugParsingExit,
+          'picked value "null" using pick(json, "a" (null))',
+        );
       });
       test('value in map', () {
-        expect(pick({'a': 'b'}, 'a').debugParsingExit,
-            'picked value "b" using pick(json, "a"(b))');
+        expect(
+          pick({'a': 'b'}, 'a').debugParsingExit,
+          'picked value "b" using pick(json, "a"(b))',
+        );
       });
 
       test('long path', () {
-        expect(pick({'a': 'b'}, 'a', 'b', 'c', 'd').debugParsingExit,
-            '"b" in pick(json, "a", "b" (absent), "c", "d")');
+        expect(
+          pick({'a': 'b'}, 'a', 'b', 'c', 'd').debugParsingExit,
+          '"b" in pick(json, "a", "b" (absent), "c", "d")',
+        );
       });
     });
 
     group('required', () {
       test('pick null but require - show good error message', () {
         expect(
-            () => pick([null], 0).required(),
-            throwsA(isA<PickException>().having(
+          () => pick([null], 0).required(),
+          throwsA(
+            isA<PickException>().having(
               (e) => e.message,
               'message',
               contains(
-                  'Expected a non-null value but location picked value "null" using pick(json, 0 (null)) is null'),
-            )));
+                'Expected a non-null value but location picked value "null" using pick(json, 0 (null)) is null',
+              ),
+            ),
+          ),
+        );
       });
 
       test('required pick from null with args show good error message', () {
         expect(
-            () => pick(null, 'some', 'path').required(),
-            throwsA(isA<PickException>().having(
+          () => pick(null, 'some', 'path').required(),
+          throwsA(
+            isA<PickException>().having(
               (e) => e.message,
               'message',
               contains(
-                  'Expected a non-null value but location "some" in pick(json, "some" (absent), "path") is absent'),
-            )));
+                'Expected a non-null value but location "some" in pick(json, "some" (absent), "path") is absent',
+              ),
+            ),
+          ),
+        );
       });
 
       test('not matching required pick show good error message', () {
         expect(
-            () => pick('a', 'some', 'path').required(),
-            throwsA(isA<PickException>().having(
+          () => pick('a', 'some', 'path').required(),
+          throwsA(
+            isA<PickException>().having(
               (e) => e.message,
               'message',
               contains(
-                  'Expected a non-null value but location "some" in pick(json, "some" (absent), "path") is absent.'),
-            )));
+                'Expected a non-null value but location "some" in pick(json, "some" (absent), "path") is absent.',
+              ),
+            ),
+          ),
+        );
       });
     });
 
@@ -195,8 +222,13 @@ void main() {
       };
       expect(
         () => pick(data, 'set', 0),
-        throwsA(isA<PickException>().having((e) => e.toString(), 'toString',
-            allOf(contains('[set]'), contains('Set'), contains('index (0)')))),
+        throwsA(
+          isA<PickException>().having(
+            (e) => e.toString(),
+            'toString',
+            allOf(contains('[set]'), contains('Set'), contains('index (0)')),
+          ),
+        ),
       );
     });
 

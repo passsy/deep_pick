@@ -39,7 +39,18 @@ Pick pickFromJson(
 ]) {
   final parsed = jsonDecode(json);
   return pick(
-      parsed, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+    parsed,
+    arg0,
+    arg1,
+    arg2,
+    arg3,
+    arg4,
+    arg5,
+    arg6,
+    arg7,
+    arg8,
+    arg9,
+  );
 }
 
 /// Picks the value of a [json]-like dart data structure consisting of Maps,
@@ -126,8 +137,9 @@ Pick _drillDown(
     }
     if (data is Set && selector is int) {
       throw PickException(
-          'Value at location ${path.sublist(0, path.length - 1)} is a Set, which is a unordered data structure. '
-          "It's not possible to pick a value by using a index ($selector)");
+        'Value at location ${path.sublist(0, path.length - 1)} is a Set, which is a unordered data structure. '
+        "It's not possible to pick a value by using a index ($selector)",
+      );
     }
     // can't drill down any more to find the exact location.
     return Pick.absent(path.length - 1, path: fullPath, context: context);
@@ -259,8 +271,9 @@ class Pick {
       final more = fromContext(requiredPickErrorHintKey).value as String?;
       final moreSegment = more == null ? '' : ' $more';
       throw PickException(
-          'Expected a non-null value but location $debugParsingExit '
-          'is ${isAbsent ? 'absent' : 'null'}.$moreSegment');
+        'Expected a non-null value but location $debugParsingExit '
+        'is ${isAbsent ? 'absent' : 'null'}.$moreSegment',
+      );
     }
     return RequiredPick(value, path: path, context: context);
   }
@@ -324,7 +337,18 @@ class Pick {
     Object? arg8,
   ]) {
     return pick(
-        context, key, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+      context,
+      key,
+      arg0,
+      arg1,
+      arg2,
+      arg3,
+      arg4,
+      arg5,
+      arg6,
+      arg7,
+      arg8,
+    );
   }
 
   /// Returns a human readable String of the requested [path] and the actual

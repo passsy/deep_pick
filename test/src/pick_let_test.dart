@@ -41,43 +41,57 @@ void main() {
 
     test('letOrNull()', () {
       expect(
-          pick({'name': 'John Snow'})
-              .letOrNull((pick) => Person.fromPick(pick)),
-          Person(name: 'John Snow'));
+        pick({'name': 'John Snow'}).letOrNull((pick) => Person.fromPick(pick)),
+        Person(name: 'John Snow'),
+      );
       expect(nullPick().letOrNull((pick) => Person.fromPick(pick)), isNull);
       expect(
         () => pick('a').letOrNull((pick) => Person.fromPick(pick)),
-        throwsA(pickException(containing: [
-          'Expected a non-null value but location "name" in pick(json, "name" (absent)) is absent.'
-        ])),
+        throwsA(
+          pickException(
+            containing: [
+              'Expected a non-null value but location "name" in pick(json, "name" (absent)) is absent.'
+            ],
+          ),
+        ),
       );
       expect(
         () => pick({'asdf': 'John Snow'})
             .letOrNull((pick) => Person.fromPick(pick)),
-        throwsA(pickException(containing: [
-          'Expected a non-null value but location "name" in pick(json, "name" (absent)) is absent.'
-        ])),
+        throwsA(
+          pickException(
+            containing: [
+              'Expected a non-null value but location "name" in pick(json, "name" (absent)) is absent.'
+            ],
+          ),
+        ),
       );
     });
 
     test('letOrThrow()', () {
       expect(
-          pick({'name': 'John Snow'})
-              .letOrThrow((pick) => Person.fromPick(pick)),
-          Person(name: 'John Snow'));
+        pick({'name': 'John Snow'}).letOrThrow((pick) => Person.fromPick(pick)),
+        Person(name: 'John Snow'),
+      );
       expect(
         () => nullPick().letOrThrow((pick) => Person.fromPick(pick)),
-        throwsA(pickException(containing: [
-          'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use letOrNull() when the value may be null/absent at some point.'
-        ])),
+        throwsA(
+          pickException(
+            containing: [
+              'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use letOrNull() when the value may be null/absent at some point.'
+            ],
+          ),
+        ),
       );
       expect(
         () => pick({'asdf': 'John Snow'})
             .letOrThrow((pick) => Person.fromPick(pick)),
         throwsA(
-          pickException(containing: [
-            'Expected a non-null value but location "name" in pick(json, "name" (absent)) is absent. Use letOrNull() when the value may be null/absent at some point'
-          ]),
+          pickException(
+            containing: [
+              'Expected a non-null value but location "name" in pick(json, "name" (absent)) is absent. Use letOrNull() when the value may be null/absent at some point'
+            ],
+          ),
         ),
       );
     });

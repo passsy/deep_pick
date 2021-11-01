@@ -13,9 +13,13 @@ void main() {
       test('null throws', () {
         expect(
           () => nullPick().asMapOrThrow<String, bool>(),
-          throwsA(pickException(containing: [
-            'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asMapOrEmpty()/asMapOrNull() when the value may be null/absent at some point (Map<String, bool>?).'
-          ])),
+          throwsA(
+            pickException(
+              containing: [
+                'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asMapOrEmpty()/asMapOrNull() when the value may be null/absent at some point (Map<String, bool>?).'
+              ],
+            ),
+          ),
         );
       });
 
@@ -26,8 +30,10 @@ void main() {
 
         try {
           final parsed = pick(data).asMapOrThrow<String, bool>();
-          fail('casted map without verifying the types. '
-              'Expected Map<String, bool> but was ${parsed.runtimeType}');
+          fail(
+            'casted map without verifying the types. '
+            'Expected Map<String, bool> but was ${parsed.runtimeType}',
+          );
           // ignore: avoid_catching_errors
         } on TypeError catch (e) {
           expect(
@@ -36,7 +42,8 @@ void main() {
               (e) => e.toString(),
               'message',
               stringContainsInOrder(
-                  ['<String, String>', 'is not a subtype of type', 'bool']),
+                ['<String, String>', 'is not a subtype of type', 'bool'],
+              ),
             ),
           );
           // ignore: avoid_catching_errors, deprecated_member_use
@@ -50,7 +57,8 @@ void main() {
               (e) => e.toString(),
               'message',
               stringContainsInOrder(
-                  ['<String, String>', 'is not a subtype of type', 'bool']),
+                ['<String, String>', 'is not a subtype of type', 'bool'],
+              ),
             ),
           );
         }
@@ -59,14 +67,21 @@ void main() {
       test('wrong type throws', () {
         expect(
           () => pick('Bubblegum').asMapOrThrow(),
-          throwsA(pickException(
-              containing: ['String', 'Bubblegum', 'Map<dynamic, dynamic>'])),
+          throwsA(
+            pickException(
+              containing: ['String', 'Bubblegum', 'Map<dynamic, dynamic>'],
+            ),
+          ),
         );
         expect(
           () => pick(Object()).asMapOrThrow(),
-          throwsA(pickException(containing: [
-            'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be casted to Map<dynamic, dynamic>'
-          ])),
+          throwsA(
+            pickException(
+              containing: [
+                'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be casted to Map<dynamic, dynamic>'
+              ],
+            ),
+          ),
         );
       });
     });
@@ -77,9 +92,13 @@ void main() {
       expect(
         // ignore: deprecated_member_use_from_same_package
         () => pick(Object()).asMap(),
-        throwsA(pickException(containing: [
-          'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be casted to Map<dynamic, dynamic>'
-        ])),
+        throwsA(
+          pickException(
+            containing: [
+              'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be casted to Map<dynamic, dynamic>'
+            ],
+          ),
+        ),
       );
     });
 
@@ -103,8 +122,10 @@ void main() {
 
         try {
           final parsed = pick(data).asMapOrEmpty<String, bool>();
-          fail('casted map without verifying the types. '
-              'Expected Map<String, bool> but was ${parsed.runtimeType}');
+          fail(
+            'casted map without verifying the types. '
+            'Expected Map<String, bool> but was ${parsed.runtimeType}',
+          );
           // ignore: avoid_catching_errors
         } on TypeError catch (e) {
           expect(
@@ -113,7 +134,8 @@ void main() {
               (e) => e.toString(),
               'message',
               stringContainsInOrder(
-                  ['<String, String>', 'is not a subtype of type', 'bool']),
+                ['<String, String>', 'is not a subtype of type', 'bool'],
+              ),
             ),
           );
           // ignore: avoid_catching_errors, deprecated_member_use
@@ -127,7 +149,8 @@ void main() {
               (e) => e.toString(),
               'message',
               stringContainsInOrder(
-                  ['<String, String>', 'is not a subtype of type', 'bool']),
+                ['<String, String>', 'is not a subtype of type', 'bool'],
+              ),
             ),
           );
         }

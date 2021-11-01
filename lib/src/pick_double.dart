@@ -56,15 +56,18 @@ extension NullableDoublePick on Pick {
       }
     }
     throw PickException(
-        'Type ${value.runtimeType} of $debugParsingExit can not be parsed as double');
+      'Type ${value.runtimeType} of $debugParsingExit can not be parsed as double',
+    );
   }
 
   /// Returns the picked [value] as [double] or throws
   ///
   /// {@macro Pick.asDouble}
   double asDoubleOrThrow() {
-    withContext(requiredPickErrorHintKey,
-        'Use asDoubleOrNull() when the value may be null/absent at some point (double?).');
+    withContext(
+      requiredPickErrorHintKey,
+      'Use asDoubleOrNull() when the value may be null/absent at some point (double?).',
+    );
     return _parse();
   }
 

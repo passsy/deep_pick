@@ -29,27 +29,39 @@ void main() {
       test('round and truncate true at the same time throws', () {
         expect(
           () => pick(123).asIntOrThrow(roundDouble: true, truncateDouble: true),
-          throwsA(pickException(containing: [
-            '[roundDouble] and [truncateDouble] can not be true at the same time'
-          ])),
+          throwsA(
+            pickException(
+              containing: [
+                '[roundDouble] and [truncateDouble] can not be true at the same time'
+              ],
+            ),
+          ),
         );
       });
 
       test('null throws', () {
         expect(
           () => nullPick().asIntOrThrow(),
-          throwsA(pickException(containing: [
-            'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asIntOrNull() when the value may be null/absent at some point (int?).'
-          ])),
+          throwsA(
+            pickException(
+              containing: [
+                'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asIntOrNull() when the value may be null/absent at some point (int?).'
+              ],
+            ),
+          ),
         );
       });
 
       test('wrong type throws', () {
         expect(
           () => pick(Object()).asIntOrThrow(),
-          throwsA(pickException(containing: [
-            'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as int'
-          ])),
+          throwsA(
+            pickException(
+              containing: [
+                'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as int'
+              ],
+            ),
+          ),
         );
 
         expect(
@@ -65,9 +77,13 @@ void main() {
       expect(
         // ignore: deprecated_member_use_from_same_package
         () => pick(Object()).asInt(),
-        throwsA(pickException(containing: [
-          'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as int'
-        ])),
+        throwsA(
+          pickException(
+            containing: [
+              'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as int'
+            ],
+          ),
+        ),
       );
     });
 
@@ -101,18 +117,26 @@ void main() {
       test('null throws', () {
         expect(
           () => nullPick().required().asIntOrThrow(),
-          throwsA(pickException(containing: [
-            'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent.'
-          ])),
+          throwsA(
+            pickException(
+              containing: [
+                'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent.'
+              ],
+            ),
+          ),
         );
       });
 
       test('wrong type throws', () {
         expect(
           () => pick(Object()).required().asIntOrThrow(),
-          throwsA(pickException(containing: [
-            'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as int'
-          ])),
+          throwsA(
+            pickException(
+              containing: [
+                'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as int'
+              ],
+            ),
+          ),
         );
 
         expect(
@@ -128,9 +152,13 @@ void main() {
       expect(
         // ignore: deprecated_member_use_from_same_package
         () => pick(Object()).asInt(),
-        throwsA(pickException(containing: [
-          'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as int'
-        ])),
+        throwsA(
+          pickException(
+            containing: [
+              'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as int'
+            ],
+          ),
+        ),
       );
     });
 

@@ -35,14 +35,18 @@ void main() {
       expect(
         // ignore: deprecated_member_use_from_same_package
         () => pick('Bubblegum').asBool(),
-        throwsA(pickException(
-            containing: ['String', 'Bubblegum', '<root>', 'bool'])),
+        throwsA(
+          pickException(containing: ['String', 'Bubblegum', '<root>', 'bool']),
+        ),
       );
       expect(
         // ignore: deprecated_member_use_from_same_package
         () => nullPick().asBool(),
-        throwsA(pickException(
-            containing: ['unknownKey', 'asBoolOrNull', 'null', 'bool?'])),
+        throwsA(
+          pickException(
+            containing: ['unknownKey', 'asBoolOrNull', 'null', 'bool?'],
+          ),
+        ),
       );
     });
 
@@ -52,13 +56,17 @@ void main() {
       expect(pick('false').asBoolOrThrow(), isFalse);
       expect(
         () => pick('Bubblegum').asBoolOrThrow(),
-        throwsA(pickException(
-            containing: ['String', 'Bubblegum', '<root>', 'bool'])),
+        throwsA(
+          pickException(containing: ['String', 'Bubblegum', '<root>', 'bool']),
+        ),
       );
       expect(
         () => nullPick().asBoolOrThrow(),
-        throwsA(pickException(
-            containing: ['unknownKey', 'asBoolOrNull', 'null', 'bool?'])),
+        throwsA(
+          pickException(
+            containing: ['unknownKey', 'asBoolOrNull', 'null', 'bool?'],
+          ),
+        ),
       );
     });
   });
@@ -91,8 +99,9 @@ void main() {
       expect(
         // ignore: deprecated_member_use_from_same_package
         () => pick('Bubblegum').required().asBool(),
-        throwsA(pickException(
-            containing: ['String', 'Bubblegum', '<root>', 'bool'])),
+        throwsA(
+          pickException(containing: ['String', 'Bubblegum', '<root>', 'bool']),
+        ),
       );
       expect(
         // ignore: deprecated_member_use_from_same_package
@@ -107,12 +116,15 @@ void main() {
       expect(pick('false').required().asBoolOrThrow(), isFalse);
       expect(
         () => pick('Bubblegum').required().asBoolOrThrow(),
-        throwsA(pickException(
-            containing: ['String', 'Bubblegum', '<root>', 'bool'])),
+        throwsA(
+          pickException(containing: ['String', 'Bubblegum', '<root>', 'bool']),
+        ),
       );
       expect(
         () => nullPick().required().asBoolOrThrow(),
-        throwsA(pickException(containing: ['unknownKey', 'absent'])),
+        throwsA(
+          pickException(containing: ['unknownKey', 'absent']),
+        ),
       );
     });
   });

@@ -168,8 +168,10 @@ Future<CounterApiStats> getStats() async {
   final int keys_created = pick(json, 'keys_created').asIntOrThrow();
   final int? keys_updated = pick(json, 'keys_updated').asIntOrNull();
   final String? version = pick(json, 'version').asStringOrNull();
-  print('requests $requests, keys_created $keys_created, '
-      'keys_updated: $keys_updated, version: "$version"');
+  print(
+    'requests $requests, keys_created $keys_created, '
+    'keys_updated: $keys_updated, version: "$version"',
+  );
 
   // Parse the full object
   final CounterApiStats stats = CounterApiStats.fromPick(pick(json).required());

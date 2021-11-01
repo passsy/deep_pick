@@ -4,9 +4,11 @@ import 'package:test/test.dart';
 void main() {
   group('RequiredPick', () {
     test('toString() works as expected', () {
-      // ignore: deprecated_member_use_from_same_package
-      expect(RequiredPick('a', path: ['b', 0]).toString(),
-          'RequiredPick(value=a, path=[b, 0])');
+      expect(
+        // ignore: deprecated_member_use_from_same_package
+        RequiredPick('a', path: ['b', 0]).toString(),
+        'RequiredPick(value=a, path=[b, 0])',
+      );
     });
 
     test('value is non nullable', () {

@@ -17,7 +17,8 @@ extension NullableIntPick on Pick {
     final value = required().value;
     if (roundDouble && truncateDouble) {
       throw PickException(
-          '[roundDouble] and [truncateDouble] can not be true at the same time');
+        '[roundDouble] and [truncateDouble] can not be true at the same time',
+      );
     }
     if (value is int) {
       return value;
@@ -36,15 +37,18 @@ extension NullableIntPick on Pick {
     }
 
     throw PickException(
-        'Type ${value.runtimeType} of $debugParsingExit can not be parsed as int, set [roundDouble] or [truncateDouble] to parse from double');
+      'Type ${value.runtimeType} of $debugParsingExit can not be parsed as int, set [roundDouble] or [truncateDouble] to parse from double',
+    );
   }
 
   /// Returns the picked [value] as [int] or throws
   ///
   /// {@macro Pick.asInt}
   int asIntOrThrow({bool roundDouble = false, bool truncateDouble = false}) {
-    withContext(requiredPickErrorHintKey,
-        'Use asIntOrNull() when the value may be null/absent at some point (int?).');
+    withContext(
+      requiredPickErrorHintKey,
+      'Use asIntOrNull() when the value may be null/absent at some point (int?).',
+    );
     return _parse(roundDouble, truncateDouble);
   }
 

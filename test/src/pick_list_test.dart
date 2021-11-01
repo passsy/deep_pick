@@ -7,16 +7,22 @@ void main() {
   group('pick().asList*', () {
     group('asListOrThrow', () {
       test('pipe through List', () {
-        expect(pick([1, 2, 3]).asListOrThrow((it) => it.asIntOrThrow()),
-            [1, 2, 3]);
+        expect(
+          pick([1, 2, 3]).asListOrThrow((it) => it.asIntOrThrow()),
+          [1, 2, 3],
+        );
       });
 
       test('null throws', () {
         expect(
           () => nullPick().asListOrThrow((it) => it.asStringOrThrow()),
-          throwsA(pickException(containing: [
-            'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asListOrEmpty()/asListOrNull() when the value may be null/absent at some point (List<String>?).'
-          ])),
+          throwsA(
+            pickException(
+              containing: [
+                'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asListOrEmpty()/asListOrNull() when the value may be null/absent at some point (List<String>?).'
+              ],
+            ),
+          ),
         );
       });
 
@@ -79,23 +85,34 @@ void main() {
             {'name': 'John Snow'},
             {'asdf': 'Daenerys Targaryen'}, // <-- missing name key
           ]).asListOrThrow((pick) => Person.fromPick(pick)),
-          throwsA(pickException(containing: [
-            'Expected a non-null value but location list index 1 in pick(json, 1 (absent), "name") is absent. Use asListOrEmpty()/asListOrNull() when the value may be null/absent at some point (List<Person>?).'
-          ])),
+          throwsA(
+            pickException(
+              containing: [
+                'Expected a non-null value but location list index 1 in pick(json, 1 (absent), "name") is absent. Use asListOrEmpty()/asListOrNull() when the value may be null/absent at some point (List<Person>?).'
+              ],
+            ),
+          ),
         );
       });
 
       test('wrong type throws', () {
         expect(
           () => pick('Bubblegum').asListOrThrow((it) => it.asStringOrThrow()),
-          throwsA(pickException(
-              containing: ['String', 'Bubblegum', 'List<dynamic>'])),
+          throwsA(
+            pickException(
+              containing: ['String', 'Bubblegum', 'List<dynamic>'],
+            ),
+          ),
         );
         expect(
           () => pick(Object()).asListOrThrow((it) => it.asStringOrThrow()),
-          throwsA(pickException(containing: [
-            'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be casted to List<dynamic>'
-          ])),
+          throwsA(
+            pickException(
+              containing: [
+                'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be casted to List<dynamic>'
+              ],
+            ),
+          ),
         );
       });
     });
@@ -106,16 +123,22 @@ void main() {
       expect(
         // ignore: deprecated_member_use_from_same_package
         () => pick(Object()).asList(),
-        throwsA(pickException(containing: [
-          'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be casted to List<dynamic>'
-        ])),
+        throwsA(
+          pickException(
+            containing: [
+              'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be casted to List<dynamic>'
+            ],
+          ),
+        ),
       );
     });
 
     group('asListOrEmpty', () {
       test('pick value', () {
-        expect(pick([1, 2, 3]).asListOrEmpty((it) => it.asIntOrThrow()),
-            [1, 2, 3]);
+        expect(
+          pick([1, 2, 3]).asListOrEmpty((it) => it.asIntOrThrow()),
+          [1, 2, 3],
+        );
       });
 
       test('null returns null', () {
@@ -192,9 +215,13 @@ void main() {
             {'name': 'John Snow'},
             {'asdf': 'Daenerys Targaryen'}, // <-- missing name key
           ]).asListOrEmpty((pick) => Person.fromPick(pick)),
-          throwsA(pickException(containing: [
-            'Expected a non-null value but location list index 1 in pick(json, 1 (absent), "name") is absent.'
-          ])),
+          throwsA(
+            pickException(
+              containing: [
+                'Expected a non-null value but location list index 1 in pick(json, 1 (absent), "name") is absent.'
+              ],
+            ),
+          ),
         );
       });
     });
@@ -202,7 +229,9 @@ void main() {
     group('asListOrNull', () {
       test('pick value', () {
         expect(
-            pick([1, 2, 3]).asListOrNull((it) => it.asIntOrThrow()), [1, 2, 3]);
+          pick([1, 2, 3]).asListOrNull((it) => it.asIntOrThrow()),
+          [1, 2, 3],
+        );
       });
 
       test('null returns null', () {
@@ -280,9 +309,13 @@ void main() {
         ];
         expect(
           () => pick(data).asListOrNull((pick) => Person.fromPick(pick)),
-          throwsA(pickException(containing: [
-            'Expected a non-null value but location list index 1 in pick(json, 1 (absent), "name") is absent.'
-          ])),
+          throwsA(
+            pickException(
+              containing: [
+                'Expected a non-null value but location list index 1 in pick(json, 1 (absent), "name") is absent.'
+              ],
+            ),
+          ),
         );
       });
     });
@@ -290,12 +323,14 @@ void main() {
     group('index in asList* items', () {
       test('index is available in lists', () {
         final entries = pick(['a', 'b', 'c']).asListOrThrow(
-            (pick) => MapEntry(pick.asStringOrThrow(), pick.index));
+          (pick) => MapEntry(pick.asStringOrThrow(), pick.index),
+        );
         expect(Map.fromEntries(entries), {'a': 0, 'b': 1, 'c': 2});
       });
       test('index increments for null values', () {
         final entries = pick(['a', null, null, 'b', null, 'c']).asListOrThrow(
-            (pick) => MapEntry(pick.asStringOrThrow(), pick.index));
+          (pick) => MapEntry(pick.asStringOrThrow(), pick.index),
+        );
         expect(Map.fromEntries(entries), {'a': 0, 'b': 3, 'c': 5});
       });
       test('whenNull has access to index', () {

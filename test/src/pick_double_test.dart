@@ -38,18 +38,26 @@ void main() {
       test('null throws', () {
         expect(
           () => nullPick().asDoubleOrThrow(),
-          throwsA(pickException(containing: [
-            'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asDoubleOrNull() when the value may be null/absent at some point (double?).'
-          ])),
+          throwsA(
+            pickException(
+              containing: [
+                'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asDoubleOrNull() when the value may be null/absent at some point (double?).'
+              ],
+            ),
+          ),
         );
       });
 
       test('wrong type throws', () {
         expect(
           () => pick(Object()).asDoubleOrThrow(),
-          throwsA(pickException(containing: [
-            'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as double'
-          ])),
+          throwsA(
+            pickException(
+              containing: [
+                'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as double'
+              ],
+            ),
+          ),
         );
 
         expect(
@@ -65,9 +73,13 @@ void main() {
       expect(
         // ignore: deprecated_member_use_from_same_package
         () => pick(Object()).asDouble(),
-        throwsA(pickException(containing: [
-          'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as double'
-        ])),
+        throwsA(
+          pickException(
+            containing: [
+              'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as double'
+            ],
+          ),
+        ),
       );
     });
 
@@ -90,8 +102,10 @@ void main() {
     group('asDoubleOrThrow', () {
       test('parse double', () {
         expect(pick(1.0).required().asDoubleOrThrow(), 1.0);
-        expect(pick(double.infinity).required().asDoubleOrThrow(),
-            double.infinity);
+        expect(
+          pick(double.infinity).required().asDoubleOrThrow(),
+          double.infinity,
+        );
       });
 
       test('parse int', () {
@@ -121,18 +135,26 @@ void main() {
       test('null throws', () {
         expect(
           () => nullPick().required().asDoubleOrThrow(),
-          throwsA(pickException(containing: [
-            'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent.'
-          ])),
+          throwsA(
+            pickException(
+              containing: [
+                'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent.'
+              ],
+            ),
+          ),
         );
       });
 
       test('wrong type throws', () {
         expect(
           () => pick(Object()).required().asDoubleOrThrow(),
-          throwsA(pickException(containing: [
-            'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as double'
-          ])),
+          throwsA(
+            pickException(
+              containing: [
+                'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as double'
+              ],
+            ),
+          ),
         );
 
         expect(
@@ -148,9 +170,13 @@ void main() {
       expect(
         // ignore: deprecated_member_use_from_same_package
         () => pick(Object()).required().asDouble(),
-        throwsA(pickException(containing: [
-          'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as double'
-        ])),
+        throwsA(
+          pickException(
+            containing: [
+              'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as double'
+            ],
+          ),
+        ),
       );
     });
 

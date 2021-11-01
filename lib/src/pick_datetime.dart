@@ -108,7 +108,8 @@ extension NullableDateTimePick on Pick {
       }
 
       throw PickException(
-          'Type ${value.runtimeType} of $debugParsingExit can not be parsed as DateTime using $format');
+        'Type ${value.runtimeType} of $debugParsingExit can not be parsed as DateTime using $format',
+      );
     }
 
     // without format, try all formats
@@ -120,7 +121,8 @@ extension NullableDateTimePick on Pick {
     }
 
     throw PickException(
-        'Type ${value.runtimeType} of $debugParsingExit can not be parsed as DateTime');
+      'Type ${value.runtimeType} of $debugParsingExit can not be parsed as DateTime',
+    );
   }
 
   /// Parses the picked [value] as ISO 8601 String to [DateTime] or throws
@@ -129,8 +131,10 @@ extension NullableDateTimePick on Pick {
   ///
   /// {@macro Pick.asDateTime}
   DateTime asDateTimeOrThrow({PickDateFormat? format}) {
-    withContext(requiredPickErrorHintKey,
-        'Use asDateTimeOrNull() when the value may be null/absent at some point (DateTime?).');
+    withContext(
+      requiredPickErrorHintKey,
+      'Use asDateTimeOrNull() when the value may be null/absent at some point (DateTime?).',
+    );
     return _parse(format: format);
   }
 
@@ -160,7 +164,8 @@ extension NullableDateTimePick on Pick {
     // not using HttpDate.parse because it is not available in the browsers
     try {
       final rfc1123Regex = RegExp(
-          r'^\s*(\S{3}),\s*(\d+)\s*(\S{3})\s*(\d+)\s+(\d+):(\d+):(\d+)\s*GMT');
+        r'^\s*(\S{3}),\s*(\d+)\s*(\S{3})\s*(\d+)\s+(\d+):(\d+):(\d+)\s*GMT',
+      );
       final match = rfc1123Regex.firstMatch(value)!;
       final day = int.parse(match.group(2)!);
       final month = _months[match.group(3)!]!;
@@ -200,7 +205,8 @@ extension NullableDateTimePick on Pick {
     if (value is! String) return null;
     try {
       final rfc850Regex = RegExp(
-          r'^\s*(\S+),\s*(\d+)-(\S{3})-(\d+)\s+(\d+):(\d+):(\d+)\s*(GMT|UT)');
+        r'^\s*(\S+),\s*(\d+)-(\S{3})-(\d+)\s+(\d+):(\d+):(\d+)\s*(GMT|UT)',
+      );
       final match = rfc850Regex.firstMatch(value)!;
       final day = int.parse(match.group(2)!);
       final month = _months[match.group(3)!]!;

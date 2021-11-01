@@ -35,8 +35,10 @@ extension NullableLet on Pick {
   ///   pick(json, 'users', 0).letOrThrow((pick) => User.fromJson(pick.asMap()));
   /// ```
   R letOrThrow<R>(R Function(RequiredPick pick) block) {
-    withContext(requiredPickErrorHintKey,
-        'Use letOrNull() when the value may be null/absent at some point.');
+    withContext(
+      requiredPickErrorHintKey,
+      'Use letOrNull() when the value may be null/absent at some point.',
+    );
     return block(required());
   }
 
