@@ -145,11 +145,14 @@ pick(1).letOrNull((pick) => pick.value == 1 ? true : pick.value == 0 ? false : n
 
 ### `DateTime`
 
-Accepts most common date formats such as `ISO 8601`. For more supported formats see [`DateTime.parse`](https://api.dart.dev/stable/1.24.2/dart-core/DateTime/parse.html).
+Accepts most common date formats such as `ISO 8601` (including `RFC 3339`), `RFC 1123` ([HTTP `date`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Date) header, [RSS2](https://validator.w3.org/feed/docs/rss2.html) `pubDate`), `RFC 850` (including `RFC 1036`, `COOKIE`), `ANSI C asctime()`. 
 
 ```dart
-pick('2020-03-01T13:00:00Z').asDateTimeOrNull(); // a valid DateTime object
-pick('20200227 13:27:00').asDateTimeOrThrow(); // a valid DateTime object
+pick('2021-11-01T11:53:15Z').asDateTimeOrNull(); // UTC
+pick('2021-11-01T11:53:15+0000').asDateTimeOrNull(); // ISO 8601
+pick('Monday, 01-Nov-21 11:53:15 UTC').asDateTimeOrThrow(); // RFC 850
+pick('Wed, 21 Oct 2015 07:28:00 GMT').asDateTimeOrThrow(); // RFC 1123
+pick('Sun Nov  6 08:49:37 1994').asDateTimeOrThrow(); // asctime()
 ```
 
 ### `List`

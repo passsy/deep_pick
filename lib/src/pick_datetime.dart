@@ -7,18 +7,21 @@ enum PickDateFormat {
   ///
   /// https://www.w3.org/TR/NOTE-datetime
   ///
+  /// Also covers [RFC-3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)
+  ///
   /// Example:
   /// - `2005-08-15T15:52:01+0000`
   ISO_8601,
 
-  /// The typical HTTP date header
+  /// A typical format used in the web that's not ISO8601
   ///
   /// [RFC-1123](http://tools.ietf.org/html/rfc1123) (specifically
   /// [RFC-5322 Section 3.3](https://datatracker.ietf.org/doc/html/rfc5322#section-3.3))
   /// based on [RFC-822](https://datatracker.ietf.org/doc/html/rfc822)
   ///
-  /// See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Date
-  /// See https://www.rfc-editor.org/rfc/rfc2616#section-3.3
+  /// Used as
+  /// - HTTP date header https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Date, https://www.rfc-editor.org/rfc/rfc2616#section-3.3
+  /// - RSS2 pubDate, lastBuildDate https://validator.w3.org/feed/docs/rss2.html
   ///
   /// Example:
   /// - `Date: Wed, 21 Oct 2015 07:28:00 GMT`
