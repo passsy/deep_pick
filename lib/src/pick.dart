@@ -315,10 +315,6 @@ class Pick {
     return this;
   }
 
-  // Has been removed in 0.5.0
-  @Deprecated('Use withContext')
-  Pick Function(String key, dynamic value) get addContext => withContext;
-
   /// Pick values from the context using the [Pick] API
   ///
   /// ```
@@ -436,12 +432,6 @@ class RequiredPick extends Pick {
   String toString() => 'RequiredPick(value=$value, path=$path)';
 
   Pick nullable() => Pick(value, path: path, context: context);
-
-  // Has been removed in 0.5.0
-  @Deprecated('Use withContext')
-  @override
-  RequiredPick Function(String key, dynamic value) get addContext =>
-      withContext;
 
   @override
   RequiredPick withContext(String key, Object? value) {

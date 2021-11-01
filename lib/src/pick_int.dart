@@ -1,9 +1,6 @@
 import 'package:deep_pick/src/pick.dart';
 
 extension NullableIntPick on Pick {
-  @Deprecated('Use .asIntOrThrow()')
-  int Function() get asInt => asIntOrThrow;
-
   /// Returns the picked [value] as [int]
   ///
   /// {@template Pick.asInt}

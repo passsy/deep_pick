@@ -1,9 +1,6 @@
 import 'package:deep_pick/src/pick.dart';
 
 extension NullableMapPick on Pick {
-  @Deprecated('Use .asMapOrThrow()')
-  Map<RK, RV> Function<RK, RV>() get asMap => asMapOrThrow;
-
   /// Returns the picked [value] as [Map]
   ///
   /// {@template Pick.asMap}

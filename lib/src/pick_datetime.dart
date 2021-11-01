@@ -59,9 +59,6 @@ enum PickDateFormat {
 }
 
 extension NullableDateTimePick on Pick {
-  @Deprecated('Use .asDateTimeOrThrow()')
-  DateTime Function() get asDateTime => asDateTimeOrThrow;
-
   /// Parses the picked non-null [value] as [DateTime] or throws
   ///
   /// {@template Pick.asDateTime}

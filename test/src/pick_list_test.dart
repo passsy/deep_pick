@@ -117,22 +117,6 @@ void main() {
       });
     });
 
-    test('deprecated asList forwards to asListOrThrow', () {
-      // ignore: deprecated_member_use_from_same_package
-      expect(pick([1, 2, 3]).asList<int>(), [1, 2, 3]);
-      expect(
-        // ignore: deprecated_member_use_from_same_package
-        () => pick(Object()).asList(),
-        throwsA(
-          pickException(
-            containing: [
-              'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be casted to List<dynamic>'
-            ],
-          ),
-        ),
-      );
-    });
-
     group('asListOrEmpty', () {
       test('pick value', () {
         expect(

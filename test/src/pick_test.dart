@@ -359,12 +359,6 @@ void main() {
       expect(root.context, {'lang': 'de'});
     });
 
-    test('add and read from context with syntax sugar (deprecated)', () {
-      // ignore: deprecated_member_use_from_same_package
-      final root = pick([]).addContext('lang', 'de');
-      expect(root.fromContext('lang').asStringOrNull(), 'de');
-    });
-
     test('read from deep nested context', () {
       final root = pick([]).withContext('user', {'id': '1234'});
       expect(root.fromContext('user', 'id').asStringOrNull(), '1234');

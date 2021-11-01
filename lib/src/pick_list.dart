@@ -1,17 +1,6 @@
 import 'package:deep_pick/src/pick.dart';
 
 extension NullableListPick on Pick {
-  @Deprecated('Use .asListOrThrow()')
-  List<T> asList<T>([T Function(Pick)? map]) {
-    return asListOrThrow(
-      (it) {
-        final mapFn = map ?? (Pick it) => it.value as T;
-        return mapFn(it.nullable());
-      },
-      whenNull: (it) => it.value as T,
-    );
-  }
-
   /// Returns the items of the [List] as list, mapped each item with [map]
   ///
   /// {@template Pick.asList}

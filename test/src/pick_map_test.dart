@@ -46,21 +46,6 @@ void main() {
               ),
             ),
           );
-          // ignore: avoid_catching_errors, deprecated_member_use
-        } on CastError catch (e) {
-          // backwards compatibility for Dart 2.7
-          // CastError was replaced with TypeError in Dart 2.8
-          expect(
-            e,
-            // ignore: deprecated_member_use
-            const TypeMatcher<CastError>().having(
-              (e) => e.toString(),
-              'message',
-              stringContainsInOrder(
-                ['<String, String>', 'is not a subtype of type', 'bool'],
-              ),
-            ),
-          );
         }
       });
 
@@ -84,22 +69,6 @@ void main() {
           ),
         );
       });
-    });
-
-    test('deprecated asMap forwards to asMapOrThrow', () {
-      // ignore: deprecated_member_use_from_same_package
-      expect(pick({'ab': 'cd'}).asMap(), {'ab': 'cd'});
-      expect(
-        // ignore: deprecated_member_use_from_same_package
-        () => pick(Object()).asMap(),
-        throwsA(
-          pickException(
-            containing: [
-              'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be casted to Map<dynamic, dynamic>'
-            ],
-          ),
-        ),
-      );
     });
 
     group('asMapOrEmpty', () {
@@ -139,20 +108,6 @@ void main() {
             ),
           );
           // ignore: avoid_catching_errors, deprecated_member_use
-        } on CastError catch (e) {
-          // backwards compatibility for Dart 2.7
-          // CastError was replaced with TypeError in Dart 2.8
-          expect(
-            e,
-            // ignore: deprecated_member_use
-            const TypeMatcher<CastError>().having(
-              (e) => e.toString(),
-              'message',
-              stringContainsInOrder(
-                ['<String, String>', 'is not a subtype of type', 'bool'],
-              ),
-            ),
-          );
         }
       });
     });
