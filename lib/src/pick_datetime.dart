@@ -35,7 +35,7 @@ enum PickDateFormat {
   /// - `Fri Feb 15 14:45:01 2013`
   ANSI_C_asctime,
 
-  /// A valid but rarely used format for HTTP date headers
+  /// A valid but rarely used format for HTTP date headers, and cookies
   ///
   /// https://datatracker.ietf.org/doc/html/rfc850, obsolete by
   /// [RFC 1036](https://datatracker.ietf.org/doc/html/rfc1036)
@@ -196,8 +196,8 @@ extension NullableDateTimePick on Pick {
     final value = required().value;
     if (value is! String) return null;
     try {
-      final rfc850Regex =
-          RegExp(r'^\s*(\S+),\s*(\d+)-(\S{3})-(\d+)\s+(\d+):(\d+):(\d+)\s*GMT');
+      final rfc850Regex = RegExp(
+          r'^\s*(\S+),\s*(\d+)-(\S{3})-(\d+)\s+(\d+):(\d+):(\d+)\s*(GMT|UT)');
       final match = rfc850Regex.firstMatch(value)!;
       final day = int.parse(match.group(2)!);
       final month = _months[match.group(3)!]!;

@@ -424,7 +424,10 @@ void main() {
         );
       });
 
-      test('only allows GMT', () {
+      test('only allows GMT/UT as time zone', () {
+        pick('Sunday, 06-Nov-94 08:49:37 GMT').asDateTimeOrThrow(); // ok
+        pick('Sunday, 06-Nov-94 08:49:37 UT').asDateTimeOrThrow(); // ok
+
         expect(
           () => pick('Sunday, 6-Nov-94 08:49:37 PST').asDateTimeOrThrow(),
           throwsA(pickException(
