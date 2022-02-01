@@ -6,6 +6,4 @@ analyzer:
 
 linter:
   rules:
-    # Make pana happy
     prefer_single_quotes: true
-    omit_local_variable_types: true
