@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print, always_require_non_null_named_parameters, non_constant_identifier_names, omit_local_variable_types
+// ignore_for_file: avoid_print, always_require_non_null_named_parameters, non_constant_identifier_names, omit_local_variable_types, avoid_dynamic_calls
 import 'dart:convert';
 
 import 'package:deep_pick/deep_pick.dart';

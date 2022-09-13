@@ -155,6 +155,7 @@ void main() {
         });
 
         test('2', () {
+          // ignore: avoid_redundant_argument_values
           final date = DateTime.utc(1970, DateTime.january);
           expect(
             pick('Thu, 1 Jan 1970 00:00:00 GMT').asDateTimeOrThrow(),
