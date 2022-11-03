@@ -1,3 +1,7 @@
+// ignore_for_file: avoid_dynamic_calls
+
+import 'dart:convert';
+
 import 'package:deep_pick/deep_pick.dart';
 import 'package:test/test.dart';
 
@@ -37,17 +41,23 @@ void main() {
     expect(map['asdf']!['qwer'], 2);
   });
 
+  test('Change type from int to String', () {
+    final Map<dynamic, dynamic> map = {'asdf': 1};
+    pick(map, 'asdf').set('john');
+    expect(pick(map, 'asdf').asStringOrNull(), 'john');
+  });
+
   test('Replace item deep in list', () {
     final list = [
       [],
       null,
       [
         null,
-        [8]
+        <dynamic>[8],
       ]
     ];
-    pick(list, 0, 2, 1).set(5);
-    expect(list[0]![2]![1], 5);
+    pick(list, 2, 1, 0).set('hello');
+    expect(list[2]![1]![0], 'hello');
   });
 
   test('Add item to empty list', () {
