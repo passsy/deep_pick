@@ -83,4 +83,15 @@ void main() {
     pick(map, 'meta', 0).set({'index': 0});
     expect(pick(map, 'meta', 0, 'index').value, 0);
   });
+
+  test('Pick object returns old value after modification', () {
+    final map = {};
+    final pickObject = pick(map, 'asdf');
+    pickObject.set(12);
+    expect(map['asdf'], 12);
+    // the pickObject doesn't know about the modification thus it still returns the old value.
+    // That's expected because `pick` extracts the value immediately and doesn't observe the data structure.
+    // To create a pointer to a value in a data structure use `pickDeep` instead and save/reuse the selector (List<dynamic>)
+    expect(pickObject.value, null);
+  });
 }
