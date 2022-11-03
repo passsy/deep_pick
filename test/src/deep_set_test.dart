@@ -5,6 +5,7 @@ import 'pick_test.dart';
 
 void main() {
   test('Can not add to empty object', () {
+    // ignore: prefer_const_declarations
     final Map? map = null;
     expect(
       () => pick(map).set('value'),
@@ -28,12 +29,25 @@ void main() {
     expect(map['asdf'], 2);
   });
 
-  test('Replate item deep in map', () {
+  test('Replace item deep in map', () {
     final map = {
       'asdf': {'qwer': 1}
     };
     pick(map, 'asdf', 'qwer').set(2);
     expect(map['asdf']!['qwer'], 2);
+  });
+
+  test('Replace item deep in list', () {
+    final list = [
+      [],
+      null,
+      [
+        null,
+        [8]
+      ]
+    ];
+    pick(list, 0, 2, 1).set(5);
+    expect(list[0]![2]![1], 5);
   });
 
   test('Add item to empty list', () {
@@ -60,36 +74,3 @@ void main() {
     expect(pick(map, 'meta', 0, 'index').value, 0);
   });
 }
-
-// map.set('key', 'value') = 12;
-//
-// final value = pick(map, 'key', 'asdf').asIntOrThrow();
-//
-// // {
-// //   'key': {
-// //     'asdf': 12,
-// //   }
-// // }
-//
-// // set key.asdf in map to 12
-// map.set('key', 'asdf') = 12;
-//
-//
-// final locationPoint = loc('key', 'asdf');
-// // set(map, locationPoint, value: 12);
-// // map.set(locationPoint, value: 12);
-// // loc.set(map, value: 12);
-//
-// set(map, loc('key', 'asdf'), value: {'qwer': 24});
-// set(map, loc('key', 'asdf'), value: {'qwer': 24});
-// set(map, loc('key', 'asdf', 'qwer'), value:  24);
-// map.prop('key', 'asdf', 'qwer').set(24);
-// map.prop('key', 'asdf', 'qwer').set({
-//   'zxcv': 48,
-//   'asdf': 96,
-// });
-//
-// map.prop('asdf', 4).set('asdf');
-// final Pick p = map.prop('asdf', 4);
-//
-// final Pick p1 = pick(map, 'asdf');
