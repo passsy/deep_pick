@@ -7,3 +7,4 @@ export 'package:deep_pick/src/pick_let.dart';
 export 'package:deep_pick/src/pick_list.dart';
 export 'package:deep_pick/src/pick_map.dart';
 export 'package:deep_pick/src/pick_string.dart';
+export 'package:deep_pick/src/set_value.dart';

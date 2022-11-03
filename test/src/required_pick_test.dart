@@ -6,7 +6,7 @@ void main() {
     test('toString() works as expected', () {
       expect(
         // ignore: deprecated_member_use_from_same_package
-        RequiredPick('a', path: ['b', 0]).toString(),
+        RequiredPick('a', {}, path: ['b', 0]).toString(),
         'RequiredPick(value=a, path=[b, 0])',
       );
     });

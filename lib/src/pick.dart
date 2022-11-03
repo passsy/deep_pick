@@ -104,6 +104,7 @@ Pick _drillDown(
 }) {
   final fullPath = [...parentPath, ...selectors];
   final path = <dynamic>[];
+  /*Map|List|null*/ dynamic target = json;
   /*Map|List|null*/ dynamic data = json;
   for (final selector in selectors) {
     path.add(selector);
@@ -112,25 +113,27 @@ Pick _drillDown(
         try {
           data = data[selector];
           if (data == null) {
-            return Pick(null, path: fullPath, context: context);
+            return Pick(null, target, path: fullPath, context: context);
           }
           // found a value, continue drill down
           continue;
           // ignore: avoid_catching_errors
         } on RangeError catch (_) {
           // out of range, value not found at index selector
-          return Pick.absent(path.length - 1, path: fullPath, context: context);
+          return Pick.absent(path.length - 1, target,
+              path: fullPath, context: context);
         }
       }
     }
     if (data is Map) {
       if (!data.containsKey(selector)) {
-        return Pick.absent(path.length - 1, path: fullPath, context: context);
+        return Pick.absent(path.length - 1, target,
+            path: fullPath, context: context);
       }
       final dynamic picked = data[selector];
       if (picked == null) {
         // no value mapped to selector
-        return Pick(null, path: fullPath, context: context);
+        return Pick(null, target, path: fullPath, context: context);
       }
       data = picked;
       continue;
@@ -142,9 +145,10 @@ Pick _drillDown(
       );
     }
     // can't drill down any more to find the exact location.
-    return Pick.absent(path.length - 1, path: fullPath, context: context);
+    return Pick.absent(path.length - 1, target,
+        path: fullPath, context: context);
   }
-  return Pick(data, path: fullPath, context: context);
+  return Pick(data, target, path: fullPath, context: context);
 }
 
 /// A picked object holding the [value] (may be null) and giving access to useful parsing functions
@@ -154,7 +158,8 @@ class Pick {
   /// [value] may still be `null` but the structure was correct, therefore
   /// [isAbsent] will always return `false`.
   Pick(
-    this.value, {
+    this.value,
+    this.target, {
     this.path = const [],
     Map<String, dynamic>? context,
   }) : context = context != null ? Map.of(context) : {};
@@ -164,7 +169,8 @@ class Pick {
   ///
   /// [value] will always return `null` and [isAbsent] always `true`.
   Pick.absent(
-    int missingValueAtIndex, {
+    int missingValueAtIndex,
+    this.target, {
     this.path = const [],
     Map<String, Object?>? context,
   })  : value = null,
@@ -173,6 +179,9 @@ class Pick {
 
   /// The picked value, might be `null`
   final Object? value;
+
+  /// The object where the value was picked from at [path]
+  final Object? target;
 
   /// Allows the distinction between the actual [value] `null` and the value not
   /// being available
@@ -275,7 +284,7 @@ class Pick {
         'is ${isAbsent ? 'absent' : 'null'}.$moreSegment',
       );
     }
-    return RequiredPick(value, path: path, context: context);
+    return RequiredPick(value, target, path: path, context: context);
   }
 
   @override
@@ -417,11 +426,12 @@ class Pick {
 class RequiredPick extends Pick {
   RequiredPick(
     // using dynamic here to match the return type of jsonDecode
-    dynamic value, {
+    dynamic value,
+    dynamic target, {
     List<Object> path = const [],
     Map<String, Object?>? context,
   })  : value = value as Object,
-        super(value, path: path, context: context);
+        super(value, target, path: path, context: context);
 
   @override
   // ignore: overridden_fields
@@ -431,7 +441,7 @@ class RequiredPick extends Pick {
   @Deprecated('Use asStringOrNull() to pick a String value')
   String toString() => 'RequiredPick(value=$value, path=$path)';
 
-  Pick nullable() => Pick(value, path: path, context: context);
+  Pick nullable() => Pick(value, target, path: path, context: context);
 
   @override
   RequiredPick withContext(String key, Object? value) {

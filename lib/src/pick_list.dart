@@ -51,8 +51,8 @@ extension NullableListPick on Pick {
       for (final item in value) {
         index++;
         if (item != null) {
-          final picked =
-              RequiredPick(item, path: [...path, index], context: context);
+          final picked = RequiredPick(item, target,
+              path: [...path, index], context: context);
           result.add(map(picked));
           continue;
         }
@@ -61,7 +61,8 @@ extension NullableListPick on Pick {
           continue;
         }
         try {
-          final pick = Pick(null, path: [...path, index], context: context);
+          final pick =
+              Pick(null, target, path: [...path, index], context: context);
           result.add(whenNull(pick));
           continue;
         } catch (e) {
