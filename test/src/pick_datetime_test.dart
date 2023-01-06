@@ -23,6 +23,36 @@ void main() {
         expect(pick(time).asDateTimeOrThrow(), time);
       });
 
+      test('parse DateTime with timezone +0000', () {
+        const input = 'Monday, 01-Nov-21 11:53:15 +0000';
+        final time = DateTime.utc(2021, 11, 01, 11, 53, 15);
+        expect(pick(input).asDateTimeOrThrow(), time);
+      });
+
+      test('parse DateTime with timezone EST', () {
+        const input = 'Mon, 01 Nov 24 11:58:15 EST';
+        final time = DateTime(2024, 11, 01, 11, 58, 15);
+        expect(pick(input).asDateTimeOrThrow(), time);
+      });
+
+      test('parse DateTime with timezone PDT', () {
+        const input = 'Monday, 01-Nov-99 11:53:11 PDT';
+        final time = DateTime(1999, 11, 01, 11, 53, 11);
+        expect(pick(input).asDateTimeOrThrow(), time);
+      });
+
+      test('parse DateTime with timezone B', () {
+        const input = 'Monday, 01-Jan-20 11:53:01 +0000';
+        final time = DateTime(2020, 01, 01, 11, 53, 01);
+        expect(pick(input).asDateTimeOrThrow(), time);
+      });
+
+      test('parse DateTime with timezone +7030', () {
+        const input = 'Monday, 01-Nov-21 11:53:15 +7030';
+        final time = DateTime.utc(2021, 11, 01, 11, 53, 15);
+        expect(pick(input).asDateTimeOrThrow(), time);
+      });
+
       test('null throws', () {
         expect(
           () => nullPick().asDateTimeOrThrow(),
