@@ -239,6 +239,13 @@ const _months = {
   'Dec': 12,
 };
 
+/// This returns a 4-digit year from 2-digit input
+///
+/// For years 0-49 it returns 2000-2049
+/// For years 50-99 it returns 1950-1999
+///
+/// Logic taken from:
+/// https://www.ietf.org/rfc/rfc2822.txt
 int _normalizeYear(int year) {
   if (year < 100) {
     if (year < 50) {
@@ -250,6 +257,7 @@ int _normalizeYear(int year) {
   return year;
 }
 
+/// The Duration to add to a DateTime to get the correct time in UTC
 Duration _getTimeZoneOffset(String? timeZone) {
   if (timeZone == null) return Duration.zero;
   if (RegExp(r'^[+-]\d{4}$').hasMatch(timeZone)) {
