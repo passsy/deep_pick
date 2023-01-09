@@ -242,9 +242,9 @@ const _months = {
 int _normalizeYear(int year) {
   if (year < 100) {
     if (year < 50) {
-      return year += 2000;
+      return 2000 + year;
     } else {
-      return year += 1900;
+      return 1900 + year;
     }
   }
   return year;
