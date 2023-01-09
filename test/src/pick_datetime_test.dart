@@ -24,32 +24,32 @@ void main() {
       });
 
       test('parse DateTime with timezone +0000', () {
-        const input = 'Monday, 01-Nov-21 11:53:15 +0000';
-        final time = DateTime.utc(2021, 11, 01, 11, 53, 15);
+        const input = 'Monday, 21-Nov-21 11:53:15 +0000';
+        final time = DateTime.utc(2021, 11, 21, 11, 53, 15);
         expect(pick(input).asDateTimeOrThrow(), time);
       });
 
       test('parse DateTime with timezone EST', () {
-        const input = 'Mon, 01 Nov 24 11:58:15 EST';
-        final time = DateTime(2024, 11, 01, 11, 58, 15);
+        const input = 'Mon, 11 Nov 24 11:58:15 EST';
+        final time = DateTime.utc(2024, 11, 11, 16, 58, 15);
         expect(pick(input).asDateTimeOrThrow(), time);
       });
 
       test('parse DateTime with timezone PDT', () {
         const input = 'Monday, 01-Nov-99 11:53:11 PDT';
-        final time = DateTime(1999, 11, 01, 11, 53, 11);
+        final time = DateTime.utc(1999, 11, 01, 19, 53, 11);
         expect(pick(input).asDateTimeOrThrow(), time);
       });
 
       test('parse DateTime with timezone B', () {
         const input = 'Monday, 01-Jan-20 11:53:01 +0000';
-        final time = DateTime(2020, 01, 01, 11, 53, 01);
+        final time = DateTime.utc(2020, 01, 01, 11, 53, 01);
         expect(pick(input).asDateTimeOrThrow(), time);
       });
 
-      test('parse DateTime with timezone +7030', () {
-        const input = 'Monday, 01-Nov-21 11:53:15 +7030';
-        final time = DateTime.utc(2021, 11, 01, 11, 53, 15);
+      test('parse DateTime with timezone +0730', () {
+        const input = 'Monday, 01-Nov-21 11:53:15 +0730';
+        final time = DateTime.utc(2021, 11, 01, 19, 23, 15);
         expect(pick(input).asDateTimeOrThrow(), time);
       });
 
@@ -417,14 +417,6 @@ void main() {
         );
       });
 
-      test('requires reasonable numbers', () {
-        // Don't parse two digit year as 19XX
-        expect(
-          pick('Sun, 06 Nov 94 08:49:37 GMT').asDateTimeOrThrow(),
-          DateTime.utc(94, 11, 6, 8, 49, 37),
-        );
-      });
-
       test('only allows short weekday names', () {
         expect(
           () => pick('Sunday, 6 Nov 1994 08:49:37 GMT').asDateTimeOrThrow(),
@@ -442,17 +434,6 @@ void main() {
           throwsA(
             pickException(
               containing: ['Sun, 6 November 1994 08:49:37 GMT', 'DateTime'],
-            ),
-          ),
-        );
-      });
-
-      test('only allows GMT', () {
-        expect(
-          () => pick('Sun, 6 Nov 1994 08:49:37 PST').asDateTimeOrThrow(),
-          throwsA(
-            pickException(
-              containing: ['Sun, 6 Nov 1994 08:49:37 PST', 'DateTime'],
             ),
           ),
         );
@@ -628,20 +609,6 @@ void main() {
           throwsA(
             pickException(
               containing: ['Sunday, 6-November-94 08:49:37 GMT', 'DateTime'],
-            ),
-          ),
-        );
-      });
-
-      test('only allows GMT/UT as time zone', () {
-        pick('Sunday, 06-Nov-94 08:49:37 GMT').asDateTimeOrThrow(); // ok
-        pick('Sunday, 06-Nov-94 08:49:37 UT').asDateTimeOrThrow(); // ok
-
-        expect(
-          () => pick('Sunday, 6-Nov-94 08:49:37 PST').asDateTimeOrThrow(),
-          throwsA(
-            pickException(
-              containing: ['Sunday, 6-Nov-94 08:49:37 PST', 'DateTime'],
             ),
           ),
         );
