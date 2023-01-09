@@ -23,36 +23,6 @@ void main() {
         expect(pick(time).asDateTimeOrThrow(), time);
       });
 
-      test('parse DateTime with timezone +0000', () {
-        const input = 'Monday, 21-Nov-21 11:53:15 +0000';
-        final time = DateTime.utc(2021, 11, 21, 11, 53, 15);
-        expect(pick(input).asDateTimeOrThrow(), time);
-      });
-
-      test('parse DateTime with timezone EST', () {
-        const input = 'Mon, 11 Nov 24 11:58:15 EST';
-        final time = DateTime.utc(2024, 11, 11, 16, 58, 15);
-        expect(pick(input).asDateTimeOrThrow(), time);
-      });
-
-      test('parse DateTime with timezone PDT', () {
-        const input = 'Monday, 01-Nov-99 11:53:11 PDT';
-        final time = DateTime.utc(1999, 11, 01, 19, 53, 11);
-        expect(pick(input).asDateTimeOrThrow(), time);
-      });
-
-      test('parse DateTime with timezone B', () {
-        const input = 'Monday, 01-Jan-20 11:53:01 +0000';
-        final time = DateTime.utc(2020, 01, 01, 11, 53, 01);
-        expect(pick(input).asDateTimeOrThrow(), time);
-      });
-
-      test('parse DateTime with timezone +0730', () {
-        const input = 'Monday, 01-Nov-21 11:53:15 +0730';
-        final time = DateTime.utc(2021, 11, 01, 19, 23, 15);
-        expect(pick(input).asDateTimeOrThrow(), time);
-      });
-
       test('null throws', () {
         expect(
           () => nullPick().asDateTimeOrThrow(),
@@ -305,6 +275,36 @@ void main() {
         expect(date.timeZoneName, equals('UTC'));
       });
 
+      test('parse DateTime with timezone +0000', () {
+        const input = 'Mon, 21 Nov 2021 11:53:15 +0000';
+        final time = DateTime.utc(2021, 11, 21, 11, 53, 15);
+        expect(pick(input).asDateTimeOrThrow(), time);
+      });
+
+      test('parse DateTime with timezone EST', () {
+        const input = 'Mon, 11 Nov 24 11:58:15 EST';
+        final time = DateTime.utc(2024, 11, 11, 16, 58, 15);
+        expect(pick(input).asDateTimeOrThrow(), time);
+      });
+
+      test('parse DateTime with timezone PDT', () {
+        const input = 'Mon, 01 Nov 99 11:53:11 PDT';
+        final time = DateTime.utc(1999, 11, 01, 19, 53, 11);
+        expect(pick(input).asDateTimeOrThrow(), time);
+      });
+
+      test('parse DateTime with timezone +0000', () {
+        const input = 'Mon, 01 Jan 20 11:53:01 +0000';
+        final time = DateTime.utc(2020, 01, 01, 11, 53, 01);
+        expect(pick(input).asDateTimeOrThrow(), time);
+      });
+
+      test('parse DateTime with timezone +0730', () {
+        const input = 'Mon, 01 Nov 21 11:53:15 +0730';
+        final time = DateTime.utc(2021, 11, 01, 19, 23, 15);
+        expect(pick(input).asDateTimeOrThrow(), time);
+      });
+
       test('mozilla example', () {
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Date
         expect(
@@ -482,6 +482,36 @@ void main() {
         expect(date.minute, equals(49));
         expect(date.second, equals(37));
         expect(date.timeZoneName, equals('UTC'));
+      });
+
+      test('parse DateTime with timezone +0000', () {
+        const input = 'Monday, 21-Nov-21 11:53:15 +0000';
+        final time = DateTime.utc(2021, 11, 21, 11, 53, 15);
+        expect(pick(input).asDateTimeOrThrow(), time);
+      });
+
+      test('parse DateTime with timezone EST', () {
+        const input = 'Monday, 11-Nov-24 11:58:15 EST';
+        final time = DateTime.utc(2024, 11, 11, 16, 58, 15);
+        expect(pick(input).asDateTimeOrThrow(), time);
+      });
+
+      test('parse DateTime with timezone PDT', () {
+        const input = 'Monday, 01-Nov-99 11:53:11 PDT';
+        final time = DateTime.utc(1999, 11, 01, 19, 53, 11);
+        expect(pick(input).asDateTimeOrThrow(), time);
+      });
+
+      test('parse DateTime with timezone +0000', () {
+        const input = 'Monday, 01-Jan-20 11:53:01 +0000';
+        final time = DateTime.utc(2020, 01, 01, 11, 53, 01);
+        expect(pick(input).asDateTimeOrThrow(), time);
+      });
+
+      test('parse DateTime with timezone +0730', () {
+        const input = 'Monday, 01-Nov-21 11:53:15 +0730';
+        final time = DateTime.utc(2021, 11, 01, 19, 23, 15);
+        expect(pick(input).asDateTimeOrThrow(), time);
       });
 
       test('require whitespace between year and hour', () {
