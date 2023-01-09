@@ -161,16 +161,19 @@ extension NullableDateTimePick on Pick {
     // not using HttpDate.parse because it is not available in the browsers
     try {
       final rfc1123Regex = RegExp(
-        r'^\s*(\S{3}),\s*(\d+)\s*(\S{3})\s*(\d+)\s+(\d+):(\d+):(\d+)\s*GMT',
+        r'^\s*(\S{3}),\s*(\d+)\s*(\S{3})\s*(\d+)\s+(\d+):(\d+):(\d+)\s*([\w+-]+)\s*',
       );
       final match = rfc1123Regex.firstMatch(value)!;
       final day = int.parse(match.group(2)!);
       final month = _months[match.group(3)!]!;
-      final year = int.parse(match.group(4)!);
+      final year = _normalizeYear(int.parse(match.group(4)!));
       final hour = int.parse(match.group(5)!);
       final minute = int.parse(match.group(6)!);
       final seconds = int.parse(match.group(7)!);
-      return DateTime.utc(year, month, day, hour, minute, seconds);
+      final timezone = match.group(8);
+      final timeZoneOffset = _getTimeZoneOffset(timezone);
+      return DateTime.utc(year, month, day, hour, minute, seconds)
+          .add(timeZoneOffset);
     } catch (_) {
       return null;
     }
@@ -202,19 +205,19 @@ extension NullableDateTimePick on Pick {
     if (value is! String) return null;
     try {
       final rfc850Regex = RegExp(
-        r'^\s*(\S+),\s*(\d+)-(\S{3})-(\d+)\s+(\d+):(\d+):(\d+)\s*(GMT|UT)',
+        r'^\s*(\S+),\s*(\d+)-(\S{3})-(\d+)\s+(\d+):(\d+):(\d+)\s*([\w+-]+)\s*',
       );
       final match = rfc850Regex.firstMatch(value)!;
       final day = int.parse(match.group(2)!);
       final month = _months[match.group(3)!]!;
-      var year = int.parse(match.group(4)!);
-      if (year < 100) {
-        year = 1900 + year;
-      }
+      final year = _normalizeYear(int.parse(match.group(4)!));
       final hour = int.parse(match.group(5)!);
       final minute = int.parse(match.group(6)!);
       final seconds = int.parse(match.group(7)!);
-      return DateTime.utc(year, month, day, hour, minute, seconds);
+      final timezone = match.group(8);
+      final timeZoneOffset = _getTimeZoneOffset(timezone);
+      return DateTime.utc(year, month, day, hour, minute, seconds)
+          .add(timeZoneOffset);
     } catch (_) {
       return null;
     }
@@ -234,4 +237,50 @@ const _months = {
   'Oct': 10,
   'Nov': 11,
   'Dec': 12,
+};
+
+int _normalizeYear(int year) {
+  if (year < 100) {
+    if (year < 50) {
+      return year += 2000;
+    } else {
+      return year += 1900;
+    }
+  }
+  return year;
+}
+
+Duration _getTimeZoneOffset(String? timeZone) {
+  if (timeZone == null) return Duration.zero;
+  if (RegExp(r'^[+-]\d{4}$').hasMatch(timeZone)) {
+    final operator = timeZone[0] == '-' ? -1 : 1;
+    final hours = timeZone.substring(1, 3);
+    final minutes = timeZone.substring(3, 5);
+    return Duration(
+      hours: int.parse(hours) * operator,
+      minutes: int.parse(minutes) * operator,
+    );
+  } else {
+    final timeZoneOffset = _timeZoneOffsets[timeZone] ?? 0;
+    return Duration(hours: timeZoneOffset);
+  }
+}
+
+/// Time zone abbreviations and their offsets to get UTC in hours
+const Map<String, int> _timeZoneOffsets = {
+  'UT': 0,
+  'GMT': 0,
+  'EST': 5,
+  'EDT': 5,
+  'CST': 6,
+  'CDT': 6,
+  'MST': 7,
+  'MDT': 7,
+  'PST': 8,
+  'PDT': 8,
+  'Z': 0,
+  'A': -1,
+  'M': -12,
+  'N': 1,
+  'Y': 12,
 };
