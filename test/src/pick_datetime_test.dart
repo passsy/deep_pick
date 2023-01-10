@@ -182,6 +182,24 @@ void main() {
         });
       });
 
+      // test('parse DateTime with timezone +0000', () {
+      //   const input = '2023-01-09T12:31:54+0230';
+      //   final time = DateTime.utc(2023, 01, 09, 15, 01, 54);
+      //   expect(pick(input).asDateTimeOrThrow(), time);
+      // });
+      //
+      // test('parse DateTime with timezone EST', () {
+      //   const input = '2023-01-09T12:31:54EST';
+      //   final time = DateTime.utc(2023, 09, 01, 12, 31, 54);
+      //   expect(pick(input).asDateTimeOrThrow(), time);
+      // });
+      //
+      // test('parse DateTime with timezone PDT', () {
+      //   const input = '20230109T123154PDT';
+      //   final time = DateTime.utc(2023, 10, 09, 12, 31, 54);
+      //   expect(pick(input).asDateTimeOrThrow(), time);
+      // });
+
       group('explicit format uses only one parser', () {
         test(
             'asDateTimeOrNull: ISO-8601 String ca not be parsed by ansi c asctime',
