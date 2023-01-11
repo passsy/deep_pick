@@ -319,7 +319,7 @@ void main() {
 
       test('parse DateTime with timezone +0730', () {
         const input = 'Mon, 01 Nov 21 11:53:15 +0730';
-        final time = DateTime.utc(2021, 11, 01, 19, 23, 15);
+        final time = DateTime.utc(2021, 11, 01, 04, 23, 15);
         expect(pick(input).asDateTimeOrThrow(), time);
       });
 
@@ -528,7 +528,7 @@ void main() {
 
       test('parse DateTime with timezone +0730', () {
         const input = 'Monday, 01-Nov-21 11:53:15 +0730';
-        final time = DateTime.utc(2021, 11, 01, 19, 23, 15);
+        final time = DateTime.utc(2021, 11, 01, 04, 23, 15);
         expect(pick(input).asDateTimeOrThrow(), time);
       });
 
