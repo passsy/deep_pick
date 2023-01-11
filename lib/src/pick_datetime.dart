@@ -151,6 +151,13 @@ extension NullableDateTimePick on Pick {
   DateTime? _parseIso8601() {
     final value = required().value;
     if (value is! String) return null;
+    final timeZone = RegExp(r'[a-zA-Z]+$').firstMatch(value)?.group(0);
+    if (timeZone != null) {
+      final timeZoneOffset = _getTimeZoneOffset(timeZone);
+      // Remove the timezone from the string and add Z, so that it's parsed as UTC
+      final newValue = '${value.substring(0, value.length - timeZone.length)}Z';
+      return DateTime.tryParse(newValue)?.add(timeZoneOffset);
+    }
     return DateTime.tryParse(value);
   }
 
