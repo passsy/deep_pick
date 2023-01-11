@@ -189,7 +189,7 @@ void main() {
       });
 
       test('parse DateTime with timezone EST', () {
-        const input = '2023-01-09T12:31:54EST';
+        const input = ' 2023-01-09T12:31:54EST ';
         final time = DateTime.utc(2023, 01, 09, 17, 31, 54);
         expect(pick(input).asDateTimeOrThrow(), time);
       });
