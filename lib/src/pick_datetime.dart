@@ -160,6 +160,7 @@ extension NullableDateTimePick on Pick {
           '${trimmedValue.substring(0, trimmedValue.length - timeZone.length)}Z';
       return DateTime.tryParse(newValue)?.add(timeZoneOffset);
     }
+    // `DateTime.tryParse()` handles timezones in format +0000
     return DateTime.tryParse(trimmedValue);
   }
 
