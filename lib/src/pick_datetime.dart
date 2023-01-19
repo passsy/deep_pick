@@ -270,12 +270,12 @@ int _normalizeYear(int year) {
 Duration _getTimeZoneOffset(String? timeZone) {
   if (timeZone == null) return Duration.zero;
   if (RegExp(r'^[+-]\d{4}$').hasMatch(timeZone)) {
-    final operator = timeZone[0] == '-' ? 1 : -1;
+    final sign = timeZone[0] == '-' ? 1 : -1;
     final hours = timeZone.substring(1, 3);
     final minutes = timeZone.substring(3, 5);
     return Duration(
-      hours: int.parse(hours) * operator,
-      minutes: int.parse(minutes) * operator,
+      hours: int.parse(hours) * sign,
+      minutes: int.parse(minutes) * sign,
     );
   } else {
     final timeZoneOffset = _timeZoneOffsets[timeZone] ?? 0;
