@@ -199,6 +199,11 @@ void main() {
           pick(' 2023-01-09T12:31:54EST ').asDateTimeOrThrow(),
           DateTime.utc(2023, 01, 09, 17, 31, 54),
         );
+
+        expect(
+          pick(' 2023-01-09T12:31:54+0230 ').asDateTimeOrThrow(),
+          DateTime.utc(2023, 01, 09, 10, 01, 54),
+        );
       });
 
       test('parse DateTime with timezone PDT', () {
