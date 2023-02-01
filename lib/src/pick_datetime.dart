@@ -152,7 +152,8 @@ extension NullableDateTimePick on Pick {
     final value = required().value;
     if (value is! String) return null;
     final trimmedValue = value.trim();
-    final timeZone = RegExp(r'[a-zA-Z]+$').firstMatch(trimmedValue)?.group(0);
+    final timeZone =
+        RegExp(r'(?<=[\d\W])[a-zA-Z]+$').firstMatch(trimmedValue)?.group(0);
     if (timeZone != null) {
       final timeZoneOffset =
           _getTimeZoneOffset(dateString: value, timeZone: timeZone);
