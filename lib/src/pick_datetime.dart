@@ -184,8 +184,10 @@ extension NullableDateTimePick on Pick {
       final minute = int.parse(match.group(6)!);
       final seconds = int.parse(match.group(7)!);
       final timezone = match.group(8);
-      final timeZoneOffset =
-          _getTimeZoneOffset(dateString: value, timeZone: timezone);
+      final timeZoneOffset = _getTimeZoneOffset(
+        dateString: value,
+        timeZone: timezone,
+      );
       return DateTime.utc(year, month, day, hour, minute, seconds)
           .add(timeZoneOffset);
     } catch (_) {
