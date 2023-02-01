@@ -284,7 +284,7 @@ Duration _getTimeZoneOffset({required String? dateString, String? timeZone}) {
       minutes: int.parse(minutes) * sign,
     );
   } else {
-    final timeZoneOffset = _timeZoneOffsets[timeZone];
+    final timeZoneOffset = _timeZoneOffsets[timeZone.toUpperCase()];
     if (timeZoneOffset == null) {
       throw FormatException('Invalid date format\n$dateString');
     }
