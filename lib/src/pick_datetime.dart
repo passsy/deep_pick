@@ -154,7 +154,10 @@ extension NullableDateTimePick on Pick {
     final trimmedValue = value.trim();
     final timeZone = RegExp(r'[a-zA-Z]+$').firstMatch(trimmedValue)?.group(0);
     if (timeZone != null) {
-      final timeZoneOffset = _getTimeZoneOffset(timeZone);
+      final timeZoneOffset = _getTimeZoneOffset(
+        dateString: value,
+        timeZone: timeZone,
+      );
       // Remove the timezone from the string and add Z, so that it's parsed as UTC
       final newValue =
           '${trimmedValue.substring(0, trimmedValue.length - timeZone.length)}Z';
@@ -181,7 +184,8 @@ extension NullableDateTimePick on Pick {
       final minute = int.parse(match.group(6)!);
       final seconds = int.parse(match.group(7)!);
       final timezone = match.group(8);
-      final timeZoneOffset = _getTimeZoneOffset(timezone);
+      final timeZoneOffset =
+          _getTimeZoneOffset(dateString: value, timeZone: timezone);
       return DateTime.utc(year, month, day, hour, minute, seconds)
           .add(timeZoneOffset);
     } catch (_) {
@@ -225,7 +229,8 @@ extension NullableDateTimePick on Pick {
       final minute = int.parse(match.group(6)!);
       final seconds = int.parse(match.group(7)!);
       final timezone = match.group(8);
-      final timeZoneOffset = _getTimeZoneOffset(timezone);
+      final timeZoneOffset =
+          _getTimeZoneOffset(dateString: value, timeZone: timezone);
       return DateTime.utc(year, month, day, hour, minute, seconds)
           .add(timeZoneOffset);
     } catch (_) {
@@ -268,7 +273,7 @@ int _normalizeYear(int year) {
 }
 
 /// The Duration to add to a DateTime to get the correct time in UTC
-Duration _getTimeZoneOffset(String? timeZone) {
+Duration _getTimeZoneOffset({required String? dateString, String? timeZone}) {
   if (timeZone == null) return Duration.zero;
   if (RegExp(r'^[+-]\d{4}$').hasMatch(timeZone)) {
     final sign = timeZone[0] == '-' ? 1 : -1;
@@ -279,7 +284,10 @@ Duration _getTimeZoneOffset(String? timeZone) {
       minutes: int.parse(minutes) * sign,
     );
   } else {
-    final timeZoneOffset = _timeZoneOffsets[timeZone] ?? 0;
+    final timeZoneOffset = _timeZoneOffsets[timeZone];
+    if (timeZoneOffset == null) {
+      throw FormatException('Invalid date format\n$dateString');
+    }
     return Duration(hours: timeZoneOffset);
   }
 }

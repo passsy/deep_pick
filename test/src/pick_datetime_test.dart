@@ -666,6 +666,32 @@ void main() {
         );
       });
 
+      test('throws FormatException for unsupported timezones', () {
+        const dateString1 = '2023-01-09T12:31:54ABC';
+        expect(
+          () => pick(dateString1).asDateTimeOrThrow(),
+          throwsA(
+            isA<FormatException>().having(
+              (e) => e.message,
+              'message',
+              contains('Invalid date format\n$dateString1'),
+            ),
+          ),
+        );
+
+        const dateString2 = 'Mon, 11 Nov 24 11:58:15 ESTX';
+        expect(
+          () => pick(dateString2).asDateTimeOrThrow(),
+          throwsA(
+            isA<FormatException>().having(
+              (e) => e.message,
+              'message',
+              contains('Invalid date format\n$dateString2'),
+            ),
+          ),
+        );
+      });
+
       test('short weekday names are ok', () {
         expect(
           pick('Sun, 6-Nov-94 08:49:37 GMT').asDateTimeOrThrow(),
