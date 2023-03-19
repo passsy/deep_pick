@@ -1,8 +1,6 @@
 import 'package:deep_pick/deep_pick.dart';
 import 'package:test/test.dart';
 
-import 'pick_test.dart';
-
 void main() {
   group('RequiredPick', () {
     test('toString() works as expected', () {
