@@ -1,9 +1,11 @@
 # Changelog
 
-## future release
+## 1.0.0 (`19.03.23`)
 
 - Remove long deprecated methods: `addContext`, `asBool`, `asDateTime`, `asDouble`, `asInt`, `asList`, `asMap`, `asString`. Use their `as*OrThrow` replacements.
-- 
+- Add support for timezones in `asDateTime*` methods [#47](https://github.com/passsy/deep_pick/pull/47), [#51](https://github.com/passsy/deep_pick/pull/51)
+- Add official support for date formats `RFC 3339`, `RFC 2822` and `RFC 1036`
+- Push test coverage to 100% 🤘
 
 
 ## 0.10.0 (`01.10.21`)
