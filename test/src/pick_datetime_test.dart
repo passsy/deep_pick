@@ -878,5 +878,17 @@ void main() {
         );
       });
     });
+
+    group('RFC 1026', () {
+      test('parse DateTime with timezone +0100', () {
+        //RFC 103 Wdy, DD Mon YY HH:MM:SS TIMEZONE
+        const input = 'Tue, 09 Jan 23 22:14:02 +0100';
+        final time = DateTime.utc(2023, 01, 09, 21, 14, 02);
+        expect(
+          pick(input).asDateTimeOrThrow(format: PickDateFormat.RFC_1123),
+          time,
+        );
+      });
+    });
   });
 }

@@ -144,7 +144,11 @@ pick(1).letOrNull((pick) => pick.value == 1 ? true : pick.value == 0 ? false : n
 
 ### `DateTime`
 
-Accepts most common date formats such as `ISO 8601` (including `RFC 3339`), `RFC 1123` ([HTTP `date`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Date) header, [RSS2](https://validator.w3.org/feed/docs/rss2.html) `pubDate`), `RFC 850` (including `RFC 1036`, `COOKIE`), `ANSI C asctime()`. 
+Accepts most common date formats such as 
+- `ISO 8601` (including `RFC 3339`), 
+- `RFC 1123` ([HTTP `date`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Date) header, [RSS2](https://validator.w3.org/feed/docs/rss2.html) `pubDate`, and [`RFC 1036`](https://datatracker.ietf.org/doc/html/rfc1036#section-2.1.2)), 
+- `RFC 850` (including `RFC 1036`, `COOKIE`), 
+- `ANSI C asctime()`. 
 
 ```dart
 pick('2021-11-01T11:53:15Z').asDateTimeOrNull(); // UTC

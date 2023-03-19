@@ -23,6 +23,8 @@ enum PickDateFormat {
   /// - HTTP date header https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Date, https://www.rfc-editor.org/rfc/rfc2616#section-3.3
   /// - RSS2 pubDate, lastBuildDate https://validator.w3.org/feed/docs/rss2.html
   ///
+  /// Also matches [RFC 1036](https://datatracker.ietf.org/doc/html/rfc1036#section-2.1.2), which is just a specific version of RFC 822.
+  ///
   /// Example:
   /// - `Date: Wed, 21 Oct 2015 07:28:00 GMT`
   RFC_1123,
