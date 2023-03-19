@@ -286,6 +286,16 @@ void main() {
         );
       });
 
+      test('Crashes in whenNull are thrown directly', () {
+        expect(
+          () => pick([null]).asListOrNull(
+            (pick) => Person.fromPick(pick),
+            whenNull: (it) => throw 'oops',
+          ),
+          throwsA(isA<String>().having((e) => e, 'value', 'oops')),
+        );
+      });
+
       test('map reports item parsing errors', () {
         final data = [
           {'name': 'John Snow'},
