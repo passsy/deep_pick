@@ -1,6 +1,8 @@
 import 'package:deep_pick/deep_pick.dart';
 import 'package:test/test.dart';
 
+import 'pick_test.dart';
+
 void main() {
   group('RequiredPick', () {
     test('toString() works as expected', () {
@@ -17,6 +19,13 @@ void main() {
 
       final nonNull = nullable.required();
       expect([nonNull.value].runtimeType.toString(), 'List<Object>');
+    });
+
+    test('nullable() converts RequiredPick back to a Pick', () {
+      final aMayBeOptional = pick({'a': 1}, 'a');
+      final aIsNowRequired = aMayBeOptional.required();
+      final aMayBeOptionalAgain = aIsNowRequired.nullable();
+      expect(aMayBeOptionalAgain.asIntOrThrow(), 1);
     });
   });
 
