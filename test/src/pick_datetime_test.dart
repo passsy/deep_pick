@@ -883,10 +883,19 @@ void main() {
       test('parse DateTime with timezone +0100', () {
         //RFC 103 Wdy, DD Mon YY HH:MM:SS TIMEZONE
         const input = 'Tue, 09 Jan 23 22:14:02 +0100';
-        final time = DateTime.utc(2023, 01, 09, 21, 14, 02);
         expect(
           pick(input).asDateTimeOrThrow(format: PickDateFormat.RFC_1123),
-          time,
+          DateTime.utc(2023, 01, 09, 21, 14, 02),
+        );
+      });
+    });
+
+    group('RFC 2822', () {
+      test('parse date from RFC', () {
+        const input = 'Fri, 21 Nov 1997 09:55:06 -0600';
+        expect(
+          pick(input).asDateTimeOrThrow(format: PickDateFormat.RFC_1123),
+          DateTime.utc(1997, 11, 21, 15, 55, 06),
         );
       });
     });
