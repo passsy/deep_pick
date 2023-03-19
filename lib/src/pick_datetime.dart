@@ -151,15 +151,20 @@ extension NullableDateTimePick on Pick {
   DateTime? _parseIso8601() {
     final value = required().value;
     if (value is! String) return null;
+
+    // DartTime.tryParse() does not support timezones like EST, PDT, etc.
+    // deep_pick takes care of the time zone and DartTime.parse() of the rest
     final trimmedValue = value.trim();
     final timeZone =
         RegExp(r'(?<=[\d\W])[a-zA-Z]+$').firstMatch(trimmedValue)?.group(0);
     if (timeZone != null) {
+      // We found a timezone, so we need to parse it
       final timeZoneOffset =
           _getTimeZoneOffset(dateString: value, timeZone: timeZone);
       // Remove the timezone from the string and add Z, so that it's parsed as UTC
       final newValue =
           '${trimmedValue.substring(0, trimmedValue.length - timeZone.length)}Z';
+      // combine both again
       return DateTime.tryParse(newValue)?.add(timeZoneOffset);
     }
     // `DateTime.tryParse()` handles timezones in format +0000
@@ -287,25 +292,25 @@ Duration _getTimeZoneOffset({required String? dateString, String? timeZone}) {
     if (timeZoneOffset == null) {
       throw FormatException('Invalid date format\n$dateString');
     }
-    return Duration(hours: timeZoneOffset);
+    return timeZoneOffset;
   }
 }
 
-/// Time zone abbreviations and their offsets to get UTC in hours
-const Map<String, int> _timeZoneOffsets = {
-  'UT': 0,
-  'GMT': 0,
-  'EST': 5,
-  'EDT': 5,
-  'CST': 6,
-  'CDT': 6,
-  'MST': 7,
-  'MDT': 7,
-  'PST': 8,
-  'PDT': 8,
-  'Z': 0,
-  'A': -1,
-  'M': -12,
-  'N': 1,
-  'Y': 12,
+/// Incomplete list of time zone abbreviations and their offsets towards UTC
+const Map<String, Duration> _timeZoneOffsets = {
+  'M': Duration(hours: -12),
+  'A': Duration(hours: -1),
+  'UT': Duration.zero,
+  'GMT': Duration.zero,
+  'Z': Duration.zero,
+  'N': Duration(hours: 1),
+  'EST': Duration(hours: 5),
+  'EDT': Duration(hours: 5),
+  'CST': Duration(hours: 6),
+  'CDT': Duration(hours: 6),
+  'MST': Duration(hours: 7),
+  'MDT': Duration(hours: 7),
+  'PST': Duration(hours: 8),
+  'PDT': Duration(hours: 8),
+  'Y': Duration(hours: 12),
 };
