@@ -155,20 +155,20 @@ extension NullableDateTimePick on Pick {
     // DartTime.tryParse() does not support timezones like EST, PDT, etc.
     // deep_pick takes care of the time zone and DartTime.parse() of the rest
     final trimmedValue = value.trim();
-    final timeZone =
+    final timeZoneComponent =
         RegExp(r'(?<=[\d\W])[a-zA-Z]+$').firstMatch(trimmedValue)?.group(0);
-    if (timeZone != null) {
-      // We found a timezone, so we need to parse it
-      final timeZoneOffset =
-          _getTimeZoneOffset(dateString: value, timeZone: timeZone);
-      // Remove the timezone from the string and add Z, so that it's parsed as UTC
-      final newValue =
-          '${trimmedValue.substring(0, trimmedValue.length - timeZone.length)}Z';
-      // combine both again
-      return DateTime.tryParse(newValue)?.add(timeZoneOffset);
+
+    if (timeZoneComponent == null) {
+      // no timeZoneComponent, DartTime can 100% parse it
+      return DateTime.tryParse(trimmedValue);
     }
-    // `DateTime.tryParse()` handles timezones in format +0000
-    return DateTime.tryParse(trimmedValue);
+
+    final timeZoneOffset = _parseTimeZoneOffset(timeZoneComponent);
+    // Remove the timezone from the string and add Z, so that it's parsed as UTC
+    final withoutTimezone =
+        '${trimmedValue.substring(0, trimmedValue.length - timeZoneComponent.length)}Z';
+    // combine both again
+    return DateTime.tryParse(withoutTimezone)?.add(timeZoneOffset);
   }
 
   /// [PickDateFormat.RFC_1123]
@@ -188,8 +188,7 @@ extension NullableDateTimePick on Pick {
       final minute = int.parse(match.group(6)!);
       final seconds = int.parse(match.group(7)!);
       final timezone = match.group(8);
-      final timeZoneOffset =
-          _getTimeZoneOffset(dateString: value, timeZone: timezone);
+      final timeZoneOffset = _parseTimeZoneOffset(timezone);
       return DateTime.utc(year, month, day, hour, minute, seconds)
           .add(timeZoneOffset);
     } catch (_) {
@@ -233,8 +232,7 @@ extension NullableDateTimePick on Pick {
       final minute = int.parse(match.group(6)!);
       final seconds = int.parse(match.group(7)!);
       final timezone = match.group(8);
-      final timeZoneOffset =
-          _getTimeZoneOffset(dateString: value, timeZone: timezone);
+      final timeZoneOffset = _parseTimeZoneOffset(timezone);
       return DateTime.utc(year, month, day, hour, minute, seconds)
           .add(timeZoneOffset);
     } catch (_) {
@@ -277,9 +275,14 @@ int _normalizeYear(int year) {
 }
 
 /// The Duration to add to a DateTime to get the correct time in UTC
-Duration _getTimeZoneOffset({required String? dateString, String? timeZone}) {
-  if (timeZone == null) return Duration.zero;
+///
+/// Handles timezone abbreviations (GMT, EST, ...) and offsets (+0400, -0130)
+Duration _parseTimeZoneOffset(String? timeZone) {
+  if (timeZone == null) {
+    return Duration.zero;
+  }
   if (RegExp(r'^[+-]\d{4}$').hasMatch(timeZone)) {
+    // matches format +0000 or -0000
     final sign = timeZone[0] == '-' ? 1 : -1;
     final hours = timeZone.substring(1, 3);
     final minutes = timeZone.substring(3, 5);
@@ -287,16 +290,18 @@ Duration _getTimeZoneOffset({required String? dateString, String? timeZone}) {
       hours: int.parse(hours) * sign,
       minutes: int.parse(minutes) * sign,
     );
-  } else {
-    final timeZoneOffset = _timeZoneOffsets[timeZone.toUpperCase()];
-    if (timeZoneOffset == null) {
-      throw FormatException('Invalid date format\n$dateString');
-    }
-    return timeZoneOffset;
   }
+  // do a simple lookup
+  final timeZoneOffset = _timeZoneOffsets[timeZone.toUpperCase()];
+  if (timeZoneOffset == null) {
+    throw FormatException('Unknown time zone abbrevation $timeZone');
+  }
+  return timeZoneOffset;
 }
 
 /// Incomplete list of time zone abbreviations and their offsets towards UTC
+///
+/// Those are the most common used. Please open a PR if you need more.
 const Map<String, Duration> _timeZoneOffsets = {
   'M': Duration(hours: -12),
   'A': Duration(hours: -1),

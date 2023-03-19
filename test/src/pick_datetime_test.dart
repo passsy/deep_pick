@@ -667,26 +667,22 @@ void main() {
       });
 
       test('throws FormatException for unsupported timezones', () {
-        const dateString1 = '2023-01-09T12:31:54ABC';
         expect(
-          () => pick(dateString1).asDateTimeOrThrow(),
-          throwsA(
-            isA<FormatException>().having(
-              (e) => e.message,
-              'message',
-              contains('Invalid date format\n$dateString1'),
-            ),
-          ),
+          () => pick('2023-01-09T12:31:54ABC').asDateTimeOrThrow(),
+          throwsA(isA<FormatException>().having(
+            (e) => e.message,
+            'message',
+            contains('Unknown time zone abbrevation ABC'),
+          )),
         );
 
-        const dateString2 = 'Mon, 11 Nov 24 11:58:15 ESTX';
         expect(
-          () => pick(dateString2).asDateTimeOrThrow(),
+          () => pick('Mon, 11 Nov 24 11:58:15 ESTX').asDateTimeOrThrow(),
           throwsA(
             isA<FormatException>().having(
               (e) => e.message,
               'message',
-              contains('Invalid date format\n$dateString2'),
+              contains('Unknown time zone abbrevation ESTX'),
             ),
           ),
         );
