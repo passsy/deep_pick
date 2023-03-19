@@ -1,11 +1,10 @@
 # deep_pick
 
 [![Pub](https://img.shields.io/pub/v/deep_pick)](https://pub.dartlang.org/packages/deep_pick)
-[![Pub](https://img.shields.io/pub/v/deep_pick?include_prereleases)](https://pub.dartlang.org/packages/deep_pick)
-[![style: lint](https://img.shields.io/badge/style-lint-4BC0F5.svg)](https://pub.dev/packages/lint)
-![License](https://img.shields.io/github/license/passsy/deep_pick)
 [![Pub Likes](https://img.shields.io/pub/likes/deep_pick)](https://pub.dev/packages/deep_pick/score)
-![Build](https://img.shields.io/github/workflow/status/passsy/deep_pick/Dart%20CI)
+![Build](https://img.shields.io/github/actions/workflow/status/passsy/deep_pick/dart.yml?branch=master)
+![License](https://img.shields.io/github/license/passsy/deep_pick)
+[![style: lint](https://img.shields.io/badge/style-lint-4BC0F5.svg)](https://pub.dev/packages/lint)
 
 Simplifies manual JSON parsing with a type-safe API. 
 - No `dynamic`, no manual casting
