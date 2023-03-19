@@ -232,7 +232,7 @@ void main() {
           expect(value, isNull);
         });
         test(
-            'asDateTimeOrThrow: ISO-8601 String ca not be parsed by ansi c asctime',
+            'asDateTimeOrThrow: ISO-8601 String can not be parsed by ansi c asctime',
             () {
           const iso8601 = '2005-08-15T15:52:01+0000';
           expect(
@@ -666,24 +666,18 @@ void main() {
         );
       });
 
-      test('throws FormatException for unsupported timezones', () {
+      test('throws for unsupported timezones', () {
         expect(
           () => pick('2023-01-09T12:31:54ABC').asDateTimeOrThrow(),
-          throwsA(isA<FormatException>().having(
-            (e) => e.message,
-            'message',
-            contains('Unknown time zone abbrevation ABC'),
-          )),
+          throwsA(
+            pickException(containing: ['Unknown time zone abbrevation ABC']),
+          ),
         );
 
         expect(
           () => pick('Mon, 11 Nov 24 11:58:15 ESTX').asDateTimeOrThrow(),
           throwsA(
-            isA<FormatException>().having(
-              (e) => e.message,
-              'message',
-              contains('Unknown time zone abbrevation ESTX'),
-            ),
+            pickException(containing: ['Unknown time zone abbrevation ESTX']),
           ),
         );
       });

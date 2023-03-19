@@ -91,7 +91,7 @@ extension NullableDateTimePick on Pick {
       return value;
     }
 
-    final formats = {
+    final Map<PickDateFormat, DateTime? Function()> formats = {
       PickDateFormat.ISO_8601: _parseIso8601,
       PickDateFormat.RFC_1123: _parseRfc1123,
       PickDateFormat.RFC_850: _parseRfc850,
@@ -294,7 +294,7 @@ Duration _parseTimeZoneOffset(String? timeZone) {
   // do a simple lookup
   final timeZoneOffset = _timeZoneOffsets[timeZone.toUpperCase()];
   if (timeZoneOffset == null) {
-    throw FormatException('Unknown time zone abbrevation $timeZone');
+    throw PickException('Unknown time zone abbrevation $timeZone');
   }
   return timeZoneOffset;
 }
