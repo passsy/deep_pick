@@ -670,20 +670,24 @@ void main() {
         expect(
           () => pick('2023-01-09T12:31:54ABC').asDateTimeOrThrow(),
           throwsA(
-            pickException(containing: [
-              'Type String of picked value "2023-01-09T12:31:54ABC"',
-              'Unknown time zone abbrevation ABC',
-            ]),
+            pickException(
+              containing: [
+                'Type String of picked value "2023-01-09T12:31:54ABC"',
+                'Unknown time zone abbrevation ABC',
+              ],
+            ),
           ),
         );
 
         expect(
           () => pick('Mon, 11 Nov 24 11:58:15 ESTX').asDateTimeOrThrow(),
           throwsA(
-            pickException(containing: [
-              'Type String of picked value "Mon, 11 Nov 24 11:58:15 ESTX"',
-              'Unknown time zone abbrevation ESTX'
-            ]),
+            pickException(
+              containing: [
+                'Type String of picked value "Mon, 11 Nov 24 11:58:15 ESTX"',
+                'Unknown time zone abbrevation ESTX'
+              ],
+            ),
           ),
         );
       });

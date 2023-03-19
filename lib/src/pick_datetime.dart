@@ -99,6 +99,7 @@ extension NullableDateTimePick on Pick {
     };
 
     if (format != null) {
+      // Use one specific format
       final dateTime = formats[format]!();
       if (dateTime != null) {
         return dateTime;
@@ -109,8 +110,8 @@ extension NullableDateTimePick on Pick {
       );
     }
 
+    // Try all available formats
     final errorsByFormat = <PickDateFormat, Object>{};
-    // without format, try all formats
     for (final entry in formats.entries) {
       try {
         final dateTime = entry.value();
