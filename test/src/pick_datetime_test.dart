@@ -182,6 +182,46 @@ void main() {
         });
       });
 
+      test('parse DateTime with timezone +0230', () {
+        const input = '2023-01-09T12:31:54+0230';
+        final time = DateTime.utc(2023, 01, 09, 10, 01, 54);
+        expect(pick(input).asDateTimeOrThrow(), time);
+      });
+
+      test('parse DateTime with timezone EST', () {
+        const input = '2023-01-09T12:31:54EST';
+        final time = DateTime.utc(2023, 01, 09, 17, 31, 54);
+        expect(pick(input).asDateTimeOrThrow(), time);
+      });
+
+      test('allow starting and trailing whitespace', () {
+        expect(
+          pick(' 2023-01-09T12:31:54EST ').asDateTimeOrThrow(),
+          DateTime.utc(2023, 01, 09, 17, 31, 54),
+        );
+
+        expect(
+          pick(' 2023-01-09T12:31:54+0230 ').asDateTimeOrThrow(),
+          DateTime.utc(2023, 01, 09, 10, 01, 54),
+        );
+
+        expect(
+          pick('2023-01-09T12:31:54+0230 ').asDateTimeOrThrow(),
+          DateTime.utc(2023, 01, 09, 10, 01, 54),
+        );
+
+        expect(
+          pick(' 2023-01-09T12:31:54+0230').asDateTimeOrThrow(),
+          DateTime.utc(2023, 01, 09, 10, 01, 54),
+        );
+      });
+
+      test('parse DateTime with timezone PDT', () {
+        const input = '20230109T123154PDT';
+        final time = DateTime.utc(2023, 01, 09, 20, 31, 54);
+        expect(pick(input).asDateTimeOrThrow(), time);
+      });
+
       group('explicit format uses only one parser', () {
         test(
             'asDateTimeOrNull: ISO-8601 String ca not be parsed by ansi c asctime',
@@ -192,7 +232,7 @@ void main() {
           expect(value, isNull);
         });
         test(
-            'asDateTimeOrThrow: ISO-8601 String ca not be parsed by ansi c asctime',
+            'asDateTimeOrThrow: ISO-8601 String can not be parsed by ansi c asctime',
             () {
           const iso8601 = '2005-08-15T15:52:01+0000';
           expect(
@@ -273,6 +313,36 @@ void main() {
         expect(date.minute, equals(49));
         expect(date.second, equals(37));
         expect(date.timeZoneName, equals('UTC'));
+      });
+
+      test('parse DateTime with timezone +0000', () {
+        const input = 'Mon, 21 Nov 2021 11:53:15 +0000';
+        final time = DateTime.utc(2021, 11, 21, 11, 53, 15);
+        expect(pick(input).asDateTimeOrThrow(), time);
+      });
+
+      test('parse DateTime with timezone EST', () {
+        const input = 'Mon, 11 Nov 24 11:58:15 EST';
+        final time = DateTime.utc(2024, 11, 11, 16, 58, 15);
+        expect(pick(input).asDateTimeOrThrow(), time);
+      });
+
+      test('parse DateTime with timezone PDT', () {
+        const input = 'Mon, 01 Nov 99 11:53:11 PDT';
+        final time = DateTime.utc(1999, 11, 01, 19, 53, 11);
+        expect(pick(input).asDateTimeOrThrow(), time);
+      });
+
+      test('parse DateTime with timezone +0000', () {
+        const input = 'Mon, 01 Jan 20 11:53:01 +0000';
+        final time = DateTime.utc(2020, 01, 01, 11, 53, 01);
+        expect(pick(input).asDateTimeOrThrow(), time);
+      });
+
+      test('parse DateTime with timezone +0730', () {
+        const input = 'Mon, 01 Nov 21 11:53:15 +0730';
+        final time = DateTime.utc(2021, 11, 01, 04, 23, 15);
+        expect(pick(input).asDateTimeOrThrow(), time);
       });
 
       test('mozilla example', () {
@@ -387,14 +457,6 @@ void main() {
         );
       });
 
-      test('requires reasonable numbers', () {
-        // Don't parse two digit year as 19XX
-        expect(
-          pick('Sun, 06 Nov 94 08:49:37 GMT').asDateTimeOrThrow(),
-          DateTime.utc(94, 11, 6, 8, 49, 37),
-        );
-      });
-
       test('only allows short weekday names', () {
         expect(
           () => pick('Sunday, 6 Nov 1994 08:49:37 GMT').asDateTimeOrThrow(),
@@ -412,17 +474,6 @@ void main() {
           throwsA(
             pickException(
               containing: ['Sun, 6 November 1994 08:49:37 GMT', 'DateTime'],
-            ),
-          ),
-        );
-      });
-
-      test('only allows GMT', () {
-        expect(
-          () => pick('Sun, 6 Nov 1994 08:49:37 PST').asDateTimeOrThrow(),
-          throwsA(
-            pickException(
-              containing: ['Sun, 6 Nov 1994 08:49:37 PST', 'DateTime'],
             ),
           ),
         );
@@ -471,6 +522,36 @@ void main() {
         expect(date.minute, equals(49));
         expect(date.second, equals(37));
         expect(date.timeZoneName, equals('UTC'));
+      });
+
+      test('parse DateTime with timezone +0000', () {
+        const input = 'Monday, 21-Nov-21 11:53:15 +0000';
+        final time = DateTime.utc(2021, 11, 21, 11, 53, 15);
+        expect(pick(input).asDateTimeOrThrow(), time);
+      });
+
+      test('parse DateTime with timezone EST', () {
+        const input = 'Monday, 11-Nov-24 11:58:15 EST';
+        final time = DateTime.utc(2024, 11, 11, 16, 58, 15);
+        expect(pick(input).asDateTimeOrThrow(), time);
+      });
+
+      test('parse DateTime with timezone PDT', () {
+        const input = 'Monday, 01-Nov-99 11:53:11 PDT';
+        final time = DateTime.utc(1999, 11, 01, 19, 53, 11);
+        expect(pick(input).asDateTimeOrThrow(), time);
+      });
+
+      test('parse DateTime with timezone +0000', () {
+        const input = 'Monday, 01-Jan-20 11:53:01 +0000';
+        final time = DateTime.utc(2020, 01, 01, 11, 53, 01);
+        expect(pick(input).asDateTimeOrThrow(), time);
+      });
+
+      test('parse DateTime with timezone +0730', () {
+        const input = 'Monday, 01-Nov-21 11:53:15 +0730';
+        final time = DateTime.utc(2021, 11, 01, 04, 23, 15);
+        expect(pick(input).asDateTimeOrThrow(), time);
       });
 
       test('require whitespace between year and hour', () {
@@ -585,6 +666,32 @@ void main() {
         );
       });
 
+      test('throws for unsupported timezones', () {
+        expect(
+          () => pick('2023-01-09T12:31:54ABC').asDateTimeOrThrow(),
+          throwsA(
+            pickException(
+              containing: [
+                'Type String of picked value "2023-01-09T12:31:54ABC"',
+                'Unknown time zone abbrevation ABC',
+              ],
+            ),
+          ),
+        );
+
+        expect(
+          () => pick('Mon, 11 Nov 24 11:58:15 ESTX').asDateTimeOrThrow(),
+          throwsA(
+            pickException(
+              containing: [
+                'Type String of picked value "Mon, 11 Nov 24 11:58:15 ESTX"',
+                'Unknown time zone abbrevation ESTX'
+              ],
+            ),
+          ),
+        );
+      });
+
       test('short weekday names are ok', () {
         expect(
           pick('Sun, 6-Nov-94 08:49:37 GMT').asDateTimeOrThrow(),
@@ -598,20 +705,6 @@ void main() {
           throwsA(
             pickException(
               containing: ['Sunday, 6-November-94 08:49:37 GMT', 'DateTime'],
-            ),
-          ),
-        );
-      });
-
-      test('only allows GMT/UT as time zone', () {
-        pick('Sunday, 06-Nov-94 08:49:37 GMT').asDateTimeOrThrow(); // ok
-        pick('Sunday, 06-Nov-94 08:49:37 UT').asDateTimeOrThrow(); // ok
-
-        expect(
-          () => pick('Sunday, 6-Nov-94 08:49:37 PST').asDateTimeOrThrow(),
-          throwsA(
-            pickException(
-              containing: ['Sunday, 6-Nov-94 08:49:37 PST', 'DateTime'],
             ),
           ),
         );

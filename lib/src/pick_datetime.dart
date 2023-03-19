@@ -91,7 +91,7 @@ extension NullableDateTimePick on Pick {
       return value;
     }
 
-    final formats = {
+    final Map<PickDateFormat, DateTime? Function()> formats = {
       PickDateFormat.ISO_8601: _parseIso8601,
       PickDateFormat.RFC_1123: _parseRfc1123,
       PickDateFormat.RFC_850: _parseRfc850,
@@ -99,6 +99,7 @@ extension NullableDateTimePick on Pick {
     };
 
     if (format != null) {
+      // Use one specific format
       final dateTime = formats[format]!();
       if (dateTime != null) {
         return dateTime;
@@ -109,16 +110,22 @@ extension NullableDateTimePick on Pick {
       );
     }
 
-    // without format, try all formats
+    // Try all available formats
+    final errorsByFormat = <PickDateFormat, Object>{};
     for (final entry in formats.entries) {
-      final dateTime = entry.value();
-      if (dateTime != null) {
-        return dateTime;
+      try {
+        final dateTime = entry.value();
+        if (dateTime != null) {
+          return dateTime;
+        }
+      } catch (e) {
+        errorsByFormat[entry.key] = e;
       }
     }
 
     throw PickException(
-      'Type ${value.runtimeType} of $debugParsingExit can not be parsed as DateTime',
+      'Type ${value.runtimeType} of $debugParsingExit can not be parsed as DateTime. '
+      'The different parsers produced the following errors: $errorsByFormat',
     );
   }
 
@@ -151,7 +158,24 @@ extension NullableDateTimePick on Pick {
   DateTime? _parseIso8601() {
     final value = required().value;
     if (value is! String) return null;
-    return DateTime.tryParse(value);
+
+    // DartTime.tryParse() does not support timezones like EST, PDT, etc.
+    // deep_pick takes care of the time zone and DartTime.parse() of the rest
+    final trimmedValue = value.trim();
+    final timeZoneComponent =
+        RegExp(r'(?<=[\d\W])[a-zA-Z]+$').firstMatch(trimmedValue)?.group(0);
+
+    if (timeZoneComponent == null) {
+      // no timeZoneComponent, DartTime can 100% parse it
+      return DateTime.tryParse(trimmedValue);
+    }
+
+    final timeZoneOffset = _parseTimeZoneOffset(timeZoneComponent);
+    // Remove the timezone from the string and add Z, so that it's parsed as UTC
+    final withoutTimezone =
+        '${trimmedValue.substring(0, trimmedValue.length - timeZoneComponent.length)}Z';
+    // combine both again
+    return DateTime.tryParse(withoutTimezone)?.add(timeZoneOffset);
   }
 
   /// [PickDateFormat.RFC_1123]
@@ -161,16 +185,19 @@ extension NullableDateTimePick on Pick {
     // not using HttpDate.parse because it is not available in the browsers
     try {
       final rfc1123Regex = RegExp(
-        r'^\s*(\S{3}),\s*(\d+)\s*(\S{3})\s*(\d+)\s+(\d+):(\d+):(\d+)\s*GMT',
+        r'^\s*(\S{3}),\s*(\d+)\s*(\S{3})\s*(\d+)\s+(\d+):(\d+):(\d+)\s*([\w+-]+)\s*',
       );
       final match = rfc1123Regex.firstMatch(value)!;
       final day = int.parse(match.group(2)!);
       final month = _months[match.group(3)!]!;
-      final year = int.parse(match.group(4)!);
+      final year = _normalizeYear(int.parse(match.group(4)!));
       final hour = int.parse(match.group(5)!);
       final minute = int.parse(match.group(6)!);
       final seconds = int.parse(match.group(7)!);
-      return DateTime.utc(year, month, day, hour, minute, seconds);
+      final timezone = match.group(8);
+      final timeZoneOffset = _parseTimeZoneOffset(timezone);
+      return DateTime.utc(year, month, day, hour, minute, seconds)
+          .add(timeZoneOffset);
     } catch (_) {
       return null;
     }
@@ -202,19 +229,19 @@ extension NullableDateTimePick on Pick {
     if (value is! String) return null;
     try {
       final rfc850Regex = RegExp(
-        r'^\s*(\S+),\s*(\d+)-(\S{3})-(\d+)\s+(\d+):(\d+):(\d+)\s*(GMT|UT)',
+        r'^\s*(\S+),\s*(\d+)-(\S{3})-(\d+)\s+(\d+):(\d+):(\d+)\s*([\w+-]+)\s*',
       );
       final match = rfc850Regex.firstMatch(value)!;
       final day = int.parse(match.group(2)!);
       final month = _months[match.group(3)!]!;
-      var year = int.parse(match.group(4)!);
-      if (year < 100) {
-        year = 1900 + year;
-      }
+      final year = _normalizeYear(int.parse(match.group(4)!));
       final hour = int.parse(match.group(5)!);
       final minute = int.parse(match.group(6)!);
       final seconds = int.parse(match.group(7)!);
-      return DateTime.utc(year, month, day, hour, minute, seconds);
+      final timezone = match.group(8);
+      final timeZoneOffset = _parseTimeZoneOffset(timezone);
+      return DateTime.utc(year, month, day, hour, minute, seconds)
+          .add(timeZoneOffset);
     } catch (_) {
       return null;
     }
@@ -234,4 +261,68 @@ const _months = {
   'Oct': 10,
   'Nov': 11,
   'Dec': 12,
+};
+
+/// This returns a 4-digit year from 2-digit input
+///
+/// For years 0-49 it returns 2000-2049
+/// For years 50-99 it returns 1950-1999
+///
+/// Logic taken from:
+/// https://www.ietf.org/rfc/rfc2822.txt
+int _normalizeYear(int year) {
+  if (year < 100) {
+    if (year < 50) {
+      return 2000 + year;
+    } else {
+      return 1900 + year;
+    }
+  }
+  return year;
+}
+
+/// The Duration to add to a DateTime to get the correct time in UTC
+///
+/// Handles timezone abbreviations (GMT, EST, ...) and offsets (+0400, -0130)
+Duration _parseTimeZoneOffset(String? timeZone) {
+  if (timeZone == null) {
+    return Duration.zero;
+  }
+  if (RegExp(r'^[+-]\d{4}$').hasMatch(timeZone)) {
+    // matches format +0000 or -0000
+    final sign = timeZone[0] == '-' ? 1 : -1;
+    final hours = timeZone.substring(1, 3);
+    final minutes = timeZone.substring(3, 5);
+    return Duration(
+      hours: int.parse(hours) * sign,
+      minutes: int.parse(minutes) * sign,
+    );
+  }
+  // do a simple lookup
+  final timeZoneOffset = _timeZoneOffsets[timeZone.toUpperCase()];
+  if (timeZoneOffset == null) {
+    throw PickException('Unknown time zone abbrevation $timeZone');
+  }
+  return timeZoneOffset;
+}
+
+/// Incomplete list of time zone abbreviations and their offsets towards UTC
+///
+/// Those are the most common used. Please open a PR if you need more.
+const Map<String, Duration> _timeZoneOffsets = {
+  'M': Duration(hours: -12),
+  'A': Duration(hours: -1),
+  'UT': Duration.zero,
+  'GMT': Duration.zero,
+  'Z': Duration.zero,
+  'N': Duration(hours: 1),
+  'EST': Duration(hours: 5),
+  'EDT': Duration(hours: 5),
+  'CST': Duration(hours: 6),
+  'CDT': Duration(hours: 6),
+  'MST': Duration(hours: 7),
+  'MDT': Duration(hours: 7),
+  'PST': Duration(hours: 8),
+  'PDT': Duration(hours: 8),
+  'Y': Duration(hours: 12),
 };
