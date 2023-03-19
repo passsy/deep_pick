@@ -109,16 +109,22 @@ extension NullableDateTimePick on Pick {
       );
     }
 
+    final errorsByFormat = <PickDateFormat, Object>{};
     // without format, try all formats
     for (final entry in formats.entries) {
-      final dateTime = entry.value();
-      if (dateTime != null) {
-        return dateTime;
+      try {
+        final dateTime = entry.value();
+        if (dateTime != null) {
+          return dateTime;
+        }
+      } catch (e) {
+        errorsByFormat[entry.key] = e;
       }
     }
 
     throw PickException(
-      'Type ${value.runtimeType} of $debugParsingExit can not be parsed as DateTime',
+      'Type ${value.runtimeType} of $debugParsingExit can not be parsed as DateTime. '
+      'The different parsers produced the following errors: $errorsByFormat',
     );
   }
 
