@@ -45,6 +45,10 @@ void main() {
         Person(name: 'John Snow'),
       );
       expect(nullPick().letOrNull((pick) => Person.fromPick(pick)), isNull);
+      // allow lambda to return null
+      final String? a = pick('a').letOrNull((pick) => null);
+      expect(a, isNull);
+      expect(pick('a').letOrNull((pick) => null), isNull);
       expect(
         () => pick('a').letOrNull((pick) => Person.fromPick(pick)),
         throwsA(

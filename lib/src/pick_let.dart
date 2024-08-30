@@ -59,7 +59,7 @@ extension NullableLet on Pick {
   ///   user = User.fromJson(pick.asMap());
   /// }
   /// ```
-  R? letOrNull<R>(R Function(RequiredPick pick) block) {
+  R? letOrNull<R>(R? Function(RequiredPick pick) block) {
     if (value == null) return null;
     return block(required());
   }
