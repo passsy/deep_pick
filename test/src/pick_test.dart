@@ -1,3 +1,5 @@
+// ignore_for_file: unreachable_from_main
+
 import 'package:deep_pick/deep_pick.dart';
 import 'package:test/test.dart';
 
@@ -12,7 +14,7 @@ void main() {
 
     test('pick a value with two args', () {
       final data = {
-        'name': {'first': 'John', 'last': 'Snow'}
+        'name': {'first': 'John', 'last': 'Snow'},
       };
       final p = pick(data, 'name', 'first');
       expect(p.value, 'John');
@@ -21,7 +23,7 @@ void main() {
 
     test('ignores null args', () {
       final data = {
-        'name': {'first': 'John', 'last': 'Snow'}
+        'name': {'first': 'John', 'last': 'Snow'},
       };
       // Probably nobody is using it that way. It's a byproduct of faking varargs.
       // But it is the public API and shouldn't break
@@ -41,7 +43,7 @@ void main() {
 
     test('pickDeep a value with two args', () {
       final data = {
-        'name': {'first': 'John', 'last': 'Snow'}
+        'name': {'first': 'John', 'last': 'Snow'},
       };
       final p = pickDeep(data, ['name', 'first']);
       expect(p.value, 'John');
@@ -295,7 +297,7 @@ void main() {
 
       test('is not absent, not null, further down', () {
         final json = {
-          'a': {'b': 1}
+          'a': {'b': 1},
         };
         final p = pick(json, 'a', 'x' /*absent*/);
         expect(p.value, isNull);
@@ -393,7 +395,7 @@ void main() {
       final contexts = root.asListOrNull((pick) => pick.context);
       expect(contexts, [
         {'lang': 'de'},
-        {'lang': 'de'}
+        {'lang': 'de'},
       ]);
     });
 

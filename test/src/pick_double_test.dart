@@ -41,7 +41,7 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asDoubleOrNull() when the value may be null/absent at some point (double?).'
+                'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asDoubleOrNull() when the value may be null/absent at some point (double?).',
               ],
             ),
           ),
@@ -54,7 +54,7 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as double'
+                'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as double',
               ],
             ),
           ),
@@ -122,7 +122,7 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent.'
+                'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent.',
               ],
             ),
           ),
@@ -135,7 +135,7 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as double'
+                'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as double',
               ],
             ),
           ),

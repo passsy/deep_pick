@@ -16,7 +16,7 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asMapOrEmpty()/asMapOrNull() when the value may be null/absent at some point (Map<String, bool>?).'
+                'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asMapOrEmpty()/asMapOrNull() when the value may be null/absent at some point (Map<String, bool>?).',
               ],
             ),
           ),
@@ -25,7 +25,7 @@ void main() {
 
       test('throws for cast error', () {
         final dynamic data = {
-          'a': {'some': 'value'}
+          'a': {'some': 'value'},
         };
 
         try {
@@ -63,7 +63,7 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be casted to Map<dynamic, dynamic>'
+                'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be casted to Map<dynamic, dynamic>',
               ],
             ),
           ),
@@ -86,7 +86,7 @@ void main() {
 
       test('reports errors correctly', () {
         final dynamic data = {
-          'a': {'some': 'value'}
+          'a': {'some': 'value'},
         };
 
         try {
