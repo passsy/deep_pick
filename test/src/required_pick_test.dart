@@ -84,7 +84,7 @@ void main() {
       final contexts = root.asListOrEmpty((pick) => pick.context);
       expect(contexts, [
         {'lang': 'de'},
-        {'lang': 'de'}
+        {'lang': 'de'},
       ]);
     });
 

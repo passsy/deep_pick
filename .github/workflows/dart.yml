@@ -10,28 +10,32 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: ["2.12", "2.13", "dev"]
+        dartversion: [
+          "google/dart:2.12",
+          "dart:3.0",
+          "dart:stable"
+        ]
 
     container:
-      image: google/dart:${{ matrix.version }}
+      image: ${{ matrix.dartversion }}
     
     steps:
     - uses: actions/checkout@v1
     - name: Install dependencies
-      run: pub get --no-precompile
+      run: dart pub get || pub get
     - name: Run tests
-      run: pub run test
+      run: dart pub run test || pub run test
 
   formatting:
     runs-on: ubuntu-latest
 
     container:
-      image: google/dart:2.14
+      image: dart:3.5
 
     steps:
     - uses: actions/checkout@v1
     - name: Install dependencies
-      run: pub get --no-precompile
+      run: dart pub get
     - name: check formatting
       run: dart format --fix --set-exit-if-changed .
 
@@ -39,16 +43,16 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: google/dart:2.14
+      image: dart:3.5
 
     steps:
     - uses: actions/checkout@v1
     - name: Install dependencies
-      run: pub get --no-precompile
+      run: dart pub get
     - name: lint
       run: dart analyze --fatal-infos
     - name: docs
-      run: dartdoc .
-    - name: Verify package completness
-      run: pub publish -n
+      run: dart doc .
+    - name: Verify package completeness
+      run: dart pub publish -n
 

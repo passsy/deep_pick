@@ -32,7 +32,7 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                '[roundDouble] and [truncateDouble] can not be true at the same time'
+                '[roundDouble] and [truncateDouble] can not be true at the same time',
               ],
             ),
           ),
@@ -45,7 +45,7 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asIntOrNull() when the value may be null/absent at some point (int?).'
+                'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asIntOrNull() when the value may be null/absent at some point (int?).',
               ],
             ),
           ),
@@ -58,7 +58,7 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as int'
+                'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as int',
               ],
             ),
           ),
@@ -104,7 +104,7 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent.'
+                'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent.',
               ],
             ),
           ),
@@ -117,7 +117,7 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as int'
+                'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as int',
               ],
             ),
           ),
