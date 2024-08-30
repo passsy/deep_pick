@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.0 (`30.08.24`)
+
+- Allow `.letOrNull((pick) => null)` to return `null` without manually setting a nullable type [#61](https://github.com/passsy/deep_pick/pull/61)
+- CI 2024 update
+
 ## 1.0.0 (`19.03.23`)
 
 - Remove long deprecated methods: `addContext`, `asBool`, `asDateTime`, `asDouble`, `asInt`, `asList`, `asMap`, `asString`. Use their `as*OrThrow` replacements.
