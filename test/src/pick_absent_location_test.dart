@@ -71,7 +71,7 @@ void main() {
           isA<PickException>().having(
             (e) => e.message,
             'message',
-            contains('"x" in pick(json, "a", "x" (absent))'),
+            contains('expected a non-null value at a.x, but it is absent'),
           ),
         ),
       );
@@ -86,7 +86,8 @@ void main() {
           isA<PickException>().having(
             (e) => e.message,
             'message',
-            contains('"nope" in pick(json, "list", 0, "nope" (absent))'),
+            contains(
+                'expected a non-null value at list[0].nope, but it is absent'),
           ),
         ),
       );
@@ -104,7 +105,7 @@ void main() {
           isA<PickException>().having(
             (e) => e.message,
             'message',
-            contains('location [deep, set]'),
+            contains('cannot pick by index at deep.set[0], it is a Set'),
           ),
         ),
       );

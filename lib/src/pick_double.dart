@@ -52,8 +52,17 @@ extension NullableDoublePick on Pick {
         }
       }
     }
-    throw PickException(
-      'Type ${value.runtimeType} of $debugParsingExit can not be parsed as double',
+    if (value is String) {
+      throw PickException.fromPick(
+        this,
+        reason: PickErrorReason.unparsable,
+        expected: 'a double',
+      );
+    }
+    throw PickException.fromPick(
+      this,
+      reason: PickErrorReason.wrongType,
+      expected: 'a double',
     );
   }
 

@@ -92,6 +92,13 @@ extension NullableDateTimePick on Pick {
     if (value is DateTime) {
       return value;
     }
+    if (value is! String) {
+      throw PickException.fromPick(
+        this,
+        reason: PickErrorReason.wrongType,
+        expected: 'a DateTime',
+      );
+    }
 
     final Map<PickDateFormat, DateTime? Function()> formats = {
       PickDateFormat.ISO_8601: _parseIso8601,
@@ -107,8 +114,11 @@ extension NullableDateTimePick on Pick {
         return dateTime;
       }
 
-      throw PickException(
-        'Type ${value.runtimeType} of $debugParsingExit can not be parsed as DateTime using $format',
+      throw PickException.fromPick(
+        this,
+        reason: PickErrorReason.unparsable,
+        expected: 'a DateTime',
+        detail: 'does not match $format',
       );
     }
 
@@ -125,9 +135,13 @@ extension NullableDateTimePick on Pick {
       }
     }
 
-    throw PickException(
-      'Type ${value.runtimeType} of $debugParsingExit can not be parsed as DateTime. '
-      'The different parsers produced the following errors: $errorsByFormat',
+    throw PickException.fromPick(
+      this,
+      reason: PickErrorReason.unparsable,
+      expected: 'a DateTime',
+      detail: errorsByFormat.isEmpty
+          ? 'no known format matched (ISO 8601, RFC 1123, RFC 850, asctime)'
+          : 'the parsers produced the following errors: $errorsByFormat',
     );
   }
 

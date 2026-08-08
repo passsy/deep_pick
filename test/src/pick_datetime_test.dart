@@ -29,7 +29,8 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asDateTimeOrNull() when the value may be null/absent at some point (DateTime?).',
+                'expected a non-null value at unknownKey, but it is absent',
+                'Use asDateTimeOrNull() when the value may be null/absent at some point (DateTime?).',
               ],
             ),
           ),
@@ -42,7 +43,7 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as DateTime',
+                'expected a DateTime at <root>, found an Object',
               ],
             ),
           ),
@@ -50,7 +51,9 @@ void main() {
         expect(
           () => pick('Bubblegum').asDateTimeOrThrow(),
           throwsA(
-            pickException(containing: ['String', 'Bubblegum', 'DateTime']),
+            pickException(
+              containing: ['could not parse a DateTime', 'Bubblegum'],
+            ),
           ),
         );
       });
@@ -99,7 +102,7 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent.',
+                'expected a non-null value at unknownKey, but it is absent',
               ],
             ),
           ),
@@ -112,7 +115,7 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as DateTime',
+                'expected a DateTime at <root>, found an Object',
               ],
             ),
           ),
@@ -120,7 +123,9 @@ void main() {
         expect(
           () => pick('Bubblegum').required().asDateTimeOrThrow(),
           throwsA(
-            pickException(containing: ['String', 'Bubblegum', 'DateTime']),
+            pickException(
+              containing: ['could not parse a DateTime', 'Bubblegum'],
+            ),
           ),
         );
       });
@@ -672,7 +677,7 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Type String of picked value "2023-01-09T12:31:54ABC"',
+                '"2023-01-09T12:31:54ABC"',
                 'Unknown time zone abbrevation ABC',
               ],
             ),
@@ -684,7 +689,7 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Type String of picked value "Mon, 11 Nov 24 11:58:15 ESTX"',
+                '"Mon, 11 Nov 24 11:58:15 ESTX"',
                 'Unknown time zone abbrevation ESTX',
               ],
             ),

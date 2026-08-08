@@ -43,8 +43,10 @@ extension NullableMapPick on Pick {
       // and not lazily type checked when accessing them
       return Map.of(view);
     }
-    throw PickException(
-      'Type ${value.runtimeType} of $debugParsingExit can not be casted to Map<dynamic, dynamic>',
+    throw PickException.fromPick(
+      this,
+      reason: PickErrorReason.wrongType,
+      expected: 'a Map',
     );
   }
 

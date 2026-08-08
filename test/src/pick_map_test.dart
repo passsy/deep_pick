@@ -16,7 +16,8 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asMapOrEmpty()/asMapOrNull() when the value may be null/absent at some point (Map<String, bool>?).',
+                'expected a non-null value at unknownKey, but it is absent',
+                'Use asMapOrEmpty()/asMapOrNull() when the value may be null/absent at some point (Map<String, bool>?).',
               ],
             ),
           ),
@@ -54,7 +55,10 @@ void main() {
           () => pick('Bubblegum').asMapOrThrow(),
           throwsA(
             pickException(
-              containing: ['String', 'Bubblegum', 'Map<dynamic, dynamic>'],
+              containing: [
+                'expected a Map at <root>, found a String',
+                'Bubblegum',
+              ],
             ),
           ),
         );
@@ -63,7 +67,7 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be casted to Map<dynamic, dynamic>',
+                'expected a Map at <root>, found an Object',
               ],
             ),
           ),

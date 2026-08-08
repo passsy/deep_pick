@@ -113,7 +113,7 @@ void main() {
             (e) => e.message,
             'message',
             contains(
-              'Expected a non-null value but location picked value "null" using pick(<root>) is null',
+              'expected a non-null value at <root>, but it is null',
             ),
           ),
         ),
@@ -170,7 +170,7 @@ void main() {
               (e) => e.message,
               'message',
               contains(
-                'Expected a non-null value but location picked value "null" using pick(json, 0 (null)) is null',
+                'expected a non-null value at [0], but it is null',
               ),
             ),
           ),
@@ -185,7 +185,7 @@ void main() {
               (e) => e.message,
               'message',
               contains(
-                'Expected a non-null value but location "some" in pick(json, "some" (absent), "path") is absent',
+                'expected a non-null value at some.path, but it is absent',
               ),
             ),
           ),
@@ -200,7 +200,7 @@ void main() {
               (e) => e.message,
               'message',
               contains(
-                'Expected a non-null value but location "some" in pick(json, "some" (absent), "path") is absent.',
+                'expected a non-null value at some.path, but it is absent',
               ),
             ),
           ),
@@ -228,7 +228,10 @@ void main() {
           isA<PickException>().having(
             (e) => e.toString(),
             'toString',
-            allOf(contains('[set]'), contains('Set'), contains('index (0)')),
+            allOf(
+              contains('cannot pick by index at set[0], it is a Set'),
+              contains('a Set is unordered'),
+            ),
           ),
         ),
       );

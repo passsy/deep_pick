@@ -254,7 +254,11 @@ extension TimestampPick on Pick {
     if (value is int) {
       return Timestamp.fromMillisecondsSinceEpoch(value);
     }
-    throw PickException("value $value at $debugParsingExit can't be casted to Timestamp");
+    throw PickException.fromPick(
+      this,
+      reason: PickErrorReason.wrongType,
+      expected: 'a Timestamp',
+    );
   }
 
   Timestamp? asFirestoreTimeStampOrNull() {
@@ -401,15 +405,33 @@ final milestoneCreator = json?['milestone']?['creator']?['login'] as String;
 final milestoneCreator = pick(json, 'milestone', 'creator', 'login').asStringOrThrow();
 
 // Unhandled exception:
-// PickException(
-//   Expected a non-null value but location "milestone" in pick(json, "milestone" (absent), "creator", "login") is absent. 
-//   Use asStringOrNull() when the value may be null at some point (String?).
-// )
+// PickException: expected a non-null value at milestone.creator.login, but it is absent
+//
+//   query   milestone.creator.login
+//                     ~~~~~~~ null has no key "creator"
+//   at      milestone = null
+//   hint    Use asStringOrNull() when the value may be null/absent at some point (String?).
 ```
 
+The `query` row shows the full requested path with a marker under the segment that could not be followed, and the `at` row shows the data at the deepest reachable location.
+
 Notice the distinction between "absent" and "null" when you see such errors.
-- `"absent"` means the key isn't found in a Map or a List has no item at the requested index
-- `"null"` means the value at that position is actually `null`
+- `"absent"` means the path could not be followed to the end, e.g. the key isn't found in a Map, a List has no item at the requested index, or a `null` value blocked the way down
+- `"null"` means the path was fully followed and the value at the end is actually `null`
+
+### Redacting values in error messages
+
+Error messages show the data at the location parsing failed. That's great during development, but when API responses carry personal data those messages may end up in crash reporters and logs. Add `.redactValues()` at the root of a pick chain to mask all values while keeping Map keys and types visible:
+
+```dart
+pick(response).redactValues().let((pick) => User.fromPick(pick));
+
+// PickException: expected a non-null value at shoes[0].name, but it is absent
+//
+//   query   shoes[0].name
+//                    ~~~~ no such key
+//   at      shoes[0] = Map with keys "id", "size"
+```
 
 ### 4. Null is default, crashes intentional
 

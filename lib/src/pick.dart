@@ -120,7 +120,8 @@ Pick _drillDown(
             if (isLastSelector) {
               return Pick(null, path: fullPath, context: context);
             }
-            // null can't be drilled into, the next segment is unreachable
+            // null can't be drilled into, the next segment is
+            // unreachable and the last reachable value is the null itself
             return Pick.absent(
               selectorIndex + 1,
               path: fullPath,
@@ -132,13 +133,23 @@ Pick _drillDown(
           // ignore: avoid_catching_errors
         } on RangeError catch (_) {
           // out of range, value not found at index selector
-          return Pick.absent(selectorIndex, path: fullPath, context: context);
+          return Pick.absent(
+            selectorIndex,
+            path: fullPath,
+            context: context,
+            lastReachableValue: data,
+          );
         }
       }
     }
     if (data is Map) {
       if (!data.containsKey(selector)) {
-        return Pick.absent(selectorIndex, path: fullPath, context: context);
+        return Pick.absent(
+          selectorIndex,
+          path: fullPath,
+          context: context,
+          lastReachableValue: data,
+        );
       }
       final dynamic picked = data[selector];
       if (picked == null) {
@@ -146,7 +157,8 @@ Pick _drillDown(
         if (isLastSelector) {
           return Pick(null, path: fullPath, context: context);
         }
-        // null can't be drilled into, the next segment is unreachable
+        // null can't be drilled into, the next segment is
+        // unreachable and the last reachable value is the null itself
         return Pick.absent(
           selectorIndex + 1,
           path: fullPath,
@@ -157,13 +169,23 @@ Pick _drillDown(
       continue;
     }
     if (data is Set && selector is int) {
-      throw PickException(
-        'Value at location ${fullPath.sublist(0, selectorIndex)} is a Set, which is a unordered data structure. '
-        "It's not possible to pick a value by using a index ($selector)",
+      throw PickException.fromPick(
+        Pick.absent(
+          selectorIndex,
+          path: fullPath,
+          context: context,
+          lastReachableValue: data,
+        ),
+        reason: PickErrorReason.setIndexUnsupported,
       );
     }
     // can't drill down any more to find the exact location.
-    return Pick.absent(selectorIndex, path: fullPath, context: context);
+    return Pick.absent(
+      selectorIndex,
+      path: fullPath,
+      context: context,
+      lastReachableValue: data,
+    );
   }
   return Pick(data, path: fullPath, context: context);
 }
@@ -178,22 +200,35 @@ class Pick {
     this.value, {
     this.path = const [],
     Map<String, dynamic>? context,
-  }) : context = context != null ? Map.of(context) : {};
+  })  : lastReachableValue = null,
+        context = context != null ? Map.of(context) : {};
 
   /// Pick of an absent value. While drilling down [path] the structure of the
   /// data did not match the [path] and the value wasn't found.
   ///
   /// [value] will always return `null` and [isAbsent] always `true`.
+  ///
+  /// [lastReachableValue] is the value at the deepest location the data
+  /// structure allowed following [path], i.e. the `Map` missing the key.
   Pick.absent(
     int missingValueAtIndex, {
     this.path = const [],
     Map<String, Object?>? context,
+    this.lastReachableValue,
   })  : value = null,
         _missingValueAtIndex = missingValueAtIndex,
         context = context != null ? Map.of(context) : {};
 
   /// The picked value, might be `null`
   final Object? value;
+
+  /// When the picked value is unavailable ([isAbsent]) the value at the
+  /// deepest location the data structure allowed following [path]
+  ///
+  /// I.e. the `Map` which did not contain the requested key, the `List` the
+  /// index was out of range for, or `null` when a `null` value blocked the
+  /// way down. Always `null` when the pick is not [isAbsent].
+  final Object? lastReachableValue;
 
   /// Allows the distinction between the actual [value] `null` and the value not
   /// being available
@@ -285,6 +320,23 @@ class Pick {
     return _drillDown(value, selectors, parentPath: path, context: context);
   }
 
+  /// Redacts the actual data values in error messages produced by this pick
+  /// and everything picked from it
+  ///
+  /// [PickException] messages show the value at the location parsing failed,
+  /// which is useful during development but may leak personal data into
+  /// crash reporters and logs. With redaction enabled the messages keep
+  /// [Map] keys and types, but mask all values.
+  ///
+  /// Add it once at the root to cover the whole parsing tree:
+  /// ```dart
+  /// pick(response).redactValues().let((pick) => User.fromPick(pick));
+  /// ```
+  Pick redactValues() {
+    context[_redactValuesContextKey] = true;
+    return this;
+  }
+
   /// Enter a "required" context which requires the picked value to be non-null
   /// or a [PickException] is thrown.
   ///
@@ -292,11 +344,9 @@ class Pick {
   RequiredPick required() {
     final value = this.value;
     if (value == null) {
-      final more = fromContext(requiredPickErrorHintKey).value as String?;
-      final moreSegment = more == null ? '' : ' $more';
-      throw PickException(
-        'Expected a non-null value but location $debugParsingExit '
-        'is ${isAbsent ? 'absent' : 'null'}.$moreSegment',
+      throw PickException.fromPick(
+        this,
+        reason: isAbsent ? PickErrorReason.absent : PickErrorReason.nullValue,
       );
     }
     return RequiredPick(value, path: path, context: context);
@@ -462,19 +512,395 @@ class RequiredPick extends Pick {
     super.withContext(key, value);
     return this;
   }
+
+  @override
+  RequiredPick redactValues() {
+    super.redactValues();
+    return this;
+  }
 }
 
-/// Used internally with [PickContext.withContext] to add additional information
+/// Used internally with [Pick.withContext] to add additional information
 /// to the error message
 const requiredPickErrorHintKey = '_required_pick_error_hint';
 
-class PickException implements Exception {
-  PickException(this.message);
+/// Used internally with [Pick.redactValues] to mark a pick chain as carrying
+/// sensitive data
+const _redactValuesContextKey = '_redact_values';
 
+/// Classification of what went wrong when a [PickException] was thrown
+enum PickErrorReason {
+  /// The data structure ended before [PickException.path] could be fully
+  /// followed
+  absent,
+
+  /// The path was followed completely but the value at the end is `null`
+  nullValue,
+
+  /// A value exists but its type doesn't match the requested one
+  wrongType,
+
+  /// A value exists with a compatible type, but its content could not be
+  /// parsed into the requested type
+  unparsable,
+
+  /// Picking by index from an unordered [Set] is not supported
+  setIndexUnsupported,
+}
+
+class PickException implements Exception {
+  /// A [PickException] with a freeform [message]
+  PickException(this.message)
+      : path = null,
+        reason = null,
+        expected = null;
+
+  /// Builds the standard deep_pick error message from the state of [pick]
+  ///
+  /// Use it in custom `.let()` parsers to throw errors consistent with the
+  /// built-in `as*OrThrow` methods.
+  ///
+  /// The message is rendered eagerly so the exception does not retain a
+  /// reference into the parsed data structure. Respects
+  /// [Pick.redactValues].
+  factory PickException.fromPick(
+    Pick pick, {
+    required PickErrorReason reason,
+    String? expected,
+    String? detail,
+    String? hint,
+  }) {
+    final redact = pick.context[_redactValuesContextKey] == true;
+    final contextHint = pick.context[requiredPickErrorHintKey] as String?;
+    final pathBroke = reason == PickErrorReason.absent ||
+        reason == PickErrorReason.setIndexUnsupported;
+    final resolvedExpected = reason == PickErrorReason.setIndexUnsupported
+        ? null
+        : expected ?? 'a non-null value';
+    final message = _renderErrorMessage(
+      fullPath: pick.path,
+      reason: reason,
+      expected: resolvedExpected,
+      nodeValue: pathBroke ? pick.lastReachableValue : pick.value,
+      failedAtIndex: pathBroke ? pick.missingValueAtIndex : null,
+      redact: redact,
+      detail: detail,
+      hints: [
+        if (hint != null) hint,
+        if (contextHint != null) contextHint,
+      ],
+    );
+    return PickException._(
+      message: message,
+      path: List.unmodifiable(pick.path),
+      reason: reason,
+      expected: resolvedExpected,
+    );
+  }
+
+  PickException._({
+    required this.message,
+    required this.path,
+    required this.reason,
+    required this.expected,
+  });
+
+  /// The complete, human readable error message
   final String message;
+
+  /// The full path that was requested when the error occurred
+  ///
+  /// `null` when the exception was created with the plain [PickException]
+  /// constructor.
+  final List<Object>? path;
+
+  /// What went wrong, see [PickErrorReason]
+  ///
+  /// `null` when the exception was created with the plain [PickException]
+  /// constructor.
+  final PickErrorReason? reason;
+
+  /// What the caller asked for, i.e. `'an int'`
+  ///
+  /// `null` when unknown or not applicable.
+  final String? expected;
 
   @override
   String toString() {
-    return 'PickException($message)';
+    return 'PickException: $message';
+  }
+}
+
+const _errorLabelWidth = 8;
+
+String _errorRow(String label, String content) =>
+    '  ${label.padRight(_errorLabelWidth)}$content';
+
+String _renderErrorMessage({
+  required List<Object> fullPath,
+  required PickErrorReason reason,
+  required String? expected,
+  required Object? nodeValue,
+  required int? failedAtIndex,
+  required bool redact,
+  required String? detail,
+  required List<String> hints,
+}) {
+  final rendered = _RenderedPath.of(fullPath);
+  final where = fullPath.isEmpty ? '<root>' : rendered.text;
+
+  final String headline;
+  switch (reason) {
+    case PickErrorReason.absent:
+      headline = 'expected $expected at $where, but it is absent';
+      break;
+    case PickErrorReason.nullValue:
+      headline = 'expected $expected at $where, but it is null';
+      break;
+    case PickErrorReason.wrongType:
+      headline =
+          'expected $expected at $where, found ${_describeType(nodeValue)}';
+      break;
+    case PickErrorReason.unparsable:
+      headline = 'could not parse $expected at $where';
+      break;
+    case PickErrorReason.setIndexUnsupported:
+      headline = 'cannot pick by index at $where, it is a Set';
+      break;
+  }
+
+  final lines = <String>[headline, ''];
+
+  if (fullPath.isNotEmpty) {
+    lines.add(_errorRow('query', rendered.text));
+    if (failedAtIndex != null) {
+      final markerText = detail ??
+          _describeAbsentReason(nodeValue, fullPath[failedAtIndex], reason);
+      final pad = ' ' * (2 + _errorLabelWidth + rendered.starts[failedAtIndex]);
+      final marker = '~' * rendered.lengths[failedAtIndex];
+      lines.add('$pad$marker $markerText');
+    }
+  }
+
+  const valueIndent = 2 + _errorLabelWidth;
+  final valueBlock =
+      _describeValueBlock(nodeValue, indent: valueIndent, redact: redact);
+
+  // Did the path break somewhere, or was the whole path followable and only
+  // the value at the end is the problem?
+  if (failedAtIndex != null) {
+    // the deepest node parsing could reach, and what was actually in it
+    final reached = _RenderedPath.of(fullPath.take(failedAtIndex).toList());
+    final reachedText = reached.text.isEmpty ? '<root>' : reached.text;
+    lines.add(_errorRow('at', '$reachedText = ${valueBlock.first}'));
+    lines.addAll(valueBlock.skip(1));
+  } else {
+    // the whole path was followable, the value itself is the problem
+    final suffix = reason == PickErrorReason.wrongType
+        ? '  (${_describeType(nodeValue)})'
+        : '';
+    lines.add(_errorRow('found', '${valueBlock.first}$suffix'));
+    lines.addAll(valueBlock.skip(1));
+    if (detail != null) {
+      lines.add(_errorRow('detail', detail));
+    }
+  }
+
+  for (final hint in hints) {
+    lines.add(_errorRow('hint', hint));
+  }
+
+  return lines.join('\n');
+}
+
+/// Why drilling down stopped at [node] when applying [selector]
+String _describeAbsentReason(
+  Object? node,
+  Object selector,
+  PickErrorReason reason,
+) {
+  if (reason == PickErrorReason.setIndexUnsupported) {
+    return 'a Set is unordered';
+  }
+  if (node is Map) {
+    return 'no such key';
+  }
+  if (node is List && selector is int) {
+    final count = node.length == 1 ? '1 item' : '${node.length} items';
+    return 'index out of range, the List has $count';
+  }
+  final noun = selector is int ? 'index $selector' : 'key "$selector"';
+  if (node == null) {
+    return 'null has no $noun';
+  }
+  return '${_describeType(node)} has no $noun';
+}
+
+/// A user-facing type name, never leaking internal names like
+/// `_Map<String, String>`
+String _describeType(Object? value) {
+  if (value == null) return 'null';
+  if (value is String) return 'a String';
+  if (value is int) return 'an int';
+  if (value is double) return 'a double';
+  if (value is bool) return 'a bool';
+  if (value is List) return 'a List';
+  if (value is Map) return 'a Map';
+  if (value is Set) return 'a Set';
+  final name = '${value.runtimeType}';
+  final article = 'AEIOU'.contains(name[0]) ? 'an' : 'a';
+  return '$article $name';
+}
+
+/// Renders [value] for an error message, possibly across multiple lines when
+/// the single-line form gets too wide to read
+///
+/// Continuation lines are indented by [indent].
+List<String> _describeValueBlock(
+  Object? value, {
+  required int indent,
+  required bool redact,
+}) {
+  if (redact) {
+    return [_describeValueRedacted(value)];
+  }
+  final single = _describeValue(value, maxLength: 1000);
+  if (single.length <= 72) {
+    return [_describeValue(value)];
+  }
+  final pad = ' ' * (indent + 2);
+  if (value is Map) {
+    final lines = <String>['{'];
+    var shown = 0;
+    for (final entry in value.entries) {
+      if (shown == 6) {
+        lines.add('$pad…${value.length - shown} more');
+        break;
+      }
+      lines.add('$pad"${entry.key}": ${_describeValue(entry.value)},');
+      shown++;
+    }
+    lines.add('${' ' * indent}}');
+    return lines;
+  }
+  if (value is List) {
+    final lines = <String>['['];
+    var shown = 0;
+    for (final item in value) {
+      if (shown == 6) {
+        lines.add('$pad…${value.length - shown} more');
+        break;
+      }
+      lines.add('$pad${_describeValue(item)},');
+      shown++;
+    }
+    lines.add('${' ' * indent}]');
+    return lines;
+  }
+  return [_describeValue(value)];
+}
+
+/// A short, bounded rendering of [value] showing actual data
+String _describeValue(Object? value, {int maxLength = 100}) {
+  final rendered = _renderValue(value);
+  if (rendered.length <= maxLength) {
+    return rendered;
+  }
+  return '${rendered.substring(0, maxLength)}…';
+}
+
+String _renderValue(Object? value) {
+  if (value == null) {
+    return 'null';
+  }
+  if (value is String) {
+    final escaped = value.replaceAll('"', r'\"');
+    return '"$escaped"';
+  }
+  if (value is num || value is bool) {
+    return '$value';
+  }
+  if (value is List) {
+    if (value.isEmpty) {
+      return '[]';
+    }
+    final items = value.take(3).map(_describeValue);
+    final more = value.length > 3 ? ', …${value.length - 3} more' : '';
+    return '[${items.join(', ')}$more]';
+  }
+  if (value is Set) {
+    return 'Set with ${value.length} items';
+  }
+  if (value is Map) {
+    if (value.isEmpty) {
+      return '{}';
+    }
+    final entries = value.entries
+        .take(5)
+        .map((e) => '"${e.key}": ${_describeValue(e.value)}');
+    final more = value.length > 5 ? ', …${value.length - 5} more' : '';
+    return '{${entries.join(', ')}$more}';
+  }
+  return '$value';
+}
+
+/// Describes the shape of [value] without revealing any data, see
+/// [Pick.redactValues]
+///
+/// [Map] keys count as schema, not data, and stay visible.
+String _describeValueRedacted(Object? value) {
+  if (value == null) {
+    return 'null';
+  }
+  if (value is Map) {
+    if (value.isEmpty) {
+      return 'Map with no keys';
+    }
+    final keys = value.keys.take(8).map((k) => '"$k"').join(', ');
+    final more = value.length > 8 ? ', …${value.length - 8} more' : '';
+    return 'Map with keys $keys$more';
+  }
+  if (value is List) {
+    final count = value.length == 1 ? '1 item' : '${value.length} items';
+    return 'List with $count';
+  }
+  if (value is Set) {
+    return 'Set with ${value.length} items';
+  }
+  return '<${value.runtimeType}>';
+}
+
+/// A path rendered as `shoes[0].name`, remembering where each segment starts
+/// so a marker can be aligned underneath it
+class _RenderedPath {
+  _RenderedPath(this.text, this.starts, this.lengths);
+
+  final String text;
+  final List<int> starts;
+  final List<int> lengths;
+
+  static final _plainKey = RegExp(r'^[A-Za-z_][A-Za-z0-9_]*$');
+
+  factory _RenderedPath.of(List<Object> path) {
+    final buffer = StringBuffer();
+    final starts = <int>[];
+    final lengths = <int>[];
+    for (var i = 0; i < path.length; i++) {
+      final segment = path[i];
+      final String token;
+      if (segment is int) {
+        token = '[$segment]';
+      } else if (_plainKey.hasMatch('$segment')) {
+        token = i == 0 ? '$segment' : '.$segment';
+      } else {
+        token = '["$segment"]';
+      }
+      // the marker skips a leading dot, it belongs to the separator
+      final skip = token.startsWith('.') ? 1 : 0;
+      starts.add(buffer.length + skip);
+      lengths.add(token.length - skip);
+      buffer.write(token);
+    }
+    return _RenderedPath(buffer.toString(), starts, lengths);
   }
 }

@@ -74,8 +74,10 @@ extension NullableListPick on Pick {
       }
       return result;
     }
-    throw PickException(
-      'Type ${value.runtimeType} of $debugParsingExit can not be casted to List<dynamic>',
+    throw PickException.fromPick(
+      this,
+      reason: PickErrorReason.wrongType,
+      expected: 'a List',
     );
   }
 
