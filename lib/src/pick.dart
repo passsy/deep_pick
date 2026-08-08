@@ -777,7 +777,7 @@ List<String> _describeValueBlock(
         lines.add('$pad…${value.length - shown} more');
         break;
       }
-      lines.add('$pad"${entry.key}": ${_describeValue(entry.value)},');
+      lines.add('$pad"${entry.key}": ${_renderChildValue(entry.value)},');
       shown++;
     }
     lines.add('${' ' * indent}}');
@@ -791,7 +791,7 @@ List<String> _describeValueBlock(
         lines.add('$pad…${value.length - shown} more');
         break;
       }
-      lines.add('$pad${_describeValue(item)},');
+      lines.add('$pad${_renderChildValue(item)},');
       shown++;
     }
     lines.add('${' ' * indent}]');
@@ -801,6 +801,10 @@ List<String> _describeValueBlock(
 }
 
 /// A short, bounded rendering of [value] showing actual data
+///
+/// Only the current level is rendered in detail. The error happened here, so
+/// nested containers are only interesting as shape and collapse to
+/// `{…2 keys}` and `[…3 items]`.
 String _describeValue(Object? value, {int maxLength = 100}) {
   final rendered = _renderValue(value);
   if (rendered.length <= maxLength) {
@@ -824,7 +828,7 @@ String _renderValue(Object? value) {
     if (value.isEmpty) {
       return '[]';
     }
-    final items = value.take(3).map(_describeValue);
+    final items = value.take(3).map(_renderChildValue);
     final more = value.length > 3 ? ', …${value.length - 3} more' : '';
     return '[${items.join(', ')}$more]';
   }
@@ -837,11 +841,34 @@ String _renderValue(Object? value) {
     }
     final entries = value.entries
         .take(5)
-        .map((e) => '"${e.key}": ${_describeValue(e.value)}');
+        .map((e) => '"${e.key}": ${_renderChildValue(e.value)}');
     final more = value.length > 5 ? ', …${value.length - 5} more' : '';
     return '{${entries.join(', ')}$more}';
   }
   return '$value';
+}
+
+/// Renders a child of the failure node, one level below the error location
+///
+/// Nested containers collapse to their shape, scalars stay visible but get a
+/// tighter length cap than the node itself.
+String _renderChildValue(Object? value) {
+  if (value is Map) {
+    if (value.isEmpty) {
+      return '{}';
+    }
+    return '{…${value.length} ${value.length == 1 ? 'key' : 'keys'}}';
+  }
+  if (value is List) {
+    if (value.isEmpty) {
+      return '[]';
+    }
+    return '[…${value.length} ${value.length == 1 ? 'item' : 'items'}]';
+  }
+  if (value is Set) {
+    return 'Set with ${value.length} items';
+  }
+  return _describeValue(value, maxLength: 50);
 }
 
 /// Describes the shape of [value] without revealing any data, see

@@ -40,7 +40,7 @@ void main() {
         '\n'
         '  query   shoes[7]\n'
         '               ~~~ index out of range, the List has 1 item\n'
-        '  at      shoes = [{"id": 42, "size": "M"}]',
+        '  at      shoes = [{…2 keys}]',
       );
     });
 
@@ -119,6 +119,31 @@ void main() {
         '            "lng": 13.405,\n'
         '            …1 more\n'
         '          }',
+      );
+    });
+
+    test('nested objects collapse to their shape', () {
+      // the error is at the current level, children are only interesting
+      // as shape
+      final e = grabException(() {
+        pick({
+          'user': {
+            'name': 'Tom',
+            'address': {'city': 'Berlin', 'zip': '10115'},
+            'tags': ['a', 'b', 'c'],
+            'friends': <String>[],
+          },
+        }, 'user', 'email')
+            .required();
+      });
+      expect(
+        e.message,
+        'expected a non-null value at user.email, but it is absent\n'
+        '\n'
+        '  query   user.email\n'
+        '               ~~~~~ no such key\n'
+        '  at      user = {"name": "Tom", "address": {…2 keys}, '
+        '"tags": […3 items], "friends": []}',
       );
     });
 
