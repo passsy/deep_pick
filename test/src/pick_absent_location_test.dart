@@ -110,4 +110,35 @@ void main() {
       );
     });
   });
+
+  group('a null on the way down stops the path there', () {
+    test('null value with further selectors is absent at the null', () {
+      final p = pick({'a': null}, 'a', 'b');
+
+      expect(p.value, isNull);
+      expect(p.isAbsent, isTrue);
+      expect(p.missingValueAtIndex, 1);
+      expect(p.followablePath, ['a']);
+      expect(p.debugParsingExit, '"b" in pick(json, "a", "b" (absent))');
+    });
+
+    test('null list element with further selectors is absent at the null', () {
+      final p = pick([null], 0, 'x');
+
+      expect(p.isAbsent, isTrue);
+      expect(p.missingValueAtIndex, 1);
+      expect(p.followablePath, [0]);
+      expect(p.debugParsingExit, '"x" in pick(json, 0, "x" (absent))');
+    });
+
+    test('null as the last segment stays a non-absent null', () {
+      // documented behaviour, must not change
+      expect(pick({'a': null}, 'a').isAbsent, isFalse);
+      expect(pick([null], 0).isAbsent, isFalse);
+      expect(
+        pick({'a': null}, 'a').debugParsingExit,
+        'picked value "null" using pick(json, "a" (null))',
+      );
+    });
+  });
 }

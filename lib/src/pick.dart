@@ -109,12 +109,23 @@ Pick _drillDown(
     path.add(selector);
     // index of [selector] inside [fullPath], not inside [selectors]
     final selectorIndex = parentPath.length + path.length - 1;
+    // whether [selector] is the last segment, so a `null` value is the result
+    // instead of a dead end
+    final isLastSelector = path.length == selectors.length;
     if (data is List) {
       if (selector is int) {
         try {
           data = data[selector];
           if (data == null) {
-            return Pick(null, path: fullPath, context: context);
+            if (isLastSelector) {
+              return Pick(null, path: fullPath, context: context);
+            }
+            // null can't be drilled into, the next segment is unreachable
+            return Pick.absent(
+              selectorIndex + 1,
+              path: fullPath,
+              context: context,
+            );
           }
           // found a value, continue drill down
           continue;
@@ -132,7 +143,15 @@ Pick _drillDown(
       final dynamic picked = data[selector];
       if (picked == null) {
         // no value mapped to selector
-        return Pick(null, path: fullPath, context: context);
+        if (isLastSelector) {
+          return Pick(null, path: fullPath, context: context);
+        }
+        // null can't be drilled into, the next segment is unreachable
+        return Pick.absent(
+          selectorIndex + 1,
+          path: fullPath,
+          context: context,
+        );
       }
       data = picked;
       continue;
@@ -186,10 +205,13 @@ class Pick {
   /// - Accessing a key which doesn't exist in a [Map]
   /// - Reading the value from [List] when the index is greater than the length
   /// - Trying to access a key in a [Map] but the found data structure is a [List]
+  /// - Drilling further down after hitting `null`, because `null` has no
+  ///   children
   ///
   /// ```
   /// pick({"a": null}, "a").isAbsent; // false
   /// pick({"a": null}, "b").isAbsent; // true
+  /// pick({"a": null}, "a", "b").isAbsent; // true, "b" is unreachable
   ///
   /// pick([null], 0).isAbsent; // false
   /// pick([], 2).isAbsent; // true
