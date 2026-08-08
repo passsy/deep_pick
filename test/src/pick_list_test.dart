@@ -88,7 +88,7 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Expected a non-null value but location list index 1 in pick(json, 1 (absent), "name") is absent. Use asListOrEmpty()/asListOrNull() when the value may be null/absent at some point (List<Person>?).',
+                'Expected a non-null value but location "name" in pick(json, 1, "name" (absent)) is absent. Use asListOrEmpty()/asListOrNull() when the value may be null/absent at some point (List<Person>?).',
               ],
             ),
           ),
@@ -202,7 +202,7 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Expected a non-null value but location list index 1 in pick(json, 1 (absent), "name") is absent.',
+                'Expected a non-null value but location "name" in pick(json, 1, "name" (absent)) is absent.',
               ],
             ),
           ),
@@ -306,7 +306,7 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Expected a non-null value but location list index 1 in pick(json, 1 (absent), "name") is absent.',
+                'Expected a non-null value but location "name" in pick(json, 1, "name" (absent)) is absent.',
               ],
             ),
           ),

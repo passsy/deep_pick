@@ -107,6 +107,8 @@ Pick _drillDown(
   /*Map|List|null*/ dynamic data = json;
   for (final selector in selectors) {
     path.add(selector);
+    // index of [selector] inside [fullPath], not inside [selectors]
+    final selectorIndex = parentPath.length + path.length - 1;
     if (data is List) {
       if (selector is int) {
         try {
@@ -119,13 +121,13 @@ Pick _drillDown(
           // ignore: avoid_catching_errors
         } on RangeError catch (_) {
           // out of range, value not found at index selector
-          return Pick.absent(path.length - 1, path: fullPath, context: context);
+          return Pick.absent(selectorIndex, path: fullPath, context: context);
         }
       }
     }
     if (data is Map) {
       if (!data.containsKey(selector)) {
-        return Pick.absent(path.length - 1, path: fullPath, context: context);
+        return Pick.absent(selectorIndex, path: fullPath, context: context);
       }
       final dynamic picked = data[selector];
       if (picked == null) {
@@ -137,12 +139,12 @@ Pick _drillDown(
     }
     if (data is Set && selector is int) {
       throw PickException(
-        'Value at location ${path.sublist(0, path.length - 1)} is a Set, which is a unordered data structure. '
+        'Value at location ${fullPath.sublist(0, selectorIndex)} is a Set, which is a unordered data structure. '
         "It's not possible to pick a value by using a index ($selector)",
       );
     }
     // can't drill down any more to find the exact location.
-    return Pick.absent(path.length - 1, path: fullPath, context: context);
+    return Pick.absent(selectorIndex, path: fullPath, context: context);
   }
   return Pick(data, path: fullPath, context: context);
 }
