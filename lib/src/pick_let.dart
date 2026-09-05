@@ -7,7 +7,7 @@ extension Let on RequiredPick {
   ///
   /// Example:
   ///
-  /// ```
+  /// ```dart
   /// // with .let
   /// User user = pick(json, 'users', 0).required().let((pick) => User.fromJson(pick.asMap()));
   ///
@@ -29,7 +29,7 @@ extension NullableLet on Pick {
   ///
   /// Example:
   ///
-  /// ```
+  /// ```dart
   /// // with letOrThrow
   /// User user =
   ///   pick(json, 'users', 0).letOrThrow((pick) => User.fromJson(pick.asMap()));
@@ -48,7 +48,7 @@ extension NullableLet on Pick {
   ///
   /// Example:
   ///
-  /// ```
+  /// ```dart
   /// // with letOrNull
   /// User? user = pick(json, 'users', 0).letOrNull((pick) => User.fromJson(pick.asMap()));
   ///

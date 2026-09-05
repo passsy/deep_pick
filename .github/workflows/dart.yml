@@ -30,25 +30,27 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: dart:3.5
+      image: dart:stable
 
     steps:
     - uses: actions/checkout@v1
     - name: Install dependencies
       run: dart pub get
     - name: check formatting
-      run: dart format --fix --set-exit-if-changed .
+      run: dart format --set-exit-if-changed .
 
   lint:
     runs-on: ubuntu-latest
 
     container:
-      image: dart:3.5
+      image: dart:stable
 
     steps:
     - uses: actions/checkout@v1
     - name: Install dependencies
       run: dart pub get
+    - name: Update lint
+      run: dart pub upgrade lint
     - name: lint
       run: dart analyze --fatal-infos
     - name: docs

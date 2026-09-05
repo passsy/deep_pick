@@ -1,8 +1,4 @@
-include: package:lint/analysis_options_package.yaml
-
-analyzer:
-  strong-mode:
-    implicit-casts: false
+include: package:lint/package.yaml
 
 linter:
   rules:
