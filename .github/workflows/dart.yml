@@ -49,8 +49,6 @@ jobs:
     - uses: actions/checkout@v1
     - name: Install dependencies
       run: dart pub get
-    - name: Update lint
-      run: dart pub upgrade lint
     - name: lint
       run: dart analyze --fatal-infos
     - name: docs
