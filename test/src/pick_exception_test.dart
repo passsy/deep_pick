@@ -13,6 +13,11 @@ PickException grabException(void Function() body) {
   fail('body did not throw a PickException');
 }
 
+class UnprintableValue {
+  @override
+  String toString() => throw StateError('unrelated value cannot be printed');
+}
+
 void main() {
   final json = {
     'shoes': [
@@ -22,6 +27,22 @@ void main() {
   };
 
   group('error message rendering', () {
+    test('a missing-field error does not invoke an unrelated value toString',
+        () {
+      final source = <String, Object>{'unrelated': UnprintableValue()};
+      expect(source.containsKey('missing'), isFalse);
+      final result = pick(source, 'missing');
+      expect(result.isAbsent, isTrue);
+      expect(result.path, ['missing']);
+      expect(
+        () => result.required(),
+        throwsA(isA<PickException>().having(
+          (error) => error.reason,
+          'reason',
+          PickErrorReason.absent,
+        )),
+      );
+    });
     test('missing key shows query, marker and data at the last node', () {
       final e = grabException(() => pick(json, 'shoes', 0, 'name').required());
       expect(

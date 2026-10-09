@@ -855,7 +855,7 @@ String _renderValue(Object? value) {
     final more = value.length > 5 ? ', …${value.length - 5} more' : '';
     return '{${entries.join(', ')}$more}';
   }
-  return '$value';
+  return '<${value.runtimeType}>';
 }
 
 /// Renders a child of the failure node, one level below the error location
