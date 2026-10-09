@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:deep_pick/deep_pick.dart';
+import 'package:deep_pick/src/pick.dart' show requiredPickErrorHintKey;
 import 'package:test/test.dart';
 
 /// Captures the [PickException] thrown by [body]
@@ -399,6 +400,120 @@ void main() {
         expect(e.reason, PickErrorReason.unparsable);
         expect(e.expected, 'a DateTime');
         expect(e.path, ['date']);
+      });
+    }
+  });
+  group('diagnostic edge cases', () {
+    test('expanded list shows six items, overflow and closing indentation', () {
+      final values = List.generate(7, (i) => '${'x' * 30}$i');
+      final e = PickException.fromPick(
+        pick(values),
+        reason: PickErrorReason.wrongType,
+        expected: 'a Map',
+      );
+      final rows = e.message.split('\n');
+      expect(rows[2], '  found   [  (a List)');
+      expect(rows.sublist(3, 9),
+          values.take(6).map((v) => '            ${jsonEncode(v)},').toList());
+      expect(rows[9], '            …1 more');
+      expect(rows[10], '          ]');
+      expect(rows, hasLength(11));
+      expect(e.message, isNot(contains(values.last)));
+    });
+
+    test('long scalar output is bounded and marked as truncated', () {
+      final e = PickException.fromPick(
+        pick('x' * 200),
+        reason: PickErrorReason.unparsable,
+        expected: 'an int',
+      );
+      expect(e.message.split('\n').last, '  found   "${'x' * 99}…');
+    });
+
+    final summaries = <Object?, String>{
+      <String, Object>{}: 'Map with no keys',
+      <String, Object>{
+        for (var i = 0; i < 10; i++) 'key$i': 'secret'
+      }: 'Map with keys "key0", "key1", "key2", "key3", "key4", "key5", "key6", "key7", …2 more',
+      <String>[]: 'List with 0 items',
+      ['secret']: 'List with 1 item',
+      ['secret', 'other']: 'List with 2 items',
+      <String>{}: 'Set with 0 items',
+      {'secret', 'other'}: 'Set with 2 items',
+      null: 'null',
+    };
+    for (final entry in summaries.entries) {
+      test('redacted summary ${entry.value}', () {
+        final e = PickException.fromPick(
+          pick(entry.key).redactValues(),
+          reason: PickErrorReason.unparsable,
+          expected: 'an int',
+        );
+        expect(e.message.split('\n').last, '  found   ${entry.value}');
+        expect(e.message, isNot(contains('secret')));
+      });
+    }
+
+    test('custom detail and both hint sources are rendered in order', () {
+      final e = PickException.fromPick(
+        pick('bad').withContext(requiredPickErrorHintKey, 'context hint'),
+        reason: PickErrorReason.unparsable,
+        expected: 'a custom value',
+        detail: 'custom detail',
+        hint: 'factory hint',
+      );
+      expect(
+          e.message,
+          'could not parse a custom value at <root>\n\n'
+          '  found   "bad"\n'
+          '  detail  custom detail\n'
+          '  hint    factory hint\n'
+          '  hint    context hint');
+    });
+
+    test('exception snapshots path and message before input mutation', () {
+      final path = <Object>['value'];
+      final data = <String, Object>{'visible': 'before'};
+      final e = PickException.fromPick(
+        Pick(data, path: path),
+        reason: PickErrorReason.wrongType,
+        expected: 'an int',
+      );
+      final message = e.message;
+      path[0] = 'changed';
+      data['visible'] = 'after';
+      expect(e.path, ['value']);
+      expect(() => e.path!.add('extra'), throwsUnsupportedError);
+      expect(e.message, message);
+      expect(e.message, contains('before'));
+      expect(e.message, isNot(contains('after')));
+    });
+
+    test('bool wrong-type errors carry structured fields', () {
+      final e = grabException(
+          () => pick({'flag': <Object>[]}, 'flag').asBoolOrThrow());
+      expect(e.reason, PickErrorReason.wrongType);
+      expect(e.expected, 'a bool');
+      expect(e.path, ['flag']);
+    });
+
+    for (final format in [
+      PickDateFormat.RFC_1123,
+      PickDateFormat.RFC_850,
+      PickDateFormat.ANSI_C_asctime
+    ]) {
+      test('explicit $format failure keeps structure and redaction', () {
+        final e = grabException(() {
+          pick({'date': 'CUSTOMERSECRET'})
+              .redactValues()('date')
+              .asDateTimeOrThrow(format: format);
+        });
+        expect(e.reason, PickErrorReason.unparsable);
+        expect(e.expected, 'a DateTime');
+        expect(e.path, ['date']);
+        expect(e.message, contains('does not match $format'));
+        expect(e.message, contains('  found   <String>'));
+        expect(e.message, isNot(contains('CUSTOMERSECRET')));
       });
     }
   });
