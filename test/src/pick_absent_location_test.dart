@@ -142,4 +142,62 @@ void main() {
       );
     });
   });
+
+  group('continuing an already absent pick', () {
+    final cases = <String, List<Object?>>{
+      'missing map key': [
+        {'a': <String, Object?>{}},
+        'a',
+        'missing',
+        'child'
+      ],
+      'missing list index': [
+        {'a': <Object?>[]},
+        'a',
+        2,
+        'child'
+      ],
+      'null intermediate value': [
+        {'a': null},
+        'a',
+        'missing',
+        'child'
+      ],
+    };
+    for (final entry in cases.entries) {
+      test(entry.key, () {
+        final input = entry.value;
+        final direct = pick(input[0], input[1], input[2], input[3]);
+        final chained = pick(input[0], input[1])(input[2])(input[3]);
+        expect(chained.path, direct.path);
+        expect(chained.missingValueAtIndex, direct.missingValueAtIndex);
+        expect(chained.followablePath, direct.followablePath);
+        expect(chained.lastReachableValue, same(direct.lastReachableValue));
+        expect(chained.debugParsingExit, direct.debugParsingExit);
+      });
+    }
+
+    test('empty call preserves the original absent state', () {
+      final missing = pick(<String, Object?>{}, 'missing');
+      final continued = missing();
+      expect(continued.isAbsent, isTrue);
+      expect(continued.path, missing.path);
+      expect(continued.missingValueAtIndex, missing.missingValueAtIndex);
+      expect(continued.lastReachableValue, same(missing.lastReachableValue));
+    });
+
+    test('the original missing node and redaction survive continuation', () {
+      final root = pick({'secret': 'PRIVATE'}).redactValues();
+      final missing = root('missing');
+      final continued = missing('child');
+      expect(continued.lastReachableValue, same(root.value));
+      expect(
+        () => continued.required(),
+        throwsA(isA<PickException>()
+            .having((e) => e.path, 'path', ['missing', 'child'])
+            .having((e) => e.message, 'message', contains('no such key'))
+            .having((e) => e.message, 'message', isNot(contains('PRIVATE')))),
+      );
+    });
+  });
 }

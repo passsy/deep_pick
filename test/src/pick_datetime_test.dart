@@ -678,7 +678,7 @@ void main() {
             pickException(
               containing: [
                 '"2023-01-09T12:31:54ABC"',
-                'Unknown time zone abbrevation ABC',
+                'the parsers failed for: PickDateFormat.ISO_8601',
               ],
             ),
           ),
@@ -690,7 +690,7 @@ void main() {
             pickException(
               containing: [
                 '"Mon, 11 Nov 24 11:58:15 ESTX"',
-                'Unknown time zone abbrevation ESTX',
+                'the parsers failed for: PickDateFormat.ISO_8601',
               ],
             ),
           ),

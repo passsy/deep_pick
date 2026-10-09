@@ -2,10 +2,12 @@
 
 ## 1.2.0 (`09.10.26`)
 
-- Fix absent locations when chaining picks, reporting the missing segment relative to the full path.
+- Fix absent locations when chaining picks, reporting the missing segment relative to the full path and preserving it when continuing an already absent pick.
 - Correctly mark paths below a `null` value as absent while preserving explicit `null` values at the requested location.
 - Improve `PickException` messages with labelled query, location, and hint rows, highlighting where parsing failed and summarizing nested containers.
 - Add structured `PickException.path`, `reason`, and `expected` fields, `PickErrorReason`, and `PickException.fromPick` for custom parsers.
+- Escape control characters in diagnostic paths, map keys, and string values.
+- Preserve structured date parsing errors for explicit formats and prevent parser error details from leaking redacted input.
 - Add `Pick.lastReachableValue` and `.redactValues()` to mask data values in parsing errors while keeping map keys and types visible.
 - Refresh README examples and documentation, and validate linting and formatting on stable Dart.
 

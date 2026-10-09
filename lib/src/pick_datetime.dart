@@ -107,31 +107,19 @@ extension NullableDateTimePick on Pick {
       PickDateFormat.ANSI_C_asctime: _parseAnsiCAsctime,
     };
 
-    if (format != null) {
-      // Use one specific format
-      final dateTime = formats[format]!();
-      if (dateTime != null) {
-        return dateTime;
-      }
-
-      throw PickException.fromPick(
-        this,
-        reason: PickErrorReason.unparsable,
-        expected: 'a DateTime',
-        detail: 'does not match $format',
-      );
-    }
-
-    // Try all available formats
-    final errorsByFormat = <PickDateFormat, Object>{};
-    for (final entry in formats.entries) {
+    final selectedFormats =
+        format == null ? formats : {format: formats[format]!};
+    final failedFormats = <PickDateFormat>[];
+    for (final entry in selectedFormats.entries) {
       try {
         final dateTime = entry.value();
         if (dateTime != null) {
           return dateTime;
         }
-      } catch (e) {
-        errorsByFormat[entry.key] = e;
+      } catch (_) {
+        // Parser exceptions can contain raw input. Keep only the format,
+        // so redacted errors cannot leak values through nested exceptions.
+        failedFormats.add(entry.key);
       }
     }
 
@@ -139,9 +127,11 @@ extension NullableDateTimePick on Pick {
       this,
       reason: PickErrorReason.unparsable,
       expected: 'a DateTime',
-      detail: errorsByFormat.isEmpty
-          ? 'no known format matched (ISO 8601, RFC 1123, RFC 850, asctime)'
-          : 'the parsers produced the following errors: $errorsByFormat',
+      detail: format != null
+          ? 'does not match $format'
+          : failedFormats.isEmpty
+              ? 'no known format matched (ISO 8601, RFC 1123, RFC 850, asctime)'
+              : 'the parsers failed for: ${failedFormats.join(', ')}',
     );
   }
 

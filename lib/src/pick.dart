@@ -317,6 +317,15 @@ class Pick {
             .cast<Object>()
             .toList(growable: false);
 
+    final missingIndex = missingValueAtIndex;
+    if (missingIndex != null) {
+      return Pick.absent(
+        missingIndex,
+        path: [...path, ...selectors],
+        context: context,
+        lastReachableValue: lastReachableValue,
+      );
+    }
     return _drillDown(value, selectors, parentPath: path, context: context);
   }
 
@@ -729,7 +738,8 @@ String _describeAbsentReason(
     final count = node.length == 1 ? '1 item' : '${node.length} items';
     return 'index out of range, the List has $count';
   }
-  final noun = selector is int ? 'index $selector' : 'key "$selector"';
+  final noun =
+      selector is int ? 'index $selector' : 'key ${jsonEncode('$selector')}';
   if (node == null) {
     return 'null has no $noun';
   }
@@ -818,8 +828,7 @@ String _renderValue(Object? value) {
     return 'null';
   }
   if (value is String) {
-    final escaped = value.replaceAll('"', r'\"');
-    return '"$escaped"';
+    return jsonEncode(value);
   }
   if (value is num || value is bool) {
     return '$value';
@@ -841,7 +850,7 @@ String _renderValue(Object? value) {
     }
     final entries = value.entries
         .take(5)
-        .map((e) => '"${e.key}": ${_renderChildValue(e.value)}');
+        .map((e) => '${jsonEncode('${e.key}')}: ${_renderChildValue(e.value)}');
     final more = value.length > 5 ? ', …${value.length - 5} more' : '';
     return '{${entries.join(', ')}$more}';
   }
@@ -883,7 +892,7 @@ String _describeValueRedacted(Object? value) {
     if (value.isEmpty) {
       return 'Map with no keys';
     }
-    final keys = value.keys.take(8).map((k) => '"$k"').join(', ');
+    final keys = value.keys.take(8).map((k) => jsonEncode('$k')).join(', ');
     final more = value.length > 8 ? ', …${value.length - 8} more' : '';
     return 'Map with keys $keys$more';
   }
@@ -920,7 +929,7 @@ class _RenderedPath {
       } else if (_plainKey.hasMatch('$segment')) {
         token = i == 0 ? '$segment' : '.$segment';
       } else {
-        token = '["$segment"]';
+        token = '[${jsonEncode('$segment')}]';
       }
       // the marker skips a leading dot, it belongs to the separator
       final skip = token.startsWith('.') ? 1 : 0;

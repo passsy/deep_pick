@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:deep_pick/deep_pick.dart';
 import 'package:test/test.dart';
 
@@ -273,5 +275,42 @@ void main() {
       expect(e.expected, isNull);
       expect(e.toString(), 'PickException: custom');
     });
+  });
+
+  group('error messages escape control characters', () {
+    for (final key in ['line\nbreak', 'tab\tkey', 'quote"key', r'back\slash']) {
+      test('special key ${key.codeUnits}', () {
+        final e =
+            grabException(() => pick({key: 1}, key, 'missing').required());
+        final query = e.message
+            .split('\n')
+            .singleWhere((line) => line.startsWith('  query'));
+        expect(query, isNot(contains('\t')));
+        expect(query, '  query   [${jsonEncode(key)}].missing');
+        expect(e.message.split('\n').length, 5);
+        expect(e.path, [key, 'missing']);
+      });
+    }
+    test('newlines are escaped in both query and data values', () {
+      final e = grabException(
+          () => pick({'line\nbreak': 'value\nline'}, 'missing').required());
+      expect(e.message, contains(r'"line\nbreak": "value\nline"'));
+      expect(e.message.split('\n').length, 5);
+    });
+  });
+
+  group('date parsing preserves structured errors and redaction', () {
+    for (final format in <PickDateFormat?>[null, PickDateFormat.ISO_8601]) {
+      test('unknown timezone with format $format', () {
+        final e = grabException(() =>
+            pick({'date': '2021-11-01T11:53:15 CUSTOMERSECRET'})
+                .redactValues()('date')
+                .asDateTimeOrThrow(format: format));
+        expect(e.message, isNot(contains('CUSTOMERSECRET')));
+        expect(e.reason, PickErrorReason.unparsable);
+        expect(e.expected, 'a DateTime');
+        expect(e.path, ['date']);
+      });
+    }
   });
 }
