@@ -286,12 +286,10 @@ void main() {
     });
 
     test('RequiredPick.redactValues() stays chainable', () {
-      final e = grabException(
-        () => pick(json)
-            .required()
-            .redactValues()('shoes', 0, 'material')
-            .required(),
-      );
+      final RequiredPick redacted = pick(json).required().redactValues();
+      final e = grabException(() {
+        redacted.let((it) => it('shoes', 0, 'material').required());
+      });
       expect(e.message, contains('Map with keys "id", "size"'));
     });
   });
