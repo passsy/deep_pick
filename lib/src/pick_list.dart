@@ -60,17 +60,8 @@ extension NullableListPick on Pick {
           // skip null items when whenNull isn't provided
           continue;
         }
-        try {
-          final pick = Pick(null, path: [...path, index], context: context);
-          result.add(whenNull(pick));
-          continue;
-        } catch (e) {
-          // ignore: avoid_print
-          print(
-            'whenNull at location $debugParsingExit index: $index crashed instead of returning a $T',
-          );
-          rethrow;
-        }
+        final pick = Pick(null, path: [...path, index], context: context);
+        result.add(whenNull(pick));
       }
       return result;
     }
