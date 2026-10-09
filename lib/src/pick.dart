@@ -552,24 +552,32 @@ const requiredPickErrorHintKey = '_required_pick_error_hint';
 /// sensitive data
 const _redactValuesContextKey = '_redact_values';
 
-/// Classification of what went wrong when a [PickException] was thrown
-enum PickErrorReason {
-  /// The data structure ended before [PickException.path] could be fully
-  /// followed
-  absent,
+/// Classification of what went wrong when a [PickException] was thrown.
+///
+/// Compare known constants; additional reasons may be added in future releases.
+class PickErrorReason {
+  const PickErrorReason._(this.name);
 
-  /// The path was followed completely but the value at the end is `null`
-  nullValue,
+  /// A stable identifier for this reason.
+  final String name;
 
-  /// A value exists but its type doesn't match the requested one
-  wrongType,
+  /// The data structure ended before [PickException.path] could be followed.
+  static const absent = PickErrorReason._('absent');
 
-  /// A value exists with a compatible type, but its content could not be
-  /// parsed into the requested type
-  unparsable,
+  /// The path was followed completely but the value at the end is `null`.
+  static const nullValue = PickErrorReason._('nullValue');
 
-  /// Picking by index from an unordered [Set] is not supported
-  setIndexUnsupported,
+  /// A value exists but its type doesn't match the requested one.
+  static const wrongType = PickErrorReason._('wrongType');
+
+  /// A compatible value could not be parsed into the requested type.
+  static const unparsable = PickErrorReason._('unparsable');
+
+  /// Picking by index from an unordered [Set] is not supported.
+  static const setIndexUnsupported = PickErrorReason._('setIndexUnsupported');
+
+  @override
+  String toString() => 'PickErrorReason.$name';
 }
 
 class PickException implements Exception {
@@ -691,6 +699,8 @@ String _renderErrorMessage({
     case PickErrorReason.setIndexUnsupported:
       headline = 'cannot pick by index at $where, it is a Set';
       break;
+    default:
+      headline = 'could not parse $expected at $where ($reason)';
   }
 
   final lines = <String>[headline, ''];

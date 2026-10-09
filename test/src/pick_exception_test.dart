@@ -297,6 +297,18 @@ void main() {
   });
 
   group('structured fields', () {
+    test('known error reasons have stable names and constant identity', () {
+      const absent = PickErrorReason.absent;
+      expect(absent, same(PickErrorReason.absent));
+      expect(absent.name, 'absent');
+      expect(absent.toString(), 'PickErrorReason.absent');
+      expect(PickErrorReason.nullValue.name, 'nullValue');
+      expect(PickErrorReason.wrongType.name, 'wrongType');
+      expect(PickErrorReason.unparsable.name, 'unparsable');
+      expect(PickErrorReason.setIndexUnsupported.name, 'setIndexUnsupported');
+      expect(absent, isNot(PickErrorReason.nullValue));
+    });
+
     test('fromPick fills path, reason and expected', () {
       final e = grabException(
         () => pick(json, 'shoes', 0, 'name').required(),
