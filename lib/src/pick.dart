@@ -243,7 +243,7 @@ class Pick {
   /// - Drilling further down after hitting `null`, because `null` has no
   ///   children
   ///
-  /// ```
+  /// ```dart
   /// pick({"a": null}, "a").isAbsent; // false
   /// pick({"a": null}, "b").isAbsent; // true
   /// pick({"a": null}, "a", "b").isAbsent; // true, "b" is unreachable
@@ -330,7 +330,7 @@ class Pick {
   ///
   /// Add it once at the root to cover the whole parsing tree:
   /// ```dart
-  /// pick(response).redactValues().let((pick) => User.fromPick(pick));
+  /// pick(response).redactValues().letOrThrow((pick) => User.fromPick(pick));
   /// ```
   Pick redactValues() {
     context[_redactValuesContextKey] = true;
@@ -363,23 +363,23 @@ class Pick {
   /// The alternative cascade operator often requires additional parenthesis
   ///
   /// Add context at the top
-  /// ```
+  /// ```dart
   /// pick(json)
   ///   .withContext('apiVersion', response.getApiVersion())
   ///   .let((pick) => Response.fromPick(pick));
   /// ```
   ///
   /// Read it where required
-  /// ```
+  /// ```dart
   /// factory Item.fromPick(RequiredPick pick) {
   ///     final Version apiVersion = pick.fromContext('apiVersion').asVersion();
   ///     if (apiVersion >= Version(0, 2, 0)) {
   ///       return Item(
-  ///         color: pick("detail", "color").required().asString(),
+  ///         color: pick("detail", "color").required().asStringOrThrow(),
   ///       );
   ///     } else {
   ///       return Item(
-  ///         color: pick("meta-data", "variant", 0, "color").required().asString(),
+  ///         color: pick("meta-data", "variant", 0, "color").required().asStringOrThrow(),
   ///       );
   ///     }
   ///   }
@@ -391,7 +391,7 @@ class Pick {
 
   /// Pick values from the context using the [Pick] API
   ///
-  /// ```
+  /// ```dart
   /// pick.fromContext('apiVersion').asIntOrNull();
   /// ```
   Pick fromContext(
@@ -427,7 +427,7 @@ class Pick {
   /// Examples:
   /// picked value "b" using pick(json, "a"(b))
   /// picked value "null" using pick(json, "a" (null))
-  /// picked value "Instance of \'Object\'" using pick(<root>)
+  /// picked value "Instance of \'Object\'" using `pick(<root>)`
   /// "unknownKey" in pick(json, "unknownKey" (absent))
   String get debugParsingExit {
     final access = <String>[];

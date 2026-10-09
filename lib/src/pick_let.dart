@@ -7,12 +7,12 @@ extension Let on RequiredPick {
   ///
   /// Example:
   ///
-  /// ```
+  /// ```dart
   /// // with .let
-  /// User user = pick(json, 'users', 0).required().let((pick) => User.fromJson(pick.asMap()));
+  /// User user = pick(json, 'users', 0).required().let((pick) => User.fromJson(pick.asMapOrThrow()));
   ///
   /// // without .let
-  /// User user = User.fromJson(pick(json, 'users', 0).required().asMap());
+  /// User user = User.fromJson(pick(json, 'users', 0).required().asMapOrThrow());
   ///
   /// ```
   R let<R>(R Function(RequiredPick pick) block) {
@@ -29,10 +29,10 @@ extension NullableLet on Pick {
   ///
   /// Example:
   ///
-  /// ```
+  /// ```dart
   /// // with letOrThrow
   /// User user =
-  ///   pick(json, 'users', 0).letOrThrow((pick) => User.fromJson(pick.asMap()));
+  ///   pick(json, 'users', 0).letOrThrow((pick) => User.fromJson(pick.asMapOrThrow()));
   /// ```
   R letOrThrow<R>(R Function(RequiredPick pick) block) {
     withContext(
@@ -48,15 +48,15 @@ extension NullableLet on Pick {
   ///
   /// Example:
   ///
-  /// ```
+  /// ```dart
   /// // with letOrNull
-  /// User? user = pick(json, 'users', 0).letOrNull((pick) => User.fromJson(pick.asMap()));
+  /// User? user = pick(json, 'users', 0).letOrNull((pick) => User.fromJson(pick.asMapOrThrow()));
   ///
   /// // traditionally
   /// Pick pick = pick(json, 'users', 0);
   /// User? user;
   /// if (pick.value != null) {
-  ///   user = User.fromJson(pick.asMap());
+  ///   user = User.fromJson(pick.asMapOrThrow());
   /// }
   /// ```
   R? letOrNull<R>(R? Function(RequiredPick pick) block) {

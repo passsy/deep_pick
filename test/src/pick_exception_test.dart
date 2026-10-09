@@ -5,7 +5,7 @@ import 'package:test/test.dart';
 PickException grabException(void Function() body) {
   try {
     body();
-  } on PickException catch (e, _) {
+  } on PickException catch (e) {
     return e;
   }
   fail('body did not throw a PickException');

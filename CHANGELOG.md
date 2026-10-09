@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.2.0 (`09.10.26`)
+
+- Fix absent locations when chaining picks, reporting the missing segment relative to the full path.
+- Correctly mark paths below a `null` value as absent while preserving explicit `null` values at the requested location.
+- Improve `PickException` messages with labelled query, location, and hint rows, highlighting where parsing failed and summarizing nested containers.
+- Add structured `PickException.path`, `reason`, and `expected` fields, `PickErrorReason`, and `PickException.fromPick` for custom parsers.
+- Add `Pick.lastReachableValue` and `.redactValues()` to mask data values in parsing errors while keeping map keys and types visible.
+- Refresh README examples and documentation, and validate linting and formatting on stable Dart.
+
+Error message text and `PickException.toString()` formatting have changed. Prefer the structured fields over parsing exception messages.
+
 ## 1.1.0 (`30.08.24`)
 
 - Allow `.letOrNull((pick) => null)` to return `null` without manually setting a nullable type [#61](https://github.com/passsy/deep_pick/pull/61)
