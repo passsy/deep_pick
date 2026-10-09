@@ -329,8 +329,11 @@ class Pick {
     return _drillDown(value, selectors, parentPath: path, context: context);
   }
 
-  /// Redacts the actual data values in error messages produced by this pick
-  /// and everything picked from it
+  /// Returns a copy that redacts data values in its error messages and those
+  /// of subsequently picked descendants.
+  ///
+  /// The original pick and existing descendants keep their diagnostic settings.
+  /// The copy shares the parsed data but has an independent context map.
   ///
   /// [PickException] messages show the value at the location parsing failed,
   /// which is useful during development but may leak personal data into
@@ -342,8 +345,17 @@ class Pick {
   /// pick(response).redactValues().letOrThrow((pick) => User.fromPick(pick));
   /// ```
   Pick redactValues() {
-    context[_redactValuesContextKey] = true;
-    return this;
+    final redactedContext = {...context, _redactValuesContextKey: true};
+    final missingIndex = missingValueAtIndex;
+    if (missingIndex != null) {
+      return Pick.absent(
+        missingIndex,
+        path: path,
+        context: redactedContext,
+        lastReachableValue: lastReachableValue,
+      );
+    }
+    return Pick(value, path: path, context: redactedContext);
   }
 
   /// Enter a "required" context which requires the picked value to be non-null
@@ -524,8 +536,11 @@ class RequiredPick extends Pick {
 
   @override
   RequiredPick redactValues() {
-    super.redactValues();
-    return this;
+    return RequiredPick(
+      value,
+      path: path,
+      context: {...context, _redactValuesContextKey: true},
+    );
   }
 }
 

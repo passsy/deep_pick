@@ -196,6 +196,55 @@ void main() {
   });
 
   group('redactValues', () {
+    test('returns an independent view without changing existing picks', () {
+      final original =
+          pick({'secret': 'PRIVATE_VALUE'}).withContext('custom', 'kept');
+      final existingChild = original('secret');
+      final redacted = original.redactValues();
+      expect(redacted, isNot(same(original)));
+      expect(redacted.value, same(original.value));
+      expect(redacted.path, original.path);
+      expect(redacted.context['custom'], 'kept');
+      expect(original.context.containsKey('_redact_values'), isFalse);
+      expect(existingChild.context.containsKey('_redact_values'), isFalse);
+      expect(redacted('secret').context['_redact_values'], isTrue);
+      redacted.withContext('custom', 'changed');
+      expect(original.context['custom'], 'kept');
+    });
+
+    test('preserves absent state and last reachable value in a copy', () {
+      final original =
+          pick({'nested': <String, Object>{}}, 'nested', 'missing');
+      final redacted = original.redactValues();
+      expect(redacted, isNot(same(original)));
+      expect(redacted.isAbsent, isTrue);
+      expect(redacted.missingValueAtIndex, original.missingValueAtIndex);
+      expect(redacted.lastReachableValue, same(original.lastReachableValue));
+      expect(redacted.path, original.path);
+      expect(
+          redacted('child').missingValueAtIndex, original.missingValueAtIndex);
+      expect(grabException(redacted.required).message,
+          contains('Map with no keys'));
+    });
+
+    test('preserves explicit null in a redacted copy', () {
+      final original = pick({'value': null}, 'value');
+      final redacted = original.redactValues();
+      expect(redacted.isAbsent, isFalse);
+      expect(redacted.value, isNull);
+      expect(redacted.path, ['value']);
+      expect(redacted.context['_redact_values'], isTrue);
+    });
+
+    test('RequiredPick copy leaves the original context unchanged', () {
+      final original = pick({'secret': 'PRIVATE_VALUE'}).required();
+      final redacted = original.redactValues();
+      expect(redacted, isNot(same(original)));
+      expect(redacted.value, same(original.value));
+      expect(original.context.containsKey('_redact_values'), isFalse);
+      expect(redacted.context['_redact_values'], isTrue);
+    });
+
     test('masks values but keeps Map keys', () {
       final e = grabException(
         () => pick(json).redactValues()('shoes', 0, 'name').required(),
