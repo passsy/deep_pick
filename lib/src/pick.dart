@@ -185,7 +185,7 @@ class Pick {
   /// - Reading the value from [List] when the index is greater than the length
   /// - Trying to access a key in a [Map] but the found data structure is a [List]
   ///
-  /// ```
+  /// ```dart
   /// pick({"a": null}, "a").isAbsent; // false
   /// pick({"a": null}, "b").isAbsent; // true
   ///
@@ -289,14 +289,14 @@ class Pick {
   /// The alternative cascade operator often requires additional parenthesis
   ///
   /// Add context at the top
-  /// ```
+  /// ```dart
   /// pick(json)
   ///   .withContext('apiVersion', response.getApiVersion())
   ///   .let((pick) => Response.fromPick(pick));
   /// ```
   ///
   /// Read it where required
-  /// ```
+  /// ```dart
   /// factory Item.fromPick(RequiredPick pick) {
   ///     final Version apiVersion = pick.fromContext('apiVersion').asVersion();
   ///     if (apiVersion >= Version(0, 2, 0)) {
@@ -317,7 +317,7 @@ class Pick {
 
   /// Pick values from the context using the [Pick] API
   ///
-  /// ```
+  /// ```dart
   /// pick.fromContext('apiVersion').asIntOrNull();
   /// ```
   Pick fromContext(
@@ -353,7 +353,7 @@ class Pick {
   /// Examples:
   /// picked value "b" using pick(json, "a"(b))
   /// picked value "null" using pick(json, "a" (null))
-  /// picked value "Instance of \'Object\'" using pick(<root>)
+  /// picked value "Instance of \'Object\'" using `pick(<root>)`
   /// "unknownKey" in pick(json, "unknownKey" (absent))
   String get debugParsingExit {
     final access = <String>[];
