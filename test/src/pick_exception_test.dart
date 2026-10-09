@@ -28,6 +28,52 @@ void main() {
   };
 
   group('error message rendering', () {
+    for (final redact in [false, true]) {
+      for (final expanded in [false, true]) {
+        test(
+            'opaque sibling keys preserve parsing errors '
+            '(redact=$redact, expanded=$expanded)', () {
+          final source = <Object, Object>{
+            if (expanded)
+              for (var i = 0; i < 5; i++) 'key$i': 'visible' * 10,
+            UnprintableValue(): 'PRIVATE_VALUE',
+          };
+          expect(source.containsKey('missing'), isFalse);
+          final original = pick(source, 'missing');
+          expect(original.isAbsent, isTrue);
+          expect(original.path, ['missing']);
+          final result = redact ? original.redactValues() : original;
+          expect(result.lastReachableValue, same(source));
+          final e = grabException(result.required);
+          expect(e.reason, PickErrorReason.absent);
+          expect(e.path, ['missing']);
+          expect(e.expected, 'a non-null value');
+          expect(e.message, contains('"<UnprintableValue>"'));
+          if (redact) {
+            expect(e.message, contains('Map with keys'));
+            expect(e.message, isNot(contains('PRIVATE_VALUE')));
+          } else if (expanded) {
+            expect(e.message, contains('  at      <root> = {\n'));
+            expect(e.message,
+                contains('            "<UnprintableValue>": "PRIVATE_VALUE",'));
+          } else {
+            expect(
+                e.message, contains('{"<UnprintableValue>": "PRIVATE_VALUE"}'));
+          }
+        });
+      }
+    }
+
+    test('primitive map keys retain their escaped text', () {
+      final e = grabException(() {
+        pick(<Object?, Object>{null: 1, 2: 3, true: 4, 'line\nkey': 5},
+                'missing')
+            .required();
+      });
+      expect(e.message,
+          contains(r'{"null": 1, "2": 3, "true": 4, "line\nkey": 5}'));
+    });
+
     test('a missing-field error does not invoke an unrelated value toString',
         () {
       final source = <String, Object>{'unrelated': UnprintableValue()};

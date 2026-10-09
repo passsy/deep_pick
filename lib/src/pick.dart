@@ -819,7 +819,7 @@ List<String> _describeValueBlock(
         break;
       }
       lines.add(
-          '$pad${jsonEncode('${entry.key}')}: ${_renderChildValue(entry.value)},');
+          '$pad${_renderMapKey(entry.key)}: ${_renderChildValue(entry.value)},');
       shown++;
     }
     lines.add('${' ' * indent}}');
@@ -855,6 +855,17 @@ String _describeValue(Object? value, {int maxLength = 100}) {
   return '${rendered.substring(0, maxLength)}…';
 }
 
+// Opaque keys use their type so diagnostics never invoke user-defined toString.
+String _renderMapKey(Object? key) {
+  if (key is String) {
+    return jsonEncode(key);
+  }
+  if (key == null || key is num || key is bool) {
+    return jsonEncode('$key');
+  }
+  return jsonEncode('<${key.runtimeType}>');
+}
+
 String _renderValue(Object? value) {
   if (value == null) {
     return 'null';
@@ -882,7 +893,7 @@ String _renderValue(Object? value) {
     }
     final entries = value.entries
         .take(5)
-        .map((e) => '${jsonEncode('${e.key}')}: ${_renderChildValue(e.value)}');
+        .map((e) => '${_renderMapKey(e.key)}: ${_renderChildValue(e.value)}');
     final more = value.length > 5 ? ', …${value.length - 5} more' : '';
     return '{${entries.join(', ')}$more}';
   }
@@ -924,7 +935,7 @@ String _describeValueRedacted(Object? value) {
     if (value.isEmpty) {
       return 'Map with no keys';
     }
-    final keys = value.keys.take(8).map((k) => jsonEncode('$k')).join(', ');
+    final keys = value.keys.take(8).map(_renderMapKey).join(', ');
     final more = value.length > 8 ? ', …${value.length - 8} more' : '';
     return 'Map with keys $keys$more';
   }
