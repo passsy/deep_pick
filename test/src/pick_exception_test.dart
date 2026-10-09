@@ -291,6 +291,15 @@ void main() {
         expect(e.path, [key, 'missing']);
       });
     }
+    test('expanded map diagnostics escape keys too', () {
+      final e = grabException(() => pick({
+            'line\nbreak': 'x' * 100,
+            'other': 'y' * 100,
+          }, 'missing')
+              .required());
+      expect(e.message, contains(r'"line\nbreak":'));
+      expect(e.message, isNot(contains('"line\nbreak":')));
+    });
     test('newlines are escaped in both query and data values', () {
       final e = grabException(
           () => pick({'line\nbreak': 'value\nline'}, 'missing').required());

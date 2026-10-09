@@ -787,7 +787,8 @@ List<String> _describeValueBlock(
         lines.add('$pad…${value.length - shown} more');
         break;
       }
-      lines.add('$pad"${entry.key}": ${_renderChildValue(entry.value)},');
+      lines.add(
+          '$pad${jsonEncode('${entry.key}')}: ${_renderChildValue(entry.value)},');
       shown++;
     }
     lines.add('${' ' * indent}}');
