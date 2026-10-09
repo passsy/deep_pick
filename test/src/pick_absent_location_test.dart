@@ -80,8 +80,10 @@ void main() {
     test('missing key inside a asListOrThrow element', () {
       // the list exists, only "nope" inside the element is missing
       expect(
-        () => pick(json, 'list')
-            .asListOrThrow((it) => it('nope').required().asString()),
+        () {
+          pick(json, 'list')
+              .asListOrThrow((it) => it('nope').required().asString());
+        },
         throwsA(
           isA<PickException>().having(
             (e) => e.message,

@@ -82,8 +82,9 @@ void main() {
 
     test('wrong type shows the found value and type', () {
       final e = grabException(
-        () =>
-            pick({'meta': 'yes'}, 'meta').asListOrThrow((it) => it.asString()),
+        () {
+          pick({'meta': 'yes'}, 'meta').asListOrThrow((it) => it.asString());
+        },
       );
       expect(
         e.message,
@@ -277,9 +278,11 @@ void main() {
 
     test('propagates from the root into list element picks', () {
       final e = grabException(
-        () => pick(json)
-            .redactValues()('shoes')
-            .asListOrThrow((it) => it('name').required().asString()),
+        () {
+          pick(json)
+              .redactValues()('shoes')
+              .asListOrThrow((it) => it('name').required().asString());
+        },
       );
       expect(e.message, contains('Map with keys "id", "size"'));
       expect(e.message, isNot(contains('42')));
@@ -340,9 +343,11 @@ void main() {
 
     test('set index errors carry the reason', () {
       final e = grabException(
-        () => pick({
-          's': {'a', 'b'},
-        }, 's', 0),
+        () {
+          pick({
+            's': {'a', 'b'},
+          }, 's', 0);
+        },
       );
       expect(e.reason, PickErrorReason.setIndexUnsupported);
       expect(e.path, ['s', 0]);
@@ -373,11 +378,13 @@ void main() {
       });
     }
     test('expanded map diagnostics escape keys too', () {
-      final e = grabException(() => pick({
-            'line\nbreak': 'x' * 100,
-            'other': 'y' * 100,
-          }, 'missing')
-              .required());
+      final e = grabException(() {
+        pick({
+          'line\nbreak': 'x' * 100,
+          'other': 'y' * 100,
+        }, 'missing')
+            .required();
+      });
       expect(e.message, contains(r'"line\nbreak":'));
       expect(e.message, isNot(contains('"line\nbreak":')));
     });
@@ -392,10 +399,11 @@ void main() {
   group('date parsing preserves structured errors and redaction', () {
     for (final format in <PickDateFormat?>[null, PickDateFormat.ISO_8601]) {
       test('unknown timezone with format $format', () {
-        final e = grabException(() =>
-            pick({'date': '2021-11-01T11:53:15 CUSTOMERSECRET'})
-                .redactValues()('date')
-                .asDateTimeOrThrow(format: format));
+        final e = grabException(() {
+          pick({'date': '2021-11-01T11:53:15 CUSTOMERSECRET'})
+              .redactValues()('date')
+              .asDateTimeOrThrow(format: format);
+        });
         expect(e.message, isNot(contains('CUSTOMERSECRET')));
         expect(e.reason, PickErrorReason.unparsable);
         expect(e.expected, 'a DateTime');
