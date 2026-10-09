@@ -2,16 +2,13 @@
 
 ## 1.2.0 (`09.10.26`)
 
-- Fix absent locations when chaining picks, reporting the missing segment relative to the full path and preserving it when continuing an already absent pick.
-- Correctly mark paths below a `null` value as absent while preserving explicit `null` values at the requested location.
-- Improve `PickException` messages with labelled query, location, and hint rows, highlighting where parsing failed and summarizing nested containers.
-- Add structured `PickException.path`, `reason`, and `expected` fields, `PickErrorReason`, and `PickException.fromPick` for custom parsers.
-- Escape control characters in diagnostic paths, map keys, and string values.
-- Preserve structured date parsing errors for explicit formats and prevent parser error details from leaking redacted input.
-- Add `Pick.lastReachableValue` and `.redactValues()` to mask data values in parsing errors while keeping map keys and types visible.
-- Refresh README examples and documentation, and validate linting and formatting on stable Dart.
-
-Error message text and `PickException.toString()` formatting have changed. Prefer the structured fields over parsing exception messages.
+- **Fix** Chained picks report and preserve the missing segment in the full path.
+- **Breaking** Paths below `null` are now absent; explicit `null` at the requested location is unchanged.
+- **Breaking** `PickException` messages and `toString()` use labelled diagnostics with escaped values and paths.
+  Prefer structured fields over parsing error text.
+- **New** `PickException.path`, `reason`, `expected`, `PickErrorReason` and `PickException.fromPick` expose structured errors, including explicit date-format failures.
+  `Pick.lastReachableValue` exposes the last node reached by an absent pick.
+- **New** `Pick.redactValues()` and `RequiredPick.redactValues()` return independent views that mask diagnostic values while retaining keys and types.
 
 ## 1.1.0 (`30.08.24`)
 
@@ -24,7 +21,6 @@ Error message text and `PickException.toString()` formatting have changed. Prefe
 - Add support for timezones in `asDateTime*` methods [#47](https://github.com/passsy/deep_pick/pull/47), [#51](https://github.com/passsy/deep_pick/pull/51)
 - Add official support for date formats `RFC 3339`, `RFC 2822` and `RFC 1036`
 - Push test coverage to 100% 🤘
-
 
 ## 0.10.0 (`01.10.21`)
 
