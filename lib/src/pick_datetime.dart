@@ -123,15 +123,21 @@ extension NullableDateTimePick on Pick {
       }
     }
 
+    final detail = () {
+      if (format != null) {
+        return 'does not match $format';
+      }
+      if (failedFormats.isEmpty) {
+        return 'no known format matched (ISO 8601, RFC 1123, RFC 850, asctime)';
+      }
+      return 'the parsers failed for: ${failedFormats.join(', ')}';
+    }();
+
     throw PickException.fromPick(
       this,
       reason: PickErrorReason.unparsable,
       expected: 'a DateTime',
-      detail: format != null
-          ? 'does not match $format'
-          : failedFormats.isEmpty
-              ? 'no known format matched (ISO 8601, RFC 1123, RFC 850, asctime)'
-              : 'the parsers failed for: ${failedFormats.join(', ')}',
+      detail: detail,
     );
   }
 

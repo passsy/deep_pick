@@ -606,9 +606,12 @@ class PickException implements Exception {
     final contextHint = pick.context[requiredPickErrorHintKey] as String?;
     final pathBroke = reason == PickErrorReason.absent ||
         reason == PickErrorReason.setIndexUnsupported;
-    final resolvedExpected = reason == PickErrorReason.setIndexUnsupported
-        ? null
-        : expected ?? 'a non-null value';
+    final resolvedExpected = () {
+      if (reason == PickErrorReason.setIndexUnsupported) {
+        return null;
+      }
+      return expected ?? 'a non-null value';
+    }();
     final message = _renderErrorMessage(
       fullPath: pick.path,
       reason: reason,
@@ -730,9 +733,12 @@ String _renderErrorMessage({
     lines.addAll(valueBlock.skip(1));
   } else {
     // the whole path was followable, the value itself is the problem
-    final suffix = reason == PickErrorReason.wrongType
-        ? '  (${_describeType(nodeValue)})'
-        : '';
+    final suffix = () {
+      if (reason == PickErrorReason.wrongType) {
+        return '  (${_describeType(nodeValue)})';
+      }
+      return '';
+    }();
     lines.add(_errorRow('found', '${valueBlock.first}$suffix'));
     lines.addAll(valueBlock.skip(1));
     if (detail != null) {
