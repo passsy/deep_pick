@@ -2,13 +2,16 @@
 
 ## 1.2.0 (`09.10.26`)
 
-- **Fix** Chained picks report and preserve the missing segment in the full path.
-- **Breaking** Paths below `null` are now absent; explicit `null` at the requested location is unchanged.
-- **Breaking** `PickException` messages and `toString()` use labelled diagnostics with escaped values and paths.
+- **Fix** Chained picks report and preserve the missing segment in the full path. [#64](https://github.com/passsy/deep_pick/pull/64)
+- **Breaking** `Pick.isAbsent` is now `true` below a `null`: `pick({'a': null}, 'a', 'b').isAbsent`.
+  An explicit `null` at the requested location is unchanged.
+- **Breaking** `PickException.toString()` returns `PickException: <message>` instead of `PickException(<message>)`, and messages are multi-line with escaped values and paths.
   Prefer structured fields over parsing error text.
 - **New** `PickException.path`, `reason`, `expected`, `PickErrorReason` and `PickException.fromPick` expose structured errors, including explicit date-format failures.
   `Pick.lastReachableValue` exposes the last node reached by an absent pick.
 - **New** `Pick.redactValues()` and `RequiredPick.redactValues()` return independent views that mask diagnostic values while retaining keys and types.
+  `Pick.redactsValues` lets custom parsers follow the same rule.
+- **Deprecated** `Pick.debugParsingExit`, throw `PickException.fromPick` instead.
 
 ## 1.1.0 (`30.08.24`)
 
