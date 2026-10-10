@@ -16,7 +16,7 @@ void main() {
           null,
         ]).redactValues();
         expect(root.value, hasLength(2));
-        expect(root.context['_redact_values'], isTrue);
+        expect(root.redactsValues, isTrue);
         final messages = <String>[];
         final callbackError = StateError('callback failed');
         var reachedNullCallback = false;
@@ -28,7 +28,7 @@ void main() {
                 whenNull: (item) {
                   expect(item.value, isNull);
                   expect(item.path, [1]);
-                  expect(item.context['_redact_values'], isTrue);
+                  expect(item.redactsValues, isTrue);
                   reachedNullCallback = true;
                   throw callbackError;
                 },

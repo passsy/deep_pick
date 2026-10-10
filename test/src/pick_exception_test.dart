@@ -249,9 +249,13 @@ void main() {
       expect(redacted.value, same(original.value));
       expect(redacted.path, original.path);
       expect(redacted.context['custom'], 'kept');
-      expect(original.context.containsKey('_redact_values'), isFalse);
-      expect(existingChild.context.containsKey('_redact_values'), isFalse);
-      expect(redacted('secret').context['_redact_values'], isTrue);
+      expect(original.redactsValues, isFalse);
+      expect(existingChild.redactsValues, isFalse);
+      expect(redacted('secret').redactsValues, isTrue);
+      String intError(Pick pick) => grabException(pick.asIntOrThrow).message;
+      expect(intError(original('secret')), contains('"PRIVATE_VALUE"'));
+      expect(intError(existingChild), contains('"PRIVATE_VALUE"'));
+      expect(intError(redacted('secret')), isNot(contains('PRIVATE_VALUE')));
       redacted.withContext('custom', 'changed');
       expect(original.context['custom'], 'kept');
     });
@@ -277,7 +281,7 @@ void main() {
       expect(redacted.isAbsent, isFalse);
       expect(redacted.value, isNull);
       expect(redacted.path, ['value']);
-      expect(redacted.context['_redact_values'], isTrue);
+      expect(redacted.redactsValues, isTrue);
     });
 
     test('RequiredPick copy leaves the original context unchanged', () {
@@ -285,8 +289,12 @@ void main() {
       final redacted = original.redactValues();
       expect(redacted, isNot(same(original)));
       expect(redacted.value, same(original.value));
-      expect(original.context.containsKey('_redact_values'), isFalse);
-      expect(redacted.context['_redact_values'], isTrue);
+      expect(original.redactsValues, isFalse);
+      expect(redacted.redactsValues, isTrue);
+      expect(
+        grabException(redacted.asIntOrThrow).message,
+        isNot(contains('PRIVATE_VALUE')),
+      );
     });
 
     test('masks values but keeps Map keys', () {
