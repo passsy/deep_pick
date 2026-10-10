@@ -95,6 +95,34 @@ Pick pickDeep(
   return _drillDown(json, selector);
 }
 
+/// Marks a selector that is not part of the data, as opposed to a selector
+/// that is mapped to `null`
+const Object _notFound = _Sentinel('notFound');
+
+class _Sentinel {
+  const _Sentinel(this.name);
+
+  final String name;
+}
+
+/// Looks up [selector] in [data], returns [_notFound] when [data] doesn't
+/// contain it
+dynamic _childOf(/*Map|List|null*/ dynamic data, Object selector) {
+  if (data is List && selector is int) {
+    if (selector < 0 || selector >= data.length) {
+      return _notFound;
+    }
+    return data[selector];
+  }
+  if (data is Map) {
+    if (!data.containsKey(selector)) {
+      return _notFound;
+    }
+    return data[selector];
+  }
+  return _notFound;
+}
+
 /// Traverses the object along [selectors]
 Pick _drillDown(
   /*Map|List|null*/ dynamic json,
@@ -103,71 +131,11 @@ Pick _drillDown(
   Map<String, dynamic>? context,
 }) {
   final fullPath = [...parentPath, ...selectors];
-  final path = <dynamic>[];
   /*Map|List|null*/ dynamic data = json;
-  for (final selector in selectors) {
-    path.add(selector);
+  for (var i = 0; i < selectors.length; i++) {
+    final selector = selectors[i];
     // index of [selector] inside [fullPath], not inside [selectors]
-    final selectorIndex = parentPath.length + path.length - 1;
-    // whether [selector] is the last segment, so a `null` value is the result
-    // instead of a dead end
-    final isLastSelector = path.length == selectors.length;
-    if (data is List) {
-      if (selector is int) {
-        try {
-          data = data[selector];
-          if (data == null) {
-            if (isLastSelector) {
-              return Pick(null, path: fullPath, context: context);
-            }
-            // null can't be drilled into, the next segment is
-            // unreachable and the last reachable value is the null itself
-            return Pick.absent(
-              selectorIndex + 1,
-              path: fullPath,
-              context: context,
-            );
-          }
-          // found a value, continue drill down
-          continue;
-          // ignore: avoid_catching_errors
-        } on RangeError catch (_) {
-          // out of range, value not found at index selector
-          return Pick.absent(
-            selectorIndex,
-            path: fullPath,
-            context: context,
-            lastReachableValue: data,
-          );
-        }
-      }
-    }
-    if (data is Map) {
-      if (!data.containsKey(selector)) {
-        return Pick.absent(
-          selectorIndex,
-          path: fullPath,
-          context: context,
-          lastReachableValue: data,
-        );
-      }
-      final dynamic picked = data[selector];
-      if (picked == null) {
-        // no value mapped to selector
-        if (isLastSelector) {
-          return Pick(null, path: fullPath, context: context);
-        }
-        // null can't be drilled into, the next segment is
-        // unreachable and the last reachable value is the null itself
-        return Pick.absent(
-          selectorIndex + 1,
-          path: fullPath,
-          context: context,
-        );
-      }
-      data = picked;
-      continue;
-    }
+    final selectorIndex = parentPath.length + i;
     if (data is Set && selector is int) {
       throw PickException.fromPick(
         Pick.absent(
@@ -179,13 +147,28 @@ Pick _drillDown(
         reason: PickErrorReason.setIndexUnsupported,
       );
     }
-    // can't drill down any more to find the exact location.
-    return Pick.absent(
-      selectorIndex,
-      path: fullPath,
-      context: context,
-      lastReachableValue: data,
-    );
+    final dynamic child = _childOf(data, selector);
+    if (identical(child, _notFound)) {
+      // can't drill down any more to find the exact location.
+      return Pick.absent(
+        selectorIndex,
+        path: fullPath,
+        context: context,
+        lastReachableValue: data,
+      );
+    }
+    // a `null` at the last segment is the result, anywhere else a dead end
+    final isLastSelector = i == selectors.length - 1;
+    if (child == null && !isLastSelector) {
+      // null can't be drilled into, the next segment is unreachable and the
+      // last reachable value is the null itself
+      return Pick.absent(
+        selectorIndex + 1,
+        path: fullPath,
+        context: context,
+      );
+    }
+    data = child;
   }
   return Pick(data, path: fullPath, context: context);
 }
