@@ -79,7 +79,7 @@ Pick pick(
       .where((dynamic it) => it != null)
       .cast<Object>()
       .toList(growable: false);
-  return _drillDown(Pick(json), selectors);
+  return _pickFromRoot(json, selectors);
 }
 
 /// Picks the value of [json] by traversing the object along the values in
@@ -92,7 +92,20 @@ Pick pickDeep(
   /*Map|List|null*/ dynamic json,
   List< /*String|int*/ Object> selector,
 ) {
-  return _drillDown(Pick(json), selector);
+  return _pickFromRoot(json, selector);
+}
+
+/// Picks from the root [json] along [selectors]
+Pick _pickFromRoot(
+  /*Map|List|null*/ dynamic json,
+  List< /*String|int*/ Object> selectors,
+) {
+  final root = Pick(json);
+  if (selectors.isEmpty) {
+    // nothing to traverse, the root is the picked value
+    return root;
+  }
+  return _drillDown(root, selectors);
 }
 
 /// Whether [data] holds something at [selector], which may be `null`
