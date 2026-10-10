@@ -138,6 +138,26 @@ void main() {
       );
     });
 
+    group('a path that runs into the wrong container says what it found', () {
+      final cases = <String, Pick Function()>{
+        'a String has no key "x"': () => pick({'a': 'str'}, 'a', 'x'),
+        'a String has no index 0': () => pick({'a': 'str'}, 'a', 0),
+        'a List has no key "k"': () => pick({
+              'a': [1]
+            }, 'a', 'k'),
+        'an int has no index 2': () => pick({'a': 42}, 'a', 2),
+      };
+      for (final entry in cases.entries) {
+        test(entry.key, () {
+          final e = grabException(entry.value().required);
+          expect(e.reason, PickErrorReason.absent);
+          final marker = e.message.split('\n')[3];
+          expect(marker.trimLeft(), startsWith('~'));
+          expect(marker, endsWith(' ${entry.key}'));
+        });
+      }
+    });
+
     test('wrong type shows the found value and type', () {
       final e = grabException(
         () {
@@ -366,6 +386,17 @@ void main() {
         redacted.debugParsingExit,
         'picked value "<String>" using pick(json, "iban"(<String>))',
       );
+    });
+
+    test('context values are not part of the redacted data', () {
+      final root = pick({'user': 'jane'})
+          .redactValues()
+          .withContext('apiVersion', 'v2-beta');
+      final data = grabException(() => root('user').asIntOrThrow());
+      expect(data.message, isNot(contains('jane')));
+      final context =
+          grabException(() => root.fromContext('apiVersion').asIntOrThrow());
+      expect(context.message, contains('  found   "v2-beta"'));
     });
 
     test('RequiredPick.redactValues() stays chainable', () {
