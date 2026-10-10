@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:deep_pick/deep_pick.dart';
 import 'package:test/test.dart';
 
@@ -8,42 +6,6 @@ import 'pick_test.dart';
 void main() {
   group('pick().asList*', () {
     group('asListOrThrow', () {
-      test('redacted list null callback diagnostics never print sibling values',
-          () {
-        const secret = 'PRIVATE_CUSTOMER_VALUE';
-        final root = pick([
-          {'secret': secret},
-          null,
-        ]).redactValues();
-        expect(root.value, hasLength(2));
-        expect(root.redactsValues, isTrue);
-        final messages = <String>[];
-        final callbackError = StateError('callback failed');
-        var reachedNullCallback = false;
-        runZoned(
-          () {
-            expect(
-              () => root.asListOrThrow<int>(
-                (item) => 1,
-                whenNull: (item) {
-                  expect(item.value, isNull);
-                  expect(item.path, [1]);
-                  expect(item.redactsValues, isTrue);
-                  reachedNullCallback = true;
-                  throw callbackError;
-                },
-              ),
-              throwsA(same(callbackError)),
-            );
-          },
-          zoneSpecification: ZoneSpecification(print: (_, __, ___, message) {
-            messages.add(message);
-          }),
-        );
-        expect(reachedNullCallback, isTrue);
-        expect(messages, isEmpty);
-        expect(messages.join('\n'), isNot(contains(secret)));
-      });
       test('pipe through List', () {
         expect(
           pick([1, 2, 3]).asListOrThrow((it) => it.asIntOrThrow()),

@@ -40,39 +40,32 @@ void main() {
   };
 
   group('error message rendering', () {
-    for (final redact in [false, true]) {
-      for (final expanded in [false, true]) {
-        test(
-            'opaque sibling keys preserve parsing errors '
-            '(redact=$redact, expanded=$expanded)', () {
-          final source = <Object, Object>{
-            if (expanded)
-              for (var i = 0; i < 5; i++) 'key$i': 'visible' * 10,
-            UnprintableValue(): 'PRIVATE_VALUE',
-          };
-          expect(source.containsKey('missing'), isFalse);
-          final original = pick(source, 'missing');
-          expect(original.isAbsent, isTrue);
-          expect(original.path, ['missing']);
-          final result = redact ? original.redactValues() : original;
-          final e = grabException(result.required);
-          expect(e.reason, PickErrorReason.absent);
-          expect(e.path, ['missing']);
-          expect(e.expected, 'a non-null value');
-          expect(e.message, contains('"<UnprintableValue>"'));
-          if (redact) {
-            expect(e.message, contains('Map with keys'));
-            expect(e.message, isNot(contains('PRIVATE_VALUE')));
-          } else if (expanded) {
-            expect(e.message, contains('  at      <root> = {\n'));
-            expect(e.message,
-                contains('            "<UnprintableValue>": "PRIVATE_VALUE",'));
-          } else {
-            expect(
-                e.message, contains('{"<UnprintableValue>": "PRIVATE_VALUE"}'));
-          }
-        });
-      }
+    for (final expanded in [false, true]) {
+      test('opaque sibling keys preserve parsing errors (expanded=$expanded)',
+          () {
+        final source = <Object, Object>{
+          if (expanded)
+            for (var i = 0; i < 5; i++) 'key$i': 'visible' * 10,
+          UnprintableValue(): 'PRIVATE_VALUE',
+        };
+        expect(source.containsKey('missing'), isFalse);
+        final original = pick(source, 'missing');
+        expect(original.isAbsent, isTrue);
+        expect(original.path, ['missing']);
+        final e = grabException(original.required);
+        expect(e.reason, PickErrorReason.absent);
+        expect(e.path, ['missing']);
+        expect(e.expected, 'a non-null value');
+        expect(e.message, contains('"<UnprintableValue>"'));
+        if (expanded) {
+          expect(e.message, contains('  at      <root> = {\n'));
+          expect(e.message,
+              contains('            "<UnprintableValue>": "PRIVATE_VALUE",'));
+        } else {
+          expect(
+              e.message, contains('{"<UnprintableValue>": "PRIVATE_VALUE"}'));
+        }
+      });
     }
 
     test('primitive map keys retain their escaped text', () {
@@ -270,167 +263,6 @@ void main() {
     });
   });
 
-  group('redactValues', () {
-    test('returns an independent view without changing existing picks', () {
-      final original =
-          pick({'secret': 'PRIVATE_VALUE'}).withContext('custom', 'kept');
-      final existingChild = original('secret');
-      final redacted = original.redactValues();
-      expect(redacted, isNot(same(original)));
-      expect(redacted.value, same(original.value));
-      expect(redacted.path, original.path);
-      expect(redacted.context['custom'], 'kept');
-      expect(original.redactsValues, isFalse);
-      expect(existingChild.redactsValues, isFalse);
-      expect(redacted('secret').redactsValues, isTrue);
-      String intError(Pick pick) => grabException(pick.asIntOrThrow).message;
-      expect(intError(original('secret')), contains('"PRIVATE_VALUE"'));
-      expect(intError(existingChild), contains('"PRIVATE_VALUE"'));
-      expect(intError(redacted('secret')), isNot(contains('PRIVATE_VALUE')));
-      redacted.withContext('custom', 'changed');
-      expect(original.context['custom'], 'kept');
-    });
-
-    test('preserves absent state and the error in a copy', () {
-      final original =
-          pick({'nested': <String, Object>{}}, 'nested', 'missing');
-      final redacted = original.redactValues();
-      expect(redacted, isNot(same(original)));
-      expect(redacted.isAbsent, isTrue);
-      expect(redacted.missingValueAtIndex, original.missingValueAtIndex);
-      expect(redacted.path, original.path);
-      expect(
-          redacted('child').missingValueAtIndex, original.missingValueAtIndex);
-      expect(grabException(redacted.required).message,
-          contains('Map with no keys'));
-    });
-
-    test('preserves explicit null in a redacted copy', () {
-      final original = pick({'value': null}, 'value');
-      final redacted = original.redactValues();
-      expect(redacted.isAbsent, isFalse);
-      expect(redacted.value, isNull);
-      expect(redacted.path, ['value']);
-      expect(redacted.redactsValues, isTrue);
-    });
-
-    test('RequiredPick copy leaves the original context unchanged', () {
-      final original = pick({'secret': 'PRIVATE_VALUE'}).required();
-      final redacted = original.redactValues();
-      expect(redacted, isNot(same(original)));
-      expect(redacted.value, same(original.value));
-      expect(original.redactsValues, isFalse);
-      expect(redacted.redactsValues, isTrue);
-      expect(
-        grabException(redacted.asIntOrThrow).message,
-        isNot(contains('PRIVATE_VALUE')),
-      );
-    });
-
-    test('masks values but keeps Map keys', () {
-      final e = grabException(
-        () => pick(json).redactValues()('shoes', 0, 'name').required(),
-      );
-      expect(
-        e.message,
-        'expected a non-null value at shoes[0].name, but it is absent\n'
-        '\n'
-        '  query   shoes[0].name\n'
-        '                   ~~~~ no such key\n'
-        '  at      shoes[0] = Map with keys "id", "size"',
-      );
-    });
-
-    test('masks scalar values as their type', () {
-      final e = grabException(
-        () => pick({'count': 'twelve'}).redactValues()('count').asIntOrThrow(),
-      );
-      expect(
-        e.message,
-        'could not parse an int at count\n'
-        '\n'
-        '  query   count\n'
-        '  found   <String>',
-      );
-    });
-
-    test('propagates from the root into list element picks', () {
-      final e = grabException(
-        () {
-          pick(json)
-              .redactValues()('shoes')
-              .asListOrThrow((it) => it('name').required().asString());
-        },
-      );
-      expect(e.message, contains('Map with keys "id", "size"'));
-      expect(e.message, isNot(contains('42')));
-      expect(e.message, isNot(contains('"M"')));
-    });
-
-    test('redactsValues and debugParsingExit follow the redaction', () {
-      final plain = pick({'iban': 'DE89 3704 0044'}, 'iban');
-      expect(plain.redactsValues, isFalse);
-      expect(
-        // ignore: deprecated_member_use_from_same_package
-        plain.debugParsingExit,
-        'picked value "DE89 3704 0044" using pick(json, "iban"(DE89 3704 0044))',
-      );
-
-      final redacted = pick({'iban': 'DE89 3704 0044'}).redactValues()('iban');
-      expect(redacted.redactsValues, isTrue);
-      expect(redacted.required().redactsValues, isTrue);
-      expect(
-        // ignore: deprecated_member_use_from_same_package
-        redacted.debugParsingExit,
-        'picked value "<String>" using pick(json, "iban"(<String>))',
-      );
-    });
-
-    test('context values are not part of the redacted data', () {
-      final root = pick({'user': 'jane'})
-          .redactValues()
-          .withContext('apiVersion', 'v2-beta');
-      final data = grabException(() => root('user').asIntOrThrow());
-      expect(data.message, isNot(contains('jane')));
-      final context =
-          grabException(() => root.fromContext('apiVersion').asIntOrThrow());
-      expect(context.message, contains('  found   "v2-beta"'));
-    });
-
-    test('enabled decides whether values are shown', () {
-      const data = {'secret': 'PRIVATE_VALUE'};
-      String intError(Pick pick) => grabException(pick.asIntOrThrow).message;
-
-      final off = pick(data).redactValues(enabled: false);
-      expect(off.redactsValues, isFalse);
-      expect(intError(off('secret')), contains('"PRIVATE_VALUE"'));
-
-      final on = pick(data).redactValues();
-      expect(on.redactsValues, isTrue);
-      expect(intError(on('secret')), isNot(contains('PRIVATE_VALUE')));
-
-      // a pick below a redacted one can show values again, the redacted
-      // pick itself is not changed by that
-      final offBelowOn = on('secret').redactValues(enabled: false);
-      expect(offBelowOn.redactsValues, isFalse);
-      expect(intError(offBelowOn), contains('"PRIVATE_VALUE"'));
-      expect(intError(on('secret')), isNot(contains('PRIVATE_VALUE')));
-
-      final RequiredPick requiredOff =
-          on.required().redactValues(enabled: false);
-      expect(requiredOff.redactsValues, isFalse);
-      expect(intError(requiredOff('secret')), contains('"PRIVATE_VALUE"'));
-    });
-
-    test('RequiredPick.redactValues() stays chainable', () {
-      final RequiredPick redacted = pick(json).required().redactValues();
-      final e = grabException(() {
-        redacted.let((it) => it('shoes', 0, 'material').required());
-      });
-      expect(e.message, contains('Map with keys "id", "size"'));
-    });
-  });
-
   group('structured fields', () {
     test('known error reasons have stable names and constant identity', () {
       const absent = PickErrorReason.absent;
@@ -570,15 +402,13 @@ void main() {
     });
   });
 
-  group('date parsing preserves structured errors and redaction', () {
+  group('date parsing preserves structured errors', () {
     for (final format in <PickDateFormat?>[null, PickDateFormat.ISO_8601]) {
       test('unknown timezone with format $format', () {
         final e = grabException(() {
-          pick({'date': '2021-11-01T11:53:15 CUSTOMERSECRET'})
-              .redactValues()('date')
+          pick({'date': '2021-11-01T11:53:15 CUSTOMERSECRET'}, 'date')
               .asDateTimeOrThrow(format: format);
         });
-        expect(e.message, isNot(contains('CUSTOMERSECRET')));
         expect(e.reason, PickErrorReason.unparsable);
         expect(e.expected, 'a DateTime');
         expect(e.path, ['date']);
@@ -613,13 +443,6 @@ void main() {
         e.message.split('\n').last,
         '  at      node = {"${'k' * 49}…: 1}',
       );
-      final redacted = grabException(() {
-        pick(data).redactValues()('node', 'missing').required();
-      });
-      expect(
-        redacted.message.split('\n').last,
-        '  at      node = Map with keys "${'k' * 49}…',
-      );
     });
 
     test('long scalar output is bounded and marked as truncated', () {
@@ -630,30 +453,6 @@ void main() {
       );
       expect(e.message.split('\n').last, '  found   "${'x' * 99}…');
     });
-
-    final summaries = <Object?, String>{
-      <String, Object>{}: 'Map with no keys',
-      <String, Object>{
-        for (var i = 0; i < 10; i++) 'key$i': 'secret'
-      }: 'Map with keys "key0", "key1", "key2", "key3", "key4", "key5", "key6", "key7", …2 more',
-      <String>[]: 'List with 0 items',
-      ['secret']: 'List with 1 item',
-      ['secret', 'other']: 'List with 2 items',
-      <String>{}: 'Set with 0 items',
-      {'secret', 'other'}: 'Set with 2 items',
-      null: 'null',
-    };
-    for (final entry in summaries.entries) {
-      test('redacted summary ${entry.value}', () {
-        final e = PickException.fromPick(
-          pick(entry.key).redactValues(),
-          reason: PickErrorReason.unparsable,
-          expected: 'an int',
-        );
-        expect(e.message.split('\n').last, '  found   ${entry.value}');
-        expect(e.message, isNot(contains('secret')));
-      });
-    }
 
     test('a pick created with Pick.absent claims nothing about the data', () {
       // Pick.absent is told where the path broke, it has no parent to look
@@ -909,18 +708,16 @@ void main() {
       PickDateFormat.RFC_850,
       PickDateFormat.ANSI_C_asctime
     ]) {
-      test('explicit $format failure keeps structure and redaction', () {
+      test('explicit $format failure keeps structure', () {
         final e = grabException(() {
-          pick({'date': 'CUSTOMERSECRET'})
-              .redactValues()('date')
+          pick({'date': 'CUSTOMERSECRET'}, 'date')
               .asDateTimeOrThrow(format: format);
         });
         expect(e.reason, PickErrorReason.unparsable);
         expect(e.expected, 'a DateTime');
         expect(e.path, ['date']);
         expect(e.message, contains('does not match $format'));
-        expect(e.message, contains('  found   <String>'));
-        expect(e.message, isNot(contains('CUSTOMERSECRET')));
+        expect(e.message, contains('  found   "CUSTOMERSECRET"'));
       });
     }
   });

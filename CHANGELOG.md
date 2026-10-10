@@ -9,8 +9,6 @@
 - **Changed** `PickException` messages are multi-line with escaped values and paths, and `toString()` returns `PickException: <message>` instead of `PickException(<message>)`.
   Prefer structured fields over parsing error text.
 - **New** `PickException.path`, `reason`, `expected`, `PickErrorReason` and `PickException.fromPick` expose structured errors, including explicit date-format failures.
-- **New** `Pick.redactValues()` and `RequiredPick.redactValues()` return independent views that mask diagnostic values while retaining keys and types.
-  `redactValues(enabled: kReleaseMode)` switches it at runtime, and `Pick.redactsValues` lets custom parsers follow the same rule.
 - **Deprecated** `Pick.debugParsingExit`, throw `PickException.fromPick` instead.
 
 ## 1.1.0 (`30.08.24`)

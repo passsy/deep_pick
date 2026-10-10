@@ -418,27 +418,6 @@ Notice the distinction between "absent" and "null" when you see such errors.
 - `"absent"` means the path could not be followed to the end, e.g. the key isn't found in a Map, a List has no item at the requested index, or a `null` value blocked the way down
 - `"null"` means the path was fully followed and the value at the end is actually `null`
 
-### Redacting values in error messages
-
-Error messages show the data at the location parsing failed. That's great during development, but when API responses carry personal data those messages may end up in crash reporters and logs. Add `.redactValues()` at the root of a pick chain to mask all values while keeping Map keys and types visible.
-Keys count as schema, so the keys of a Map that is keyed by data, like `{"jane@example.com": {...}}`, stay visible too:
-
-```dart
-pick(response).redactValues().letOrThrow((pick) => User.fromPick(pick));
-
-// PickException: expected a non-null value at shoes[0].name, but it is absent
-//
-//   query   shoes[0].name
-//                    ~~~~ no such key
-//   at      shoes[0] = Map with keys "id", "size"
-```
-
-Pass `enabled` to decide at runtime, for example to keep the values in debug builds:
-
-```dart
-pick(response).redactValues(enabled: kReleaseMode).letOrThrow((pick) => User.fromPick(pick));
-```
-
 ### 4. Null is default, crashes intentional
 
 Parsing objects from external systems isn't type-safe. 
