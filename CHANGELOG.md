@@ -7,8 +7,8 @@
   An explicit `null` at the requested location is unchanged.
 - **Breaking** `PickException.toString()` returns `PickException: <message>` instead of `PickException(<message>)`, and messages are multi-line with escaped values and paths.
   Prefer structured fields over parsing error text.
+- **Breaking** `Pick.absent` requires `lastReachableValue`, the value the path could be followed to. Error messages show it: `Pick.absent(0, lastReachableValue: json)`.
 - **New** `PickException.path`, `reason`, `expected`, `PickErrorReason` and `PickException.fromPick` expose structured errors, including explicit date-format failures.
-  `Pick.lastReachableValue` exposes the last node reached by an absent pick.
 - **New** `Pick.redactValues()` and `RequiredPick.redactValues()` return independent views that mask diagnostic values while retaining keys and types.
   `redactValues(enabled: kReleaseMode)` switches it at runtime, and `Pick.redactsValues` lets custom parsers follow the same rule.
 - **Deprecated** `Pick.debugParsingExit`, throw `PickException.fromPick` instead.

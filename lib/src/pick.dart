@@ -99,39 +99,26 @@ Pick pickDeep(
 /// that is mapped to `null`
 const Object _notFound = _Sentinel('notFound');
 
-/// Marks an absent pick that was not told its last reachable value, as opposed
-/// to a `null` that blocked the way down
-const Object _unknownNode = _Sentinel('unknownNode');
-
-/// Where a [Pick] left the data and what it reached right before, both are
-/// only known together and only for a pick that [Pick.isAbsent]
-class _Absence {
-  /// [lastReachable] is [_unknownNode] when nobody handed the value in
-  const _Absence(this.missingValueAtIndex, this._lastReachable);
-
-  /// The index in [Pick.path] which couldn't be found
-  final int missingValueAtIndex;
-
-  final Object? _lastReachable;
-
-  /// Whether [lastReachableValue] was handed in. A known `null` blocked the
-  /// way down, an unknown one says nothing about the data.
-  bool get isLastReachableValueKnown =>
-      !identical(_lastReachable, _unknownNode);
-
-  /// The value at the deepest location the data allowed following the path
-  Object? get lastReachableValue {
-    if (!isLastReachableValueKnown) {
-      return null;
-    }
-    return _lastReachable;
-  }
-}
-
 class _Sentinel {
   const _Sentinel(this.name);
 
   final String name;
+}
+
+/// Where a [Pick] left the data and what it reached right before, both are
+/// only known together and only for a pick that [Pick.isAbsent]
+class _Absence {
+  const _Absence(this.missingValueAtIndex, this.lastReachableValue);
+
+  /// The index in [Pick.path] which couldn't be found
+  final int missingValueAtIndex;
+
+  /// The value at the deepest location the data allowed following the path
+  ///
+  /// I.e. the `Map` which did not contain the requested key, the `List` the
+  /// index was out of range for, or `null` when a `null` value blocked the
+  /// way down.
+  final Object? lastReachableValue;
 }
 
 /// Looks up [selector] in [data], returns [_notFound] when [data] doesn't
@@ -222,13 +209,13 @@ class Pick {
   ///
   /// [lastReachableValue] is the value at the deepest location the data
   /// structure allowed following [path], i.e. the `Map` missing the key.
-  /// Error messages show it. Leave it out when it is not known, passing
-  /// `null` states that a `null` value blocked the way down.
+  /// Error messages show it. Pass `null` when a `null` value blocked the way
+  /// down.
   Pick.absent(
     int missingValueAtIndex, {
+    required Object? lastReachableValue,
     List<Object> path = const [],
     Map<String, Object?>? context,
-    Object? lastReachableValue = _unknownNode,
   }) : this._raw(
           null,
           path: path,
@@ -250,15 +237,6 @@ class Pick {
 
   /// The picked value, might be `null`
   final Object? value;
-
-  /// When the picked value is unavailable ([isAbsent]) the value at the
-  /// deepest location the data structure allowed following [path]
-  ///
-  /// I.e. the `Map` which did not contain the requested key, the `List` the
-  /// index was out of range for, or `null` when a `null` value blocked the
-  /// way down. Always `null` when the pick is not [isAbsent], or when it
-  /// was created with [Pick.absent] without a last reachable value.
-  Object? get lastReachableValue => _absence?.lastReachableValue;
 
   /// Set when the picked value is unavailable ([isAbsent])
   final _Absence? _absence;
@@ -708,7 +686,7 @@ class PickException implements Exception {
     final redact = pick.redactsValues;
     final contextHint = pick.context[requiredPickErrorHintKey] as String?;
     final resolvedReason = _reasonMatchingPick(reason, pick);
-    final pathBroke = pick.isAbsent;
+    final absence = pick._absence;
     final valueIsMissing = resolvedReason == PickErrorReason.absent ||
         resolvedReason == PickErrorReason.nullValue;
     final resolvedExpected = () {
@@ -736,9 +714,8 @@ class PickException implements Exception {
       fullPath: pick.path,
       reason: resolvedReason,
       expected: resolvedExpected,
-      nodeValue: pathBroke ? pick.lastReachableValue : pick.value,
-      nodeKnown: pick._absence?.isLastReachableValueKnown ?? false,
-      pathBroke: pathBroke,
+      nodeValue: absence != null ? absence.lastReachableValue : pick.value,
+      pathBroke: absence != null,
       failedAtIndex: failedAtIndex,
       redact: redact,
       detail: detail,
@@ -800,7 +777,6 @@ String _renderErrorMessage({
   required PickErrorReason reason,
   required String? expected,
   required Object? nodeValue,
-  required bool nodeKnown,
   required bool pathBroke,
   required int? failedAtIndex,
   required bool redact,
@@ -842,13 +818,8 @@ String _renderErrorMessage({
   if (fullPath.isNotEmpty) {
     lines.add(_errorRow('query', rendered.text));
     if (failedAtIndex != null) {
-      final markerText = () {
-        if (!nodeKnown) {
-          return 'not found';
-        }
-        return _describeAbsentReason(
-            nodeValue, fullPath[failedAtIndex], reason);
-      }();
+      final markerText =
+          _describeAbsentReason(nodeValue, fullPath[failedAtIndex], reason);
       final pad = ' ' * (2 + _errorLabelWidth + rendered.starts[failedAtIndex]);
       final marker = '~' * rendered.lengths[failedAtIndex];
       lines.add('$pad$marker $markerText');
@@ -862,9 +833,8 @@ String _renderErrorMessage({
   // Did the path break somewhere, or was the whole path followable and only
   // the value at the end is the problem?
   if (pathBroke) {
-    // the deepest node parsing could reach, and what was actually in it.
-    // Nothing is claimed about a node nobody handed in.
-    if (failedAtIndex != null && nodeKnown) {
+    // the deepest node parsing could reach, and what was actually in it
+    if (failedAtIndex != null) {
       final reached = _RenderedPath.of(fullPath.take(failedAtIndex).toList());
       final reachedText = reached.text.isEmpty ? '<root>' : reached.text;
       lines.add(_errorRow('at', '$reachedText = ${valueBlock.first}'));

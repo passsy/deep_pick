@@ -55,7 +55,6 @@ void main() {
           expect(original.isAbsent, isTrue);
           expect(original.path, ['missing']);
           final result = redact ? original.redactValues() : original;
-          expect(result.lastReachableValue, same(source));
           final e = grabException(result.required);
           expect(e.reason, PickErrorReason.absent);
           expect(e.path, ['missing']);
@@ -299,7 +298,6 @@ void main() {
       expect(redacted, isNot(same(original)));
       expect(redacted.isAbsent, isTrue);
       expect(redacted.missingValueAtIndex, original.missingValueAtIndex);
-      expect(redacted.lastReachableValue, same(original.lastReachableValue));
       expect(redacted.path, original.path);
       expect(
           redacted('child').missingValueAtIndex, original.missingValueAtIndex);
@@ -657,29 +655,35 @@ void main() {
       });
     }
 
-    test('an absent pick without a last reachable value claims nothing', () {
-      // the only way to build an absent pick before lastReachableValue existed
+    test('a hand-built absent pick shows the value it was given', () {
       final e = grabException(
-        () => Pick.absent(1, path: ['shoes', 'name']).required(),
+        () => Pick.absent(
+          1,
+          path: ['shoes', 'name'],
+          lastReachableValue: {'id': 1},
+        ).required(),
       );
       expect(
         e.message,
         'expected a non-null value at shoes.name, but it is absent\n'
         '\n'
         '  query   shoes.name\n'
-        '                ~~~~ not found',
+        '                ~~~~ no such key\n'
+        '  at      shoes = {"id": 1}',
       );
     });
 
     test('an absent index outside of the path has no marker', () {
-      final e = grabException(() => Pick.absent(5, path: ['a']).required());
+      final e = grabException(() =>
+          Pick.absent(5, path: ['a'], lastReachableValue: null).required());
       expect(
         e.message,
         'expected a non-null value at a, but it is absent\n'
         '\n'
         '  query   a',
       );
-      final root = grabException(() => Pick.absent(0).required());
+      final root = grabException(
+          () => Pick.absent(0, lastReachableValue: null).required());
       expect(root.message,
           'expected a non-null value at <root>, but it is absent');
     });
