@@ -693,7 +693,7 @@ void main() {
             pickException(
               containing: [
                 '"2023-01-09T12:31:54ABC"',
-                'the parsers failed for: PickDateFormat.ISO_8601',
+                'no known format matched (ISO 8601, RFC 1123, RFC 850, asctime)',
               ],
             ),
           ),
@@ -705,7 +705,7 @@ void main() {
             pickException(
               containing: [
                 '"Mon, 11 Nov 24 11:58:15 ESTX"',
-                'the parsers failed for: PickDateFormat.ISO_8601',
+                'no known format matched (ISO 8601, RFC 1123, RFC 850, asctime)',
               ],
             ),
           ),

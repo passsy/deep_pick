@@ -109,7 +109,6 @@ extension NullableDateTimePick on Pick {
 
     final selectedFormats =
         format == null ? formats : {format: formats[format]!};
-    final failedFormats = <PickDateFormat>[];
     for (final entry in selectedFormats.entries) {
       try {
         final dateTime = entry.value();
@@ -117,9 +116,9 @@ extension NullableDateTimePick on Pick {
           return dateTime;
         }
       } catch (_) {
-        // Parser exceptions can contain raw input. Keep only the format,
-        // so redacted errors cannot leak values through nested exceptions.
-        failedFormats.add(entry.key);
+        // A parser that throws did not match, like one that returns null.
+        // Its exception can contain raw input and is dropped, so redacted
+        // errors cannot leak values through nested exceptions.
       }
     }
 
@@ -127,10 +126,7 @@ extension NullableDateTimePick on Pick {
       if (format != null) {
         return 'does not match $format';
       }
-      if (failedFormats.isEmpty) {
-        return 'no known format matched (ISO 8601, RFC 1123, RFC 850, asctime)';
-      }
-      return 'the parsers failed for: ${failedFormats.join(', ')}';
+      return 'no known format matched (ISO 8601, RFC 1123, RFC 850, asctime)';
     }();
 
     throw PickException.fromPick(
