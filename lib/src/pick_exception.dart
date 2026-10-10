@@ -32,10 +32,12 @@ class PickException implements Exception {
   /// - [detail] explains why this value was rejected and gets its own row.
   /// - [hint] tells the reader what to do about it and gets its own row.
   ///
-  /// [problem], [detail] and [hint] are printed as they are.
+  /// [problem], [detail] and [hint] are printed as they are, also with
+  /// [Pick.redactValues]. Don't put the picked value into them.
   ///
   /// The message is rendered eagerly so the exception does not retain a
-  /// reference into the parsed data structure.
+  /// reference into the parsed data structure. Respects
+  /// [Pick.redactValues].
   factory PickException.fromPick(
     Pick pick,
     String problem, {
@@ -125,9 +127,15 @@ String _renderErrorMessage(
 /// is the problem
 List<String> _rowsForFoundValue(Pick pick) {
   final value = pick.value;
-  final valueBlock = _renderValueBlock(value, indent: _errorValueIndent);
+  final redact = pick.redactsValues;
+  final valueBlock =
+      _renderValueBlock(value, indent: _errorValueIndent, redact: redact);
   final type = () {
     if (value == null) {
+      return '';
+    }
+    if (redact) {
+      // a redacted value is already shown as its type
       return '';
     }
     if (valueBlock.length > 1) {
@@ -167,7 +175,11 @@ List<String> _rowsForBrokenPath(Pick pick, int missingIndex) {
   final reachedValue = _valueBeforeMissingSegment(pick);
   final reason = _describeAbsentReason(reachedValue, path[missingIndex]);
   final reached = _describeLocation(path.sublist(0, missingIndex));
-  final valueBlock = _renderValueBlock(reachedValue, indent: _errorValueIndent);
+  final valueBlock = _renderValueBlock(
+    reachedValue,
+    indent: _errorValueIndent,
+    redact: pick.redactsValues,
+  );
   return [
     query,
     '$marker $reason',
@@ -216,7 +228,14 @@ String _describeType(Object? value) {
 /// the single-line form gets too wide to read
 ///
 /// Continuation lines are indented by [indent].
-List<String> _renderValueBlock(Object? value, {required int indent}) {
+List<String> _renderValueBlock(
+  Object? value, {
+  required int indent,
+  required bool redact,
+}) {
+  if (redact) {
+    return [_renderValueRedacted(value)];
+  }
   final rendered = _renderValue(value);
   if (rendered.length <= 72) {
     return [rendered];
@@ -354,6 +373,32 @@ String _renderChildValue(Object? value) {
     return 'Set with ${value.length} items';
   }
   return _truncate(_renderValue(value), 50);
+}
+
+/// Describes the shape of [value] without revealing any data, see
+/// [Pick.redactValues]
+///
+/// [Map] keys count as schema, not data, and stay visible.
+String _renderValueRedacted(Object? value) {
+  if (value == null) {
+    return 'null';
+  }
+  if (value is Map) {
+    if (value.isEmpty) {
+      return 'Map with no keys';
+    }
+    final keys = value.keys.take(8).map(_renderMapKey).join(', ');
+    final more = value.length > 8 ? ', …${value.length - 8} more' : '';
+    return 'Map with keys $keys$more';
+  }
+  if (value is List) {
+    final count = value.length == 1 ? '1 item' : '${value.length} items';
+    return 'List with $count';
+  }
+  if (value is Set) {
+    return 'Set with ${value.length} items';
+  }
+  return '<${value.runtimeType}>';
 }
 
 /// A path rendered as `shoes[0].name`, remembering where each segment starts

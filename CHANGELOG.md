@@ -25,6 +25,21 @@
 - **Fix** `Pick.isAbsent` is `true` below a `null`, however the path is written.
   `pick({'a': null}, 'a', 'b').isAbsent` was `false`, while `pick({'a': null}, 'a')('b').isAbsent` was `true`.
 - **New** `PickException.fromPick(pick, 'expected a Timestamp')` but honestly, nobody outside deep_pick should call it.
+- **New** `redactValues()` keeps values out of error messages [#65](https://github.com/passsy/deep_pick/pull/65), for responses with personal data.
+  Map keys and types stay visible.
+
+  ```dart
+  pick(response).redactValues(enabled: kReleaseMode).letOrThrow(User.fromPick);
+  ```
+
+  ```text
+  PickException: expected a non-null value at shoes[0].name, but it is absent
+
+    query   shoes[0].name
+                     ~~~~ no such key
+    at      shoes[0] = Map with keys "id", "size"
+  ```
+
 - **Deprecated** `Pick.path`, `Pick.missingValueAtIndex`, `Pick.followablePath` and `Pick.debugParsingExit`. The error message of a `PickException` shows where a pick failed.
 
 ## 1.1.0 (`30.08.24`)

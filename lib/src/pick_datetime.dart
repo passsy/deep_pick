@@ -113,6 +113,8 @@ extension NullableDateTimePick on Pick {
         }
       } catch (_) {
         // A parser that throws did not match, like one that returns null.
+        // Its exception can contain raw input and is dropped, so redacted
+        // errors cannot leak values through nested exceptions.
       }
     }
 

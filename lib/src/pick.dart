@@ -302,6 +302,25 @@ class Pick {
         _missingIndex = missingIndex,
         _parent = missingIndex == null ? null : parent;
 
+  /// A copy at a different [path] or with a different [context]
+  ///
+  /// What was picked stays, be it the [value] or the location it is absent
+  /// at.
+  Pick _copyWith({List<Object>? path, Map<String, dynamic>? context}) {
+    // a copy at the same path shares the list behind this frozen path, a
+    // second view is not stacked on top of it
+    final ownPath = _path;
+    final sharedPath = ownPath is _FrozenPath ? ownPath._source : ownPath;
+    return Pick._from(
+      _parent,
+      value,
+      path: path ?? sharedPath,
+      // the copy gets a context of its own
+      context: context ?? Map.of(this.context),
+      missingIndex: _missingIndex,
+    );
+  }
+
   /// The picked value, might be `null`
   final Object? value;
 
@@ -422,16 +441,9 @@ class Pick {
       if (arg9 != null) arg9,
     ];
 
-    final missingIndex = _missingIndex;
-    if (missingIndex != null) {
+    if (isAbsent) {
       // nothing to drill into, a longer path is absent at the same location
-      return Pick._from(
-        _parent,
-        null,
-        path: _extended(_path, selectors),
-        context: Map.of(context),
-        missingIndex: missingIndex,
-      );
+      return _copyWith(path: _extended(_path, selectors));
     }
     final childContext = Map.of(context);
     if (selectors.isNotEmpty) {
@@ -441,6 +453,47 @@ class Pick {
     }
     return _drillDown(value, selectors, parent: this, context: childContext);
   }
+
+  /// Returns a copy that redacts data values in its error messages and those
+  /// of subsequently picked descendants.
+  ///
+  /// The original pick and existing descendants keep their diagnostic settings.
+  /// The copy shares the parsed data but has an independent context map.
+  ///
+  /// [PickException] messages show the value at the location parsing failed,
+  /// which is useful during development but may leak personal data into
+  /// crash reporters and logs. With redaction enabled the messages keep
+  /// [Map] keys and types, but mask all values.
+  ///
+  /// Keys count as schema and stay visible. That includes the keys of a
+  /// [Map] that is keyed by data, like `{"jane@example.com": {...}}`.
+  ///
+  /// Redaction is about the picked data. Values stored with [withContext]
+  /// are not part of it and show up unredacted in errors of [fromContext].
+  ///
+  /// Add it once at the root to cover the whole parsing tree:
+  /// ```dart
+  /// pick(response).redactValues().letOrThrow((pick) => User.fromPick(pick));
+  /// ```
+  ///
+  /// Use [enabled] to decide at runtime, i.e. to keep the values in debug
+  /// builds:
+  /// ```dart
+  /// pick(response).redactValues(enabled: kReleaseMode);
+  /// ```
+  ///
+  /// `enabled: false` returns a copy that shows values again, also when a
+  /// pick above it redacted them. [redactsValues] tells which one applies.
+  Pick redactValues({bool enabled = true}) {
+    return _copyWith(context: {...context, _redactValuesContextKey: enabled});
+  }
+
+  /// Whether [redactValues] is enabled for this pick, by a call on it or on
+  /// a pick above it
+  ///
+  /// A custom parser that writes its own error message should leave the
+  /// picked [value] out of it when this is `true`.
+  bool get redactsValues => context[_redactValuesContextKey] == true;
 
   /// Enter a "required" context which requires the picked value to be non-null
   /// or a [PickException] is thrown.
@@ -531,12 +584,20 @@ class Pick {
   /// picked value "null" using pick(json, "a" (null))
   /// picked value "Instance of \'Object\'" using `pick(<root>)`
   /// "unknownKey" in pick(json, "unknownKey" (absent))
+  ///
+  /// With [redactValues] the value is replaced by its type.
   @Deprecated(
     'Throw PickException.fromPick() instead of building an error message '
     'from debugParsingExit',
   )
   String get debugParsingExit {
     final access = <String>[];
+    final shownValue = () {
+      if (redactsValues) {
+        return _renderValueRedacted(value);
+      }
+      return '$value';
+    }();
 
     // The full path to [value] inside of the object
     // I.e. ['shoes', 0, 'name']
@@ -558,7 +619,7 @@ class Pick {
             foundNullPart = true;
             return ' (null)';
           } else {
-            return '($value)';
+            return '($shownValue)';
           }
         }
         if (part == null) {
@@ -577,7 +638,7 @@ class Pick {
 
     var valueOrExit = '';
     if (foundValue) {
-      valueOrExit = 'picked value "$value" using';
+      valueOrExit = 'picked value "$shownValue" using';
     } else {
       final firstMissing = fullPath.isEmpty
           ? '<root>'
@@ -626,8 +687,21 @@ class RequiredPick extends Pick {
     super.withContext(key, value);
     return this;
   }
+
+  @override
+  RequiredPick redactValues({bool enabled = true}) {
+    return RequiredPick(
+      value,
+      path: _path,
+      context: {...context, _redactValuesContextKey: enabled},
+    );
+  }
 }
 
 /// Used internally with [Pick.withContext] to add additional information
 /// to the error message
 const requiredPickErrorHintKey = '_required_pick_error_hint';
+
+/// Used internally with [Pick.redactValues] to mark a pick chain as carrying
+/// sensitive data
+const _redactValuesContextKey = '_redact_values';
