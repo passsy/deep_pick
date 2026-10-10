@@ -521,8 +521,8 @@ void main() {
       expect(_requiredError(continued), _requiredError(missing));
     });
 
-    test('the original missing node survives continuation', () {
-      final root = pick({'secret': 'PRIVATE'});
+    test('the original missing node and redaction survive continuation', () {
+      final root = pick({'secret': 'PRIVATE'}).redactValues();
       final missing = root('missing');
       final continued = missing('child');
       expect(
@@ -531,7 +531,8 @@ void main() {
             .having((e) => e.message, 'message', contains('missing.child'))
             .having((e) => e.message, 'message', contains('no such key'))
             // the root map is still the value the error shows
-            .having((e) => e.message, 'message', contains('secret'))),
+            .having((e) => e.message, 'message', contains('secret'))
+            .having((e) => e.message, 'message', isNot(contains('PRIVATE')))),
       );
     });
   });

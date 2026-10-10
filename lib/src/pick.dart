@@ -237,6 +237,20 @@ class Pick {
         _missingValueAtIndex = missingValueAtIndex,
         context = context != null ? Map.of(context) : {};
 
+  /// A copy at a different [path] or with a different [context]
+  ///
+  /// What was picked stays, be it the [value] or the location it is absent
+  /// at.
+  Pick _copyWith({List<Object>? path, Map<String, dynamic>? context}) {
+    return Pick._from(
+      _parent,
+      value,
+      path: path ?? this.path,
+      context: context ?? this.context,
+      missingValueAtIndex: missingValueAtIndex,
+    );
+  }
+
   /// The picked value, might be `null`
   final Object? value;
 
@@ -334,16 +348,9 @@ class Pick {
             .cast<Object>()
             .toList(growable: false);
 
-    final missingIndex = missingValueAtIndex;
-    if (missingIndex != null) {
+    if (isAbsent) {
       // nothing to drill into, a longer path is absent at the same location
-      return Pick._from(
-        _parent,
-        null,
-        path: [...path, ...selectors],
-        context: context,
-        missingValueAtIndex: missingIndex,
-      );
+      return _copyWith(path: [...path, ...selectors]);
     }
     var childContext = context;
     if (selectors.isNotEmpty) {
@@ -353,6 +360,47 @@ class Pick {
     }
     return _drillDown(this, selectors, context: childContext);
   }
+
+  /// Returns a copy that redacts data values in its error messages and those
+  /// of subsequently picked descendants.
+  ///
+  /// The original pick and existing descendants keep their diagnostic settings.
+  /// The copy shares the parsed data but has an independent context map.
+  ///
+  /// [PickException] messages show the value at the location parsing failed,
+  /// which is useful during development but may leak personal data into
+  /// crash reporters and logs. With redaction enabled the messages keep
+  /// [Map] keys and types, but mask all values.
+  ///
+  /// Keys count as schema and stay visible. That includes the keys of a
+  /// [Map] that is keyed by data, like `{"jane@example.com": {...}}`.
+  ///
+  /// Redaction is about the picked data. Values stored with [withContext]
+  /// are not part of it and show up unredacted in errors of [fromContext].
+  ///
+  /// Add it once at the root to cover the whole parsing tree:
+  /// ```dart
+  /// pick(response).redactValues().letOrThrow((pick) => User.fromPick(pick));
+  /// ```
+  ///
+  /// Use [enabled] to decide at runtime, i.e. to keep the values in debug
+  /// builds:
+  /// ```dart
+  /// pick(response).redactValues(enabled: kReleaseMode);
+  /// ```
+  ///
+  /// `enabled: false` returns a copy that shows values again, also when a
+  /// pick above it redacted them. [redactsValues] tells which one applies.
+  Pick redactValues({bool enabled = true}) {
+    return _copyWith(context: {...context, _redactValuesContextKey: enabled});
+  }
+
+  /// Whether [redactValues] is enabled for this pick, by a call on it or on
+  /// a pick above it
+  ///
+  /// A custom parser that writes its own error message should leave the
+  /// picked [value] out of it when this is `true`.
+  bool get redactsValues => context[_redactValuesContextKey] == true;
 
   /// Enter a "required" context which requires the picked value to be non-null
   /// or a [PickException] is thrown.
@@ -443,12 +491,20 @@ class Pick {
   /// picked value "null" using pick(json, "a" (null))
   /// picked value "Instance of \'Object\'" using `pick(<root>)`
   /// "unknownKey" in pick(json, "unknownKey" (absent))
+  ///
+  /// With [redactValues] the value is replaced by its type.
   @Deprecated(
     'Throw PickException.fromPick() instead of building an error message '
     'from debugParsingExit',
   )
   String get debugParsingExit {
     final access = <String>[];
+    final shownValue = () {
+      if (redactsValues) {
+        return _renderValueRedacted(value);
+      }
+      return '$value';
+    }();
 
     // The full path to [value] inside of the object
     // I.e. ['shoes', 0, 'name']
@@ -470,7 +526,7 @@ class Pick {
             foundNullPart = true;
             return ' (null)';
           } else {
-            return '($value)';
+            return '($shownValue)';
           }
         }
         if (part == null) {
@@ -489,7 +545,7 @@ class Pick {
 
     var valueOrExit = '';
     if (foundValue) {
-      valueOrExit = 'picked value "$value" using';
+      valueOrExit = 'picked value "$shownValue" using';
     } else {
       final firstMissing = fullPath.isEmpty
           ? '<root>'
@@ -530,11 +586,29 @@ class RequiredPick extends Pick {
     super.withContext(key, value);
     return this;
   }
+
+  @override
+  RequiredPick _copyWith({List<Object>? path, Map<String, dynamic>? context}) {
+    return RequiredPick(
+      value,
+      path: path ?? this.path,
+      context: context ?? this.context,
+    );
+  }
+
+  @override
+  RequiredPick redactValues({bool enabled = true}) {
+    return _copyWith(context: {...context, _redactValuesContextKey: enabled});
+  }
 }
 
 /// Used internally with [Pick.withContext] to add additional information
 /// to the error message
 const requiredPickErrorHintKey = '_required_pick_error_hint';
+
+/// Used internally with [Pick.redactValues] to mark a pick chain as carrying
+/// sensitive data
+const _redactValuesContextKey = '_redact_values';
 
 class PickException implements Exception {
   /// A [PickException] with a freeform [message]
@@ -568,10 +642,12 @@ class PickException implements Exception {
   /// - [detail] explains why this value was rejected and gets its own row.
   /// - [hint] tells the reader what to do about it and gets its own row.
   ///
-  /// [problem], [detail] and [hint] are printed as they are.
+  /// [problem], [detail] and [hint] are printed as they are, also with
+  /// [Pick.redactValues]. Don't put the picked value into them.
   ///
   /// The message is rendered eagerly so the exception does not retain a
-  /// reference into the parsed data structure.
+  /// reference into the parsed data structure. Respects
+  /// [Pick.redactValues].
   factory PickException.fromPick(
     Pick pick,
     String problem, {
@@ -661,9 +737,15 @@ String _renderErrorMessage(
 /// is the problem
 List<String> _rowsForFoundValue(Pick pick) {
   final value = pick.value;
-  final valueBlock = _renderValueBlock(value, indent: _errorValueIndent);
+  final redact = pick.redactsValues;
+  final valueBlock =
+      _renderValueBlock(value, indent: _errorValueIndent, redact: redact);
   final type = () {
     if (value == null) {
+      return '';
+    }
+    if (redact) {
+      // a redacted value is already shown as its type
       return '';
     }
     if (valueBlock.length > 1) {
@@ -702,7 +784,11 @@ List<String> _rowsForBrokenPath(Pick pick, int missingIndex) {
   final reachedValue = _valueBeforeMissingSegment(pick);
   final reason = _describeAbsentReason(reachedValue, path[missingIndex]);
   final reached = _describeLocation(path.sublist(0, missingIndex));
-  final valueBlock = _renderValueBlock(reachedValue, indent: _errorValueIndent);
+  final valueBlock = _renderValueBlock(
+    reachedValue,
+    indent: _errorValueIndent,
+    redact: pick.redactsValues,
+  );
   return [
     query,
     '$marker $reason',
@@ -751,7 +837,14 @@ String _describeType(Object? value) {
 /// the single-line form gets too wide to read
 ///
 /// Continuation lines are indented by [indent].
-List<String> _renderValueBlock(Object? value, {required int indent}) {
+List<String> _renderValueBlock(
+  Object? value, {
+  required int indent,
+  required bool redact,
+}) {
+  if (redact) {
+    return [_renderValueRedacted(value)];
+  }
   final rendered = _renderValue(value);
   if (rendered.length <= 72) {
     return [rendered];
@@ -889,6 +982,32 @@ String _renderChildValue(Object? value) {
     return 'Set with ${value.length} items';
   }
   return _truncate(_renderValue(value), 50);
+}
+
+/// Describes the shape of [value] without revealing any data, see
+/// [Pick.redactValues]
+///
+/// [Map] keys count as schema, not data, and stay visible.
+String _renderValueRedacted(Object? value) {
+  if (value == null) {
+    return 'null';
+  }
+  if (value is Map) {
+    if (value.isEmpty) {
+      return 'Map with no keys';
+    }
+    final keys = value.keys.take(8).map(_renderMapKey).join(', ');
+    final more = value.length > 8 ? ', …${value.length - 8} more' : '';
+    return 'Map with keys $keys$more';
+  }
+  if (value is List) {
+    final count = value.length == 1 ? '1 item' : '${value.length} items';
+    return 'List with $count';
+  }
+  if (value is Set) {
+    return 'Set with ${value.length} items';
+  }
+  return '<${value.runtimeType}>';
 }
 
 /// A path rendered as `shoes[0].name`, remembering where each segment starts
