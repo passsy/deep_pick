@@ -499,6 +499,25 @@ void main() {
       expect(e.message, isNot(contains(values.last)));
     });
 
+    test('a long map key is truncated like a value', () {
+      final longKey = 'k' * 100000;
+      final data = {
+        'node': {longKey: 1}
+      };
+      final e = grabException(() => pick(data, 'node', 'missing').required());
+      expect(
+        e.message.split('\n').last,
+        '  at      node = {"${'k' * 49}…: 1}',
+      );
+      final redacted = grabException(() {
+        pick(data).redactValues()('node', 'missing').required();
+      });
+      expect(
+        redacted.message.split('\n').last,
+        '  at      node = Map with keys "${'k' * 49}…',
+      );
+    });
+
     test('long scalar output is bounded and marked as truncated', () {
       final e = PickException.fromPick(
         pick('x' * 200),

@@ -323,6 +323,9 @@ class Pick {
   /// crash reporters and logs. With redaction enabled the messages keep
   /// [Map] keys and types, but mask all values.
   ///
+  /// Keys count as schema and stay visible. That includes the keys of a
+  /// [Map] that is keyed by data, like `{"jane@example.com": {...}}`.
+  ///
   /// Add it once at the root to cover the whole parsing tree:
   /// ```dart
   /// pick(response).redactValues().letOrThrow((pick) => User.fromPick(pick));
@@ -854,9 +857,10 @@ String _quote(String text) {
 }
 
 // Opaque keys use their type so diagnostics never invoke user-defined toString.
+// Keys come from the data like values do, so they get the same length cap.
 String _renderMapKey(Object? key) {
   if (key is String) {
-    return _quote(key);
+    return _truncate(_quote(key), 50);
   }
   if (key == null || key is num || key is bool) {
     return _quote('$key');
