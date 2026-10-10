@@ -433,6 +433,12 @@ pick(response).redactValues().letOrThrow((pick) => User.fromPick(pick));
 //   at      shoes[0] = Map with keys "id", "size"
 ```
 
+Pass `enabled` to decide at runtime, for example to keep the values in debug builds:
+
+```dart
+pick(response).redactValues(enabled: kReleaseMode).letOrThrow((pick) => User.fromPick(pick));
+```
+
 ### 4. Null is default, crashes intentional
 
 Parsing objects from external systems isn't type-safe. 

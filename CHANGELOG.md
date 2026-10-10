@@ -10,7 +10,7 @@
 - **New** `PickException.path`, `reason`, `expected`, `PickErrorReason` and `PickException.fromPick` expose structured errors, including explicit date-format failures.
   `Pick.lastReachableValue` exposes the last node reached by an absent pick.
 - **New** `Pick.redactValues()` and `RequiredPick.redactValues()` return independent views that mask diagnostic values while retaining keys and types.
-  `Pick.redactsValues` lets custom parsers follow the same rule.
+  `redactValues(enabled: kReleaseMode)` switches it at runtime, and `Pick.redactsValues` lets custom parsers follow the same rule.
 - **Deprecated** `Pick.debugParsingExit`, throw `PickException.fromPick` instead.
 
 ## 1.1.0 (`30.08.24`)

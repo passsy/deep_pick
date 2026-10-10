@@ -399,6 +399,31 @@ void main() {
       expect(context.message, contains('  found   "v2-beta"'));
     });
 
+    test('enabled decides whether values are shown', () {
+      const data = {'secret': 'PRIVATE_VALUE'};
+      String intError(Pick pick) => grabException(pick.asIntOrThrow).message;
+
+      final off = pick(data).redactValues(enabled: false);
+      expect(off.redactsValues, isFalse);
+      expect(intError(off('secret')), contains('"PRIVATE_VALUE"'));
+
+      final on = pick(data).redactValues();
+      expect(on.redactsValues, isTrue);
+      expect(intError(on('secret')), isNot(contains('PRIVATE_VALUE')));
+
+      // a pick below a redacted one can show values again, the redacted
+      // pick itself is not changed by that
+      final offBelowOn = on('secret').redactValues(enabled: false);
+      expect(offBelowOn.redactsValues, isFalse);
+      expect(intError(offBelowOn), contains('"PRIVATE_VALUE"'));
+      expect(intError(on('secret')), isNot(contains('PRIVATE_VALUE')));
+
+      final RequiredPick requiredOff =
+          on.required().redactValues(enabled: false);
+      expect(requiredOff.redactsValues, isFalse);
+      expect(intError(requiredOff('secret')), contains('"PRIVATE_VALUE"'));
+    });
+
     test('RequiredPick.redactValues() stays chainable', () {
       final RequiredPick redacted = pick(json).required().redactValues();
       final e = grabException(() {

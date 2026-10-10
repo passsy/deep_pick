@@ -355,8 +355,17 @@ class Pick {
   /// ```dart
   /// pick(response).redactValues().letOrThrow((pick) => User.fromPick(pick));
   /// ```
-  Pick redactValues() {
-    final redactedContext = {...context, _redactValuesContextKey: true};
+  ///
+  /// Use [enabled] to decide at runtime, i.e. to keep the values in debug
+  /// builds:
+  /// ```dart
+  /// pick(response).redactValues(enabled: kReleaseMode);
+  /// ```
+  ///
+  /// `enabled: false` returns a copy that shows values again, also when a
+  /// pick above it redacted them. [redactsValues] tells which one applies.
+  Pick redactValues({bool enabled = true}) {
+    final redactedContext = {...context, _redactValuesContextKey: enabled};
     final missingIndex = missingValueAtIndex;
     if (missingIndex != null) {
       return Pick.absent(
@@ -369,7 +378,8 @@ class Pick {
     return Pick(value, path: path, context: redactedContext);
   }
 
-  /// Whether [redactValues] was called on this pick or on a pick above it
+  /// Whether [redactValues] is enabled for this pick, by a call on it or on
+  /// a pick above it
   ///
   /// A custom parser that writes its own error message should leave the
   /// picked [value] out of it when this is `true`.
@@ -564,11 +574,11 @@ class RequiredPick extends Pick {
   }
 
   @override
-  RequiredPick redactValues() {
+  RequiredPick redactValues({bool enabled = true}) {
     return RequiredPick(
       value,
       path: path,
-      context: {...context, _redactValuesContextKey: true},
+      context: {...context, _redactValuesContextKey: enabled},
     );
   }
 }
