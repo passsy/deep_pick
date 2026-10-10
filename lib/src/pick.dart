@@ -141,48 +141,31 @@ Pick _drillDown(
     final selectorIndex = parent.path.length + i;
     if (data is Set && selector is int) {
       throw PickException.fromPick(
-        Pick._raw(
-          null,
-          path: fullPath,
-          context: context,
-          missingValueAtIndex: selectorIndex,
-          parent: parent,
-        ),
+        Pick._from(parent, null,
+            path: fullPath,
+            context: context,
+            missingValueAtIndex: selectorIndex),
         reason: PickErrorReason.setIndexUnsupported,
       );
     }
     if (!_hasChild(data, selector)) {
       // can't drill down any more to find the exact location.
-      return Pick._raw(
-        null,
-        path: fullPath,
-        context: context,
-        missingValueAtIndex: selectorIndex,
-        parent: parent,
-      );
+      return Pick._from(parent, null,
+          path: fullPath, context: context, missingValueAtIndex: selectorIndex);
     }
     final dynamic child = _childOf(data, selector);
     // a `null` at the last segment is the result, anywhere else a dead end
     final isLastSelector = i == selectors.length - 1;
     if (child == null && !isLastSelector) {
       // null can't be drilled into, the next segment is unreachable
-      return Pick._raw(
-        null,
-        path: fullPath,
-        context: context,
-        missingValueAtIndex: selectorIndex + 1,
-        parent: parent,
-      );
+      return Pick._from(parent, null,
+          path: fullPath,
+          context: context,
+          missingValueAtIndex: selectorIndex + 1);
     }
     data = child;
   }
-  return Pick._raw(
-    data,
-    path: fullPath,
-    context: context,
-    missingValueAtIndex: null,
-    parent: parent,
-  );
+  return Pick._from(parent, data, path: fullPath, context: context);
 }
 
 /// What the data holds right before the segment [absent] is missing
@@ -214,16 +197,12 @@ class Pick {
   /// [value] may still be `null` but the structure was correct, therefore
   /// [isAbsent] will always return `false`.
   Pick(
-    Object? value, {
-    List<Object> path = const [],
+    this.value, {
+    this.path = const [],
     Map<String, dynamic>? context,
-  }) : this._raw(
-          value,
-          path: path,
-          context: context,
-          missingValueAtIndex: null,
-          parent: null,
-        );
+  })  : _missingValueAtIndex = null,
+        _parent = null,
+        context = context != null ? Map.of(context) : {};
 
   /// Pick of an absent value. While drilling down [path] the structure of the
   /// data did not match the [path] and the value wasn't found.
@@ -237,24 +216,23 @@ class Pick {
   /// ```
   Pick.absent(
     int missingValueAtIndex, {
-    List<Object> path = const [],
+    this.path = const [],
     Map<String, Object?>? context,
-  }) : this._raw(
-          null,
-          path: path,
-          context: context,
-          missingValueAtIndex: missingValueAtIndex,
-          parent: null,
-        );
+  })  : value = null,
+        _missingValueAtIndex = missingValueAtIndex,
+        _parent = null,
+        context = context != null ? Map.of(context) : {};
 
-  /// Sets every field as given, [Pick] and [Pick.absent] are shortcuts to it
-  Pick._raw(
+  /// A pick that was picked from [parent], absent when it comes with a
+  /// [missingValueAtIndex]
+  Pick._from(
+    Pick? parent,
     this.value, {
     required this.path,
     required Map<String, dynamic>? context,
-    required this.missingValueAtIndex,
-    required Pick? parent,
+    int? missingValueAtIndex,
   })  : _parent = parent,
+        _missingValueAtIndex = missingValueAtIndex,
         context = context != null ? Map.of(context) : {};
 
   /// The picked value, might be `null`
@@ -320,7 +298,8 @@ class Pick {
 
   /// When the picked value is unavailable ([Pick.isAbsent]) the index in
   /// [path] which couldn't be found
-  final int? missingValueAtIndex;
+  int? get missingValueAtIndex => _missingValueAtIndex;
+  final int? _missingValueAtIndex;
 
   /// The full path to [value] inside of the object
   ///
@@ -353,14 +332,15 @@ class Pick {
             .cast<Object>()
             .toList(growable: false);
 
-    if (isAbsent) {
+    final missingIndex = missingValueAtIndex;
+    if (missingIndex != null) {
       // nothing to drill into, a longer path is absent at the same location
-      return Pick._raw(
+      return Pick._from(
+        _parent,
         null,
         path: [...path, ...selectors],
         context: context,
-        missingValueAtIndex: missingValueAtIndex,
-        parent: _parent,
+        missingValueAtIndex: missingIndex,
       );
     }
     return _drillDown(
