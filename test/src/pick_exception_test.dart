@@ -55,7 +55,6 @@ void main() {
           expect(original.isAbsent, isTrue);
           expect(original.path, ['missing']);
           final result = redact ? original.redactValues() : original;
-          expect(result.reachedValue, same(source));
           final e = grabException(result.required);
           expect(e.reason, PickErrorReason.absent);
           expect(e.path, ['missing']);
@@ -292,14 +291,13 @@ void main() {
       expect(original.context['custom'], 'kept');
     });
 
-    test('preserves absent state and reached value in a copy', () {
+    test('preserves absent state and the error in a copy', () {
       final original =
           pick({'nested': <String, Object>{}}, 'nested', 'missing');
       final redacted = original.redactValues();
       expect(redacted, isNot(same(original)));
       expect(redacted.isAbsent, isTrue);
       expect(redacted.missingValueAtIndex, original.missingValueAtIndex);
-      expect(redacted.reachedValue, same(original.reachedValue));
       expect(redacted.path, original.path);
       expect(
           redacted('child').missingValueAtIndex, original.missingValueAtIndex);
@@ -657,10 +655,9 @@ void main() {
       });
     }
 
-    test('an absent pick without a reached value claims nothing', () {
+    test('a pick created with Pick.absent claims nothing about the data', () {
       // Pick.absent is told where the path broke, not what was there
       final absent = Pick.absent(1, path: ['shoes', 'name']);
-      expect(absent.reachedValue, isNull);
       expect(
         grabException(absent.required).message,
         'expected a non-null value at shoes.name, but it is absent\n'
@@ -670,10 +667,9 @@ void main() {
       );
     });
 
-    test('a pick built by hand knows what it reached when picked from', () {
+    test('a pick built by hand shows the data when picked from', () {
       final shoes = {'id': 1};
       final absent = Pick(shoes, path: ['shoes'])('name');
-      expect(absent.reachedValue, same(shoes));
       final e = grabException(absent.required);
       expect(
         e.message,
@@ -685,12 +681,11 @@ void main() {
       );
     });
 
-    test('an absent pick has no value, whatever it reached', () {
+    test('an absent pick has no value', () {
       final absent = pick({
         'shoes': {'id': 1}
       }, 'shoes', 'name');
       expect(absent.isAbsent, isTrue);
-      expect(absent.reachedValue, {'id': 1});
       expect(absent.value, isNull);
       expect(absent.asMapOrNull<String, int>(), isNull);
       expect(absent('id').value, isNull);

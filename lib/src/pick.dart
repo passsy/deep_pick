@@ -195,10 +195,11 @@ class Pick {
   ///
   /// [value] will always return `null` and [isAbsent] always `true`.
   ///
-  /// The pick doesn't know its [reachedValue], error messages only show
-  /// where the path broke. Pick from a value to get one that does:
+  /// The pick is not told what the data held instead, its error messages
+  /// only show where the path broke. Pick from a value to get one whose
+  /// errors show it:
   /// ```dart
-  /// Pick({'id': 1}, path: ['shoes'])('name'); // absent, reached {'id': 1}
+  /// Pick({'id': 1}, path: ['shoes'])('name'); // absent, {'id': 1} has no name
   /// ```
   Pick.absent(
     int missingValueAtIndex, {
@@ -241,24 +242,9 @@ class Pick {
   /// That is the picked [value], unless the pick [isAbsent]. Then it is where
   /// the path broke: the `Map` which did not contain the requested key, the
   /// `List` the index was out of range for, or `null` when a `null` value
-  /// blocked the way down. Error messages show it.
+  /// blocked the way down. Only error messages need it.
   ///
-  /// ```dart
-  /// pick({'shoes': {'id': 1}}, 'shoes').reachedValue; // {'id': 1}
-  /// pick({'shoes': {'id': 1}}, 'shoes', 'name').reachedValue; // {'id': 1}
-  /// pick({'shoes': null}, 'shoes', 'name').reachedValue; // null
-  /// ```
-  ///
-  /// Also `null` for a pick created with [Pick.absent], which doesn't know
-  /// it.
-  Object? get reachedValue {
-    if (identical(_reachedValue, _unknownValue)) {
-      return null;
-    }
-    return _reachedValue;
-  }
-
-  /// What [reachedValue] returns, or [_unknownValue]
+  /// [_unknownValue] for a pick created with [Pick.absent].
   final Object? _reachedValue;
 
   /// Allows the distinction between the actual [value] `null` and the value not
@@ -728,7 +714,7 @@ class PickException implements Exception {
       fullPath: pick.path,
       reason: resolvedReason,
       expected: resolvedExpected,
-      nodeValue: pathBroke ? pick.reachedValue : pick.value,
+      nodeValue: pathBroke ? pick._reachedValue : pick.value,
       nodeKnown: !identical(pick._reachedValue, _unknownValue),
       pathBroke: pathBroke,
       failedAtIndex: failedAtIndex,
