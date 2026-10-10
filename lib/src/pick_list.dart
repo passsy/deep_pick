@@ -47,7 +47,9 @@ extension NullableListPick on Pick {
     final value = required().value;
     if (value is List) {
       final result = <T>[];
-      final itemContext = contextWithoutHint(context);
+      // the hint is advice for the list, an element has its own location
+      // and parser
+      final itemContext = Map.of(context)..remove(requiredPickErrorHintKey);
       var index = -1;
       for (final item in value) {
         index++;

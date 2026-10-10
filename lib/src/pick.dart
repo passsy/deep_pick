@@ -343,11 +343,13 @@ class Pick {
         missingValueAtIndex: missingIndex,
       );
     }
-    return _drillDown(
-      this,
-      selectors,
-      context: selectors.isEmpty ? context : contextWithoutHint(context),
-    );
+    var childContext = context;
+    if (selectors.isNotEmpty) {
+      // the hint is advice for this pick, a pick further down the path has
+      // its own location and parser
+      childContext = Map.of(context)..remove(requiredPickErrorHintKey);
+    }
+    return _drillDown(this, selectors, context: childContext);
   }
 
   /// Enter a "required" context which requires the picked value to be non-null
@@ -534,14 +536,6 @@ class RequiredPick extends Pick {
 /// Used internally with [Pick.withContext] to add additional information
 /// to the error message
 const requiredPickErrorHintKey = '_required_pick_error_hint';
-
-/// A copy of [context] for a pick further down the path
-///
-/// The hint is advice for the pick a parser was called on. A pick below it
-/// has its own location and parser, the hint doesn't apply to it.
-Map<String, dynamic> contextWithoutHint(Map<String, dynamic> context) {
-  return Map.of(context)..remove(requiredPickErrorHintKey);
-}
 
 /// Classification of what went wrong when a [PickException] was thrown.
 ///
