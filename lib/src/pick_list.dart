@@ -54,11 +54,8 @@ extension NullableListPick on Pick {
       for (final item in value) {
         index++;
         if (item != null) {
-          final picked = RequiredPick(
-            item,
-            path: [...path, index],
-            context: itemContext,
-          );
+          final picked =
+              RequiredPick(item, path: [...path, index], context: itemContext);
           result.add(map(picked));
           continue;
         }
@@ -71,10 +68,7 @@ extension NullableListPick on Pick {
       }
       return result;
     }
-    throw PickException.fromPick(
-      this,
-      'expected a List',
-    );
+    throw PickException.fromPick(this, 'expected a List');
   }
 
   /// Returns the picked [value] as [List]. This method throws when [value] is

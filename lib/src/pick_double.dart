@@ -53,15 +53,9 @@ extension NullableDoublePick on Pick {
       }
     }
     if (value is String) {
-      throw PickException.fromPick(
-        this,
-        'could not parse a double',
-      );
+      throw PickException.fromPick(this, 'could not parse a double');
     }
-    throw PickException.fromPick(
-      this,
-      'expected a double',
-    );
+    throw PickException.fromPick(this, 'expected a double');
   }
 
   /// Returns the picked [value] as [double] or throws

@@ -93,10 +93,7 @@ extension NullableDateTimePick on Pick {
       return value;
     }
     if (value is! String) {
-      throw PickException.fromPick(
-        this,
-        'expected a DateTime',
-      );
+      throw PickException.fromPick(this, 'expected a DateTime');
     }
 
     final Map<PickDateFormat, DateTime? Function()> formats = {

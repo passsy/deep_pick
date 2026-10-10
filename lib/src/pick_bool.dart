@@ -35,10 +35,7 @@ extension BoolPick on Pick {
         detail: 'only the exact Strings "true" and "false" are valid',
       );
     }
-    throw PickException.fromPick(
-      this,
-      'expected a bool',
-    );
+    throw PickException.fromPick(this, 'expected a bool');
   }
 
   /// Returns the picked [value] as [bool] or throws a [PickException]

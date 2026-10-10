@@ -474,9 +474,7 @@ void main() {
 
     test('absent and null are read from the pick', () {
       final onNull = PickException.fromPick(
-        pick({'a': null}, 'a'),
-        'expected a Timestamp',
-      );
+          pick({'a': null}, 'a'), 'expected a Timestamp');
       expect(
         onNull.message,
         'expected a Timestamp at a, but it is null\n'
@@ -486,9 +484,7 @@ void main() {
       );
 
       final onAbsent = PickException.fromPick(
-        pick({'a': null}, 'b'),
-        'expected a Timestamp',
-      );
+          pick({'a': null}, 'b'), 'expected a Timestamp');
       expect(
         onAbsent.message,
         'expected a Timestamp at b, but it is absent\n'
@@ -498,10 +494,8 @@ void main() {
         '  at      <root> = {"a": null}',
       );
 
-      final onValue = PickException.fromPick(
-        pick({'a': 1}, 'a'),
-        'expected a Timestamp',
-      );
+      final onValue =
+          PickException.fromPick(pick({'a': 1}, 'a'), 'expected a Timestamp');
       expect(
         onValue.message,
         'expected a Timestamp at a\n'
