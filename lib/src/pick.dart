@@ -617,7 +617,7 @@ class PickException implements Exception {
   ///   [PickErrorReason.unparsable] for a value that exists.
   /// - [expected] names what was asked for, with its article, i.e.
   ///   `'an int'` or `'a Timestamp'`. It becomes part of the headline and
-  ///   [PickException.expected].
+  ///   [PickException.expected]. Without it the headline stays neutral.
   /// - [detail] explains why this value was rejected and gets its own row.
   /// - [hint] tells the reader what to do about it and gets its own row.
   ///
@@ -642,7 +642,16 @@ class PickException implements Exception {
       if (resolvedReason == PickErrorReason.setIndexUnsupported) {
         return null;
       }
-      return expected ?? 'a non-null value';
+      if (expected != null) {
+        return expected;
+      }
+      final valueIsMissing = resolvedReason == PickErrorReason.absent ||
+          resolvedReason == PickErrorReason.nullValue;
+      if (valueIsMissing) {
+        return 'a non-null value';
+      }
+      // the value exists, nothing is known about what the caller wanted
+      return null;
     }();
     final failedAtIndex = () {
       final index = pick.missingValueAtIndex;
@@ -737,17 +746,22 @@ String _renderErrorMessage({
       headline = 'expected $expected at $where, but it is null';
       break;
     case PickErrorReason.wrongType:
-      headline =
-          'expected $expected at $where, found ${_describeType(nodeValue)}';
+      final found = _describeType(nodeValue);
+      if (expected == null) {
+        headline = 'unexpected value at $where, found $found';
+        break;
+      }
+      headline = 'expected $expected at $where, found $found';
       break;
     case PickErrorReason.unparsable:
-      headline = 'could not parse $expected at $where';
+      headline = 'could not parse ${expected ?? 'the value'} at $where';
       break;
     case PickErrorReason.setIndexUnsupported:
       headline = 'cannot pick by index at $where, it is a Set';
       break;
     default:
-      headline = 'could not parse $expected at $where ($reason)';
+      headline =
+          'could not parse ${expected ?? 'the value'} at $where ($reason)';
   }
 
   final lines = <String>[];

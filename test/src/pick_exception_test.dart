@@ -626,6 +626,34 @@ void main() {
       );
     });
 
+    test('a missing expected is not replaced for a value that exists', () {
+      final wrongType = PickException.fromPick(
+        pick({'a': 'x'}, 'a'),
+        reason: PickErrorReason.wrongType,
+      );
+      expect(wrongType.expected, isNull);
+      expect(
+        wrongType.message.split('\n').first,
+        'unexpected value at a, found a String',
+      );
+
+      final unparsable = PickException.fromPick(
+        pick({'a': 'x'}, 'a'),
+        reason: PickErrorReason.unparsable,
+      );
+      expect(unparsable.expected, isNull);
+      expect(
+        unparsable.message.split('\n').first,
+        'could not parse the value at a',
+      );
+
+      final absent = PickException.fromPick(
+        pick({'a': 'x'}, 'b'),
+        reason: PickErrorReason.absent,
+      );
+      expect(absent.expected, 'a non-null value');
+    });
+
     test('custom detail and both hint sources are rendered in order', () {
       final e = PickException.fromPick(
         pick('bad').withContext(requiredPickErrorHintKey, 'context hint'),
