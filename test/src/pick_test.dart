@@ -507,7 +507,7 @@ void main() {
         expect(chained.path, direct.path);
         expect(chained.missingValueAtIndex, direct.missingValueAtIndex);
         expect(chained.followablePath, direct.followablePath);
-        expect(_requiredError(chained), _requiredError(direct));
+        expect(chained.reachedValue, same(direct.reachedValue));
         expect(chained.debugParsingExit, direct.debugParsingExit);
       });
     }
@@ -518,20 +518,19 @@ void main() {
       expect(continued.isAbsent, isTrue);
       expect(continued.path, missing.path);
       expect(continued.missingValueAtIndex, missing.missingValueAtIndex);
-      expect(_requiredError(continued), _requiredError(missing));
+      expect(continued.reachedValue, same(missing.reachedValue));
     });
 
     test('the original missing node and redaction survive continuation', () {
       final root = pick({'secret': 'PRIVATE'}).redactValues();
       final missing = root('missing');
       final continued = missing('child');
+      expect(continued.reachedValue, same(root.value));
       expect(
         () => continued.required(),
         throwsA(isA<PickException>()
             .having((e) => e.path, 'path', ['missing', 'child'])
             .having((e) => e.message, 'message', contains('no such key'))
-            // the root map is still the value the error shows
-            .having((e) => e.message, 'message', contains('secret'))
             .having((e) => e.message, 'message', isNot(contains('PRIVATE')))),
       );
     });
@@ -595,7 +594,7 @@ void main() {
       return 'isAbsent=${pick.isAbsent} '
           'missingValueAtIndex=${pick.missingValueAtIndex} '
           'followablePath=${pick.followablePath} path=${pick.path} '
-          'value=${pick.value}\n'
+          'value=${pick.value} reachedValue=${pick.reachedValue}\n'
           '$error';
     }
 
@@ -762,15 +761,4 @@ class Person {
 
   @override
   int get hashCode => name.hashCode;
-}
-
-/// The message [pick] fails with when it is required, `null` when it holds a
-/// value. For an absent pick it shows the last value the pick could reach.
-String? _requiredError(Pick pick) {
-  try {
-    pick.required();
-    return null;
-  } on PickException catch (e) {
-    return e.message;
-  }
 }

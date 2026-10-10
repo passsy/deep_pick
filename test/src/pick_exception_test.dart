@@ -55,6 +55,7 @@ void main() {
           expect(original.isAbsent, isTrue);
           expect(original.path, ['missing']);
           final result = redact ? original.redactValues() : original;
+          expect(result.reachedValue, same(source));
           final e = grabException(result.required);
           expect(e.reason, PickErrorReason.absent);
           expect(e.path, ['missing']);
@@ -291,13 +292,14 @@ void main() {
       expect(original.context['custom'], 'kept');
     });
 
-    test('preserves absent state and last reachable value in a copy', () {
+    test('preserves absent state and reached value in a copy', () {
       final original =
           pick({'nested': <String, Object>{}}, 'nested', 'missing');
       final redacted = original.redactValues();
       expect(redacted, isNot(same(original)));
       expect(redacted.isAbsent, isTrue);
       expect(redacted.missingValueAtIndex, original.missingValueAtIndex);
+      expect(redacted.reachedValue, same(original.reachedValue));
       expect(redacted.path, original.path);
       expect(
           redacted('child').missingValueAtIndex, original.missingValueAtIndex);
@@ -655,14 +657,24 @@ void main() {
       });
     }
 
-    test('a hand-built absent pick shows the value it was given', () {
-      final e = grabException(
-        () => Pick.absent(
-          1,
-          path: ['shoes', 'name'],
-          lastReachableValue: {'id': 1},
-        ).required(),
+    test('an absent pick without a reached value claims nothing', () {
+      // Pick.absent is told where the path broke, not what was there
+      final absent = Pick.absent(1, path: ['shoes', 'name']);
+      expect(absent.reachedValue, isNull);
+      expect(
+        grabException(absent.required).message,
+        'expected a non-null value at shoes.name, but it is absent\n'
+        '\n'
+        '  query   shoes.name\n'
+        '                ~~~~ not found',
       );
+    });
+
+    test('a pick built by hand knows what it reached when picked from', () {
+      final shoes = {'id': 1};
+      final absent = Pick(shoes, path: ['shoes'])('name');
+      expect(absent.reachedValue, same(shoes));
+      final e = grabException(absent.required);
       expect(
         e.message,
         'expected a non-null value at shoes.name, but it is absent\n'
@@ -674,28 +686,25 @@ void main() {
     });
 
     test('an absent pick has no value, whatever it reached', () {
-      final absent = Pick.absent(
-        1,
-        path: ['shoes', 'name'],
-        lastReachableValue: {'id': 1},
-      );
+      final absent = pick({
+        'shoes': {'id': 1}
+      }, 'shoes', 'name');
       expect(absent.isAbsent, isTrue);
+      expect(absent.reachedValue, {'id': 1});
       expect(absent.value, isNull);
       expect(absent.asMapOrNull<String, int>(), isNull);
       expect(absent('id').value, isNull);
     });
 
     test('an absent index outside of the path has no marker', () {
-      final e = grabException(() =>
-          Pick.absent(5, path: ['a'], lastReachableValue: null).required());
+      final e = grabException(() => Pick.absent(5, path: ['a']).required());
       expect(
         e.message,
         'expected a non-null value at a, but it is absent\n'
         '\n'
         '  query   a',
       );
-      final root = grabException(
-          () => Pick.absent(0, lastReachableValue: null).required());
+      final root = grabException(() => Pick.absent(0).required());
       expect(root.message,
           'expected a non-null value at <root>, but it is absent');
     });

@@ -99,6 +99,11 @@ Pick pickDeep(
 /// that is mapped to `null`
 final Object _notFound = Object();
 
+/// Stands in for the reached value of a pick created with [Pick.absent],
+/// which is told where the path broke but not what was there. A `null` in
+/// its place would claim that a `null` value blocked the way down.
+final Object _unknownValue = Object();
+
 /// Looks up [selector] in [data], returns [_notFound] when [data] doesn't
 /// contain it
 dynamic _childOf(/*Map|List|null*/ dynamic data, Object selector) {
@@ -132,11 +137,11 @@ Pick _drillDown(
     final selectorIndex = parentPath.length + i;
     if (data is Set && selector is int) {
       throw PickException.fromPick(
-        Pick.absent(
-          selectorIndex,
+        Pick._raw(
+          data,
           path: fullPath,
           context: context,
-          lastReachableValue: data,
+          missingValueAtIndex: selectorIndex,
         ),
         reason: PickErrorReason.setIndexUnsupported,
       );
@@ -144,23 +149,23 @@ Pick _drillDown(
     final dynamic child = _childOf(data, selector);
     if (identical(child, _notFound)) {
       // can't drill down any more to find the exact location.
-      return Pick.absent(
-        selectorIndex,
+      return Pick._raw(
+        data,
         path: fullPath,
         context: context,
-        lastReachableValue: data,
+        missingValueAtIndex: selectorIndex,
       );
     }
     // a `null` at the last segment is the result, anywhere else a dead end
     final isLastSelector = i == selectors.length - 1;
     if (child == null && !isLastSelector) {
       // null can't be drilled into, the next segment is unreachable and the
-      // last reachable value is the null itself
-      return Pick.absent(
-        selectorIndex + 1,
+      // null itself is the deepest value reached
+      return Pick._raw(
+        null,
         path: fullPath,
         context: context,
-        lastReachableValue: null,
+        missingValueAtIndex: selectorIndex + 1,
       );
     }
     data = child;
@@ -190,17 +195,17 @@ class Pick {
   ///
   /// [value] will always return `null` and [isAbsent] always `true`.
   ///
-  /// [lastReachableValue] is the value at the deepest location the data
-  /// structure allowed following [path], i.e. the `Map` missing the key.
-  /// Error messages show it. Pass `null` when a `null` value blocked the way
-  /// down.
+  /// The pick doesn't know its [reachedValue], error messages only show
+  /// where the path broke. Pick from a value to get one that does:
+  /// ```dart
+  /// Pick({'id': 1}, path: ['shoes'])('name'); // absent, reached {'id': 1}
+  /// ```
   Pick.absent(
     int missingValueAtIndex, {
-    required Object? lastReachableValue,
     List<Object> path = const [],
     Map<String, Object?>? context,
   }) : this._raw(
-          lastReachableValue,
+          _unknownValue,
           path: path,
           context: context,
           missingValueAtIndex: missingValueAtIndex,
@@ -230,12 +235,30 @@ class Pick {
   /// The picked value, might be `null`
   Object? get value => isAbsent ? null : _reachedValue;
 
-  /// The value at the deepest location the data allowed following [path]
+  /// The value at [followablePath], the deepest value the data allowed
+  /// following [path] to
   ///
   /// That is the picked [value], unless the pick [isAbsent]. Then it is where
   /// the path broke: the `Map` which did not contain the requested key, the
   /// `List` the index was out of range for, or `null` when a `null` value
   /// blocked the way down. Error messages show it.
+  ///
+  /// ```dart
+  /// pick({'shoes': {'id': 1}}, 'shoes').reachedValue; // {'id': 1}
+  /// pick({'shoes': {'id': 1}}, 'shoes', 'name').reachedValue; // {'id': 1}
+  /// pick({'shoes': null}, 'shoes', 'name').reachedValue; // null
+  /// ```
+  ///
+  /// Also `null` for a pick created with [Pick.absent], which doesn't know
+  /// it.
+  Object? get reachedValue {
+    if (identical(_reachedValue, _unknownValue)) {
+      return null;
+    }
+    return _reachedValue;
+  }
+
+  /// What [reachedValue] returns, or [_unknownValue]
   final Object? _reachedValue;
 
   /// Allows the distinction between the actual [value] `null` and the value not
@@ -705,7 +728,8 @@ class PickException implements Exception {
       fullPath: pick.path,
       reason: resolvedReason,
       expected: resolvedExpected,
-      nodeValue: pathBroke ? pick._reachedValue : pick.value,
+      nodeValue: pathBroke ? pick.reachedValue : pick.value,
+      nodeKnown: !identical(pick._reachedValue, _unknownValue),
       pathBroke: pathBroke,
       failedAtIndex: failedAtIndex,
       redact: redact,
@@ -768,6 +792,7 @@ String _renderErrorMessage({
   required PickErrorReason reason,
   required String? expected,
   required Object? nodeValue,
+  required bool nodeKnown,
   required bool pathBroke,
   required int? failedAtIndex,
   required bool redact,
@@ -809,8 +834,13 @@ String _renderErrorMessage({
   if (fullPath.isNotEmpty) {
     lines.add(_errorRow('query', rendered.text));
     if (failedAtIndex != null) {
-      final markerText =
-          _describeAbsentReason(nodeValue, fullPath[failedAtIndex], reason);
+      final markerText = () {
+        if (!nodeKnown) {
+          return 'not found';
+        }
+        return _describeAbsentReason(
+            nodeValue, fullPath[failedAtIndex], reason);
+      }();
       final pad = ' ' * (2 + _errorLabelWidth + rendered.starts[failedAtIndex]);
       final marker = '~' * rendered.lengths[failedAtIndex];
       lines.add('$pad$marker $markerText');
@@ -824,8 +854,9 @@ String _renderErrorMessage({
   // Did the path break somewhere, or was the whole path followable and only
   // the value at the end is the problem?
   if (pathBroke) {
-    // the deepest node parsing could reach, and what was actually in it
-    if (failedAtIndex != null) {
+    // the deepest node parsing could reach, and what was actually in it.
+    // Nothing is claimed about a node nobody handed in.
+    if (failedAtIndex != null && nodeKnown) {
       final reached = _RenderedPath.of(fullPath.take(failedAtIndex).toList());
       final reachedText = reached.text.isEmpty ? '<root>' : reached.text;
       lines.add(_errorRow('at', '$reachedText = ${valueBlock.first}'));
