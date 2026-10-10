@@ -704,7 +704,7 @@ String _renderErrorMessage({
 
   const valueIndent = 2 + _errorLabelWidth;
   final valueBlock =
-      _describeValueBlock(nodeValue, indent: valueIndent, redact: redact);
+      _renderValueBlock(nodeValue, indent: valueIndent, redact: redact);
 
   // Did the path break somewhere, or was the whole path followable and only
   // the value at the end is the problem?
@@ -780,17 +780,17 @@ String _describeType(Object? value) {
 /// the single-line form gets too wide to read
 ///
 /// Continuation lines are indented by [indent].
-List<String> _describeValueBlock(
+List<String> _renderValueBlock(
   Object? value, {
   required int indent,
   required bool redact,
 }) {
   if (redact) {
-    return [_describeValueRedacted(value)];
+    return [_renderValueRedacted(value)];
   }
-  final single = _describeValue(value, maxLength: 1000);
-  if (single.length <= 72) {
-    return [_describeValue(value)];
+  final rendered = _renderValue(value);
+  if (rendered.length <= 72) {
+    return [rendered];
   }
   final pad = ' ' * (indent + 2);
   if (value is Map) {
@@ -822,20 +822,15 @@ List<String> _describeValueBlock(
     lines.add('${' ' * indent}]');
     return lines;
   }
-  return [_describeValue(value)];
+  return [_truncate(rendered, 100)];
 }
 
-/// A short, bounded rendering of [value] showing actual data
-///
-/// Only the current level is rendered in detail. The error happened here, so
-/// nested containers are only interesting as shape and collapse to
-/// `{…2 keys}` and `[…3 items]`.
-String _describeValue(Object? value, {int maxLength = 100}) {
-  final rendered = _renderValue(value);
-  if (rendered.length <= maxLength) {
-    return rendered;
+/// Cuts [text] off after [maxLength] characters and marks the cut with `…`
+String _truncate(String text, int maxLength) {
+  if (text.length <= maxLength) {
+    return text;
   }
-  return '${rendered.substring(0, maxLength)}…';
+  return '${text.substring(0, maxLength)}…';
 }
 
 // Opaque keys use their type so diagnostics never invoke user-defined toString.
@@ -849,6 +844,11 @@ String _renderMapKey(Object? key) {
   return jsonEncode('<${key.runtimeType}>');
 }
 
+/// Renders [value] showing actual data, unbounded for a long `String`
+///
+/// Only the current level is rendered in detail. The error happened here, so
+/// nested containers are only interesting as shape and collapse to
+/// `{…2 keys}` and `[…3 items]`.
 String _renderValue(Object? value) {
   if (value == null) {
     return 'null';
@@ -903,14 +903,14 @@ String _renderChildValue(Object? value) {
   if (value is Set) {
     return 'Set with ${value.length} items';
   }
-  return _describeValue(value, maxLength: 50);
+  return _truncate(_renderValue(value), 50);
 }
 
 /// Describes the shape of [value] without revealing any data, see
 /// [Pick.redactValues]
 ///
 /// [Map] keys count as schema, not data, and stay visible.
-String _describeValueRedacted(Object? value) {
+String _renderValueRedacted(Object? value) {
   if (value == null) {
     return 'null';
   }
