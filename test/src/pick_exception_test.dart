@@ -655,17 +655,16 @@ void main() {
       });
     }
 
-    test('a pick created with Pick.absent reads as if null blocked the way',
-        () {
-      // Pick.absent is told where the path broke, it holds no data
+    test('a pick created with Pick.absent claims nothing about the data', () {
+      // Pick.absent is told where the path broke, it has no parent to look
+      // the data up in
       final absent = Pick.absent(1, path: ['shoes', 'name']);
       expect(
         grabException(absent.required).message,
         'expected a non-null value at shoes.name, but it is absent\n'
         '\n'
         '  query   shoes.name\n'
-        '                ~~~~ null has no key "name"\n'
-        '  at      shoes = null',
+        '                ~~~~ not found',
       );
     });
 
@@ -691,6 +690,21 @@ void main() {
       expect(absent.value, isNull);
       expect(absent.asMapOrNull<String, int>(), isNull);
       expect(absent('id').value, isNull);
+    });
+
+    test('data that changed after picking still gives a PickException', () {
+      final json = <String, Object?>{
+        'a': {
+          'b': {'x': 1}
+        }
+      };
+      final absent = pick(json, 'a', 'b', 'c');
+      json.remove('a');
+      final e = grabException(absent.required);
+      expect(e.reason, PickErrorReason.absent);
+      expect(e.path, ['a', 'b', 'c']);
+      expect(e.message.split('\n').first,
+          'expected a non-null value at a.b.c, but it is absent');
     });
 
     test('an absent index outside of the path has no marker', () {

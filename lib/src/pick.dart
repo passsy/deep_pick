@@ -79,7 +79,7 @@ Pick pick(
       .where((dynamic it) => it != null)
       .cast<Object>()
       .toList(growable: false);
-  return _drillDown(json, selectors);
+  return _drillDown(Pick(json), selectors);
 }
 
 /// Picks the value of [json] by traversing the object along the values in
@@ -92,23 +92,7 @@ Pick pickDeep(
   /*Map|List|null*/ dynamic json,
   List< /*String|int*/ Object> selector,
 ) {
-  return _drillDown(json, selector);
-}
-
-/// Where the path of an absent [Pick] broke and what the data held there,
-/// both are only known together
-class _Absence {
-  const _Absence(this.missingValueAtIndex, this.reachedValue);
-
-  /// The index in [Pick.path] which couldn't be found
-  final int missingValueAtIndex;
-
-  /// The deepest value the data allowed following the path to
-  ///
-  /// The `Map` which did not contain the requested key, the `List` the index
-  /// was out of range for, or `null` when a `null` value blocked the way
-  /// down. Only error messages need it.
-  final Object? reachedValue;
+  return _drillDown(Pick(json), selector);
 }
 
 /// Whether [data] holds something at [selector], which may be `null`
@@ -130,26 +114,26 @@ dynamic _childOf(/*Map|List*/ dynamic data, Object selector) {
   return (data as Map)[selector];
 }
 
-/// Traverses the object along [selectors]
+/// Traverses the value of [parent] along [selectors]
 Pick _drillDown(
-  /*Map|List|null*/ dynamic json,
+  Pick parent,
   List< /*String|int*/ Object> selectors, {
-  List< /*String|int*/ Object> parentPath = const [],
   Map<String, dynamic>? context,
 }) {
-  final fullPath = [...parentPath, ...selectors];
-  /*Map|List|null*/ dynamic data = json;
+  final fullPath = [...parent.path, ...selectors];
+  /*Map|List|null*/ dynamic data = parent.value;
   for (var i = 0; i < selectors.length; i++) {
     final selector = selectors[i];
     // index of [selector] inside [fullPath], not inside [selectors]
-    final selectorIndex = parentPath.length + i;
+    final selectorIndex = parent.path.length + i;
     if (data is Set && selector is int) {
       throw PickException.fromPick(
         Pick._raw(
           null,
           path: fullPath,
           context: context,
-          absence: _Absence(selectorIndex, data),
+          missingValueAtIndex: selectorIndex,
+          parent: parent,
         ),
         reason: PickErrorReason.setIndexUnsupported,
       );
@@ -160,25 +144,54 @@ Pick _drillDown(
         null,
         path: fullPath,
         context: context,
-        absence: _Absence(selectorIndex, data),
+        missingValueAtIndex: selectorIndex,
+        parent: parent,
       );
     }
     final dynamic child = _childOf(data, selector);
     // a `null` at the last segment is the result, anywhere else a dead end
     final isLastSelector = i == selectors.length - 1;
     if (child == null && !isLastSelector) {
-      // null can't be drilled into, the next segment is unreachable and the
-      // null itself is the deepest value reached
+      // null can't be drilled into, the next segment is unreachable
       return Pick._raw(
         null,
         path: fullPath,
         context: context,
-        absence: _Absence(selectorIndex + 1, null),
+        missingValueAtIndex: selectorIndex + 1,
+        parent: parent,
       );
     }
     data = child;
   }
-  return Pick(data, path: fullPath, context: context);
+  return Pick._raw(
+    data,
+    path: fullPath,
+    context: context,
+    missingValueAtIndex: null,
+    parent: parent,
+  );
+}
+
+/// What the data holds right before the segment [absent] is missing
+///
+/// Looked up from the pick [absent] was picked from, by following the path
+/// once more. `null` for a pick without a parent.
+Object? _valueBeforeMissingSegment(Pick absent) {
+  final parent = absent._parent;
+  if (parent == null) {
+    return null;
+  }
+  final followed =
+      absent.path.sublist(parent.path.length, absent.missingValueAtIndex);
+  /*Map|List|null*/ dynamic data = parent.value;
+  for (final selector in followed) {
+    if (!_hasChild(data, selector)) {
+      // the data changed since it was picked from
+      return data;
+    }
+    data = _childOf(data, selector);
+  }
+  return data;
 }
 
 /// A picked object holding the [value] (may be null) and giving access to useful parsing functions
@@ -191,15 +204,21 @@ class Pick {
     Object? value, {
     List<Object> path = const [],
     Map<String, dynamic>? context,
-  }) : this._raw(value, path: path, context: context, absence: null);
+  }) : this._raw(
+          value,
+          path: path,
+          context: context,
+          missingValueAtIndex: null,
+          parent: null,
+        );
 
   /// Pick of an absent value. While drilling down [path] the structure of the
   /// data did not match the [path] and the value wasn't found.
   ///
   /// [value] will always return `null` and [isAbsent] always `true`.
   ///
-  /// The pick holds no data, its error messages read as if a `null` blocked
-  /// the way down. Pick from a value to get one whose errors show the data:
+  /// The pick holds no data, its error messages only show where the path
+  /// broke. Pick from a value to get one whose errors show the data:
   /// ```dart
   /// Pick({'id': 1}, path: ['shoes'])('name'); // absent, {'id': 1} has no name
   /// ```
@@ -211,7 +230,8 @@ class Pick {
           null,
           path: path,
           context: context,
-          absence: _Absence(missingValueAtIndex, null),
+          missingValueAtIndex: missingValueAtIndex,
+          parent: null,
         );
 
   /// Sets every field as given, [Pick] and [Pick.absent] are shortcuts to it
@@ -219,8 +239,9 @@ class Pick {
     this.value, {
     required this.path,
     required Map<String, dynamic>? context,
-    required _Absence? absence,
-  })  : _absence = absence,
+    required this.missingValueAtIndex,
+    required Pick? parent,
+  })  : _parent = parent,
         context = context != null ? Map.of(context) : {};
 
   /// A copy at a different [path] or with a different [context]
@@ -232,15 +253,20 @@ class Pick {
       value,
       path: path ?? this.path,
       context: context ?? this.context,
-      absence: _absence,
+      missingValueAtIndex: missingValueAtIndex,
+      parent: _parent,
     );
   }
 
   /// The picked value, might be `null`
   final Object? value;
 
-  /// Set when the picked value is unavailable ([isAbsent])
-  final _Absence? _absence;
+  /// The pick this one was picked from, `null` for a pick built with a
+  /// constructor
+  ///
+  /// The error message of an absent pick looks up in it what the data held
+  /// where the path broke.
+  final Pick? _parent;
 
   /// Allows the distinction between the actual [value] `null` and the value not
   /// being available
@@ -265,7 +291,7 @@ class Pick {
   ///
   /// pick([], "a").isAbsent; // true
   /// ```
-  bool get isAbsent => _absence != null;
+  bool get isAbsent => missingValueAtIndex != null;
 
   /// Attaches additional information which can be used during parsing.
   /// i.e the HTTP request/response including headers
@@ -295,7 +321,7 @@ class Pick {
 
   /// When the picked value is unavailable ([Pick.isAbsent]) the index in
   /// [path] which couldn't be found
-  int? get missingValueAtIndex => _absence?.missingValueAtIndex;
+  final int? missingValueAtIndex;
 
   /// The full path to [value] inside of the object
   ///
@@ -333,9 +359,8 @@ class Pick {
       return _copyWith(path: [...path, ...selectors]);
     }
     return _drillDown(
-      value,
+      this,
       selectors,
-      parentPath: path,
       context: selectors.isEmpty ? context : contextWithoutHint(context),
     );
   }
@@ -682,7 +707,7 @@ class PickException implements Exception {
     final redact = pick.redactsValues;
     final contextHint = pick.context[requiredPickErrorHintKey] as String?;
     final resolvedReason = _reasonMatchingPick(reason, pick);
-    final absence = pick._absence;
+    final pathBroke = pick.isAbsent;
     final valueIsMissing = resolvedReason == PickErrorReason.absent ||
         resolvedReason == PickErrorReason.nullValue;
     final resolvedExpected = () {
@@ -710,8 +735,9 @@ class PickException implements Exception {
       fullPath: pick.path,
       reason: resolvedReason,
       expected: resolvedExpected,
-      nodeValue: absence != null ? absence.reachedValue : pick.value,
-      pathBroke: absence != null,
+      nodeValue: pathBroke ? _valueBeforeMissingSegment(pick) : pick.value,
+      nodeKnown: pick._parent != null,
+      pathBroke: pathBroke,
       failedAtIndex: failedAtIndex,
       redact: redact,
       detail: detail,
@@ -773,6 +799,7 @@ String _renderErrorMessage({
   required PickErrorReason reason,
   required String? expected,
   required Object? nodeValue,
+  required bool nodeKnown,
   required bool pathBroke,
   required int? failedAtIndex,
   required bool redact,
@@ -814,8 +841,13 @@ String _renderErrorMessage({
   if (fullPath.isNotEmpty) {
     lines.add(_errorRow('query', rendered.text));
     if (failedAtIndex != null) {
-      final markerText =
-          _describeAbsentReason(nodeValue, fullPath[failedAtIndex], reason);
+      final markerText = () {
+        if (!nodeKnown) {
+          return 'not found';
+        }
+        return _describeAbsentReason(
+            nodeValue, fullPath[failedAtIndex], reason);
+      }();
       final pad = ' ' * (2 + _errorLabelWidth + rendered.starts[failedAtIndex]);
       final marker = '~' * rendered.lengths[failedAtIndex];
       lines.add('$pad$marker $markerText');
@@ -829,8 +861,9 @@ String _renderErrorMessage({
   // Did the path break somewhere, or was the whole path followable and only
   // the value at the end is the problem?
   if (pathBroke) {
-    // the deepest node parsing could reach, and what was actually in it
-    if (failedAtIndex != null) {
+    // the deepest node parsing could reach, and what was actually in it.
+    // Nothing is claimed about a pick that has no parent to look it up in.
+    if (failedAtIndex != null && nodeKnown) {
       final reached = _RenderedPath.of(fullPath.take(failedAtIndex).toList());
       final reachedText = reached.text.isEmpty ? '<root>' : reached.text;
       lines.add(_errorRow('at', '$reachedText = ${valueBlock.first}'));
