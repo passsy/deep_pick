@@ -234,6 +234,80 @@ void main() {
       );
     });
 
+    test('the marker of a key in brackets is as wide as the key', () {
+      final e = grabException(() {
+        pick({
+          'user profile': {'id': 1}
+        }, 'user profile', 'name')
+            .required();
+      });
+      expect(
+        e.message,
+        'expected a non-null value at ["user profile"].name, but it is absent\n'
+        '\n'
+        '  query   ["user profile"].name\n'
+        '                           ~~~~ no such key\n'
+        '  at      ["user profile"] = {"id": 1}',
+      );
+    });
+
+    group('the marker sits under the segment that was not found', () {
+      // The part of the query row the marker row points at
+      String markedText(PickException e) {
+        final rows = e.message.split('\n');
+        final query = rows.singleWhere((row) => row.startsWith('  query'));
+        final marker = rows[rows.indexOf(query) + 1];
+        final start = marker.indexOf('~');
+        final end = marker.lastIndexOf('~') + 1;
+        expect(marker.substring(0, start).trim(), isEmpty);
+        expect(marker.substring(start, end), '~' * (end - start));
+        return query.substring(start, end);
+      }
+
+      final cases = <String, Pick Function()>{
+        'name': () => pick(<String, Object>{}, 'name', 'x'),
+        'x': () => pick({'name': <String, Object>{}}, 'name', 'x'),
+        '["user profile"]': () =>
+            pick({'a': <String, Object>{}}, 'a', 'user profile'),
+        '[5]': () => pick({
+              'user profile': [1]
+            }, 'user profile', 5),
+        r'["tab\tkey"]': () =>
+            pick({'a': <String, Object>{}}, 'a', 'tab\tkey', 'x'),
+        'd': () => pick({
+              'a': {
+                'b': [
+                  {'c': 1}
+                ]
+              }
+            }, 'a', 'b', 0, 'd', 'e'),
+        '[1]': () => pick({
+              'a': [
+                [1, 2]
+              ]
+            }, 'a', 1, 0),
+      };
+      for (final entry in cases.entries) {
+        test('marks ${entry.key}', () {
+          final e = grabException(entry.value().required);
+          expect(markedText(e), entry.key);
+        });
+      }
+    });
+
+    test('a Set inside a container is summarized', () {
+      final e = grabException(() {
+        pick({
+          'tags': {'a', 'b'}
+        }, 'missing')
+            .required();
+      });
+      expect(
+        e.message.split('\n').last,
+        '  at      <root> = {"tags": Set with 2 items}',
+      );
+    });
+
     test('root errors have no query row', () {
       final e = grabException(() => pick(null).required());
       expect(
@@ -379,7 +453,8 @@ void main() {
       final values = List.generate(7, (i) => '${'x' * 30}$i');
       final e = PickException.fromPick(pick(values), 'expected a Map');
       final rows = e.message.split('\n');
-      expect(rows[2], '  found   [  (a List)');
+      // the bracket tells the type of a wrapped value
+      expect(rows[2], '  found   [');
       expect(rows.sublist(3, 9),
           values.take(6).map((v) => '            ${jsonEncode(v)},').toList());
       expect(rows[9], '            …1 more');

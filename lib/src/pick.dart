@@ -615,6 +615,9 @@ class PickException implements Exception {
 
 const _errorLabelWidth = 8;
 
+/// The column a value starts at, after the indentation and the label
+const _errorValueIndent = 2 + _errorLabelWidth;
+
 String _errorRow(String label, String content) =>
     '  ${label.padRight(_errorLabelWidth)}$content';
 
@@ -634,75 +637,78 @@ String _renderErrorMessage(
   String? detail,
   List<String> hints = const [],
 }) {
-  final fullPath = pick.path;
-  final rendered = _RenderedPath.of(fullPath);
-  final pathBroke = pick.isAbsent;
-  final nodeValue = pathBroke ? _valueBeforeMissingSegment(pick) : pick.value;
-  final nodeKnown = pick._parent != null;
-  final failedAtIndex = () {
-    final index = pick.missingValueAtIndex;
-    if (index == null || index >= fullPath.length) {
-      // an index outside of the path can't be pointed at
-      return null;
-    }
-    return index;
-  }();
-
-  final lines = <String>[];
-
-  if (fullPath.isNotEmpty) {
-    lines.add(_errorRow('query', rendered.text));
-    if (failedAtIndex != null) {
-      final markerText = () {
-        if (!nodeKnown) {
-          return 'not found';
-        }
-        return _describeAbsentReason(nodeValue, fullPath[failedAtIndex]);
-      }();
-      final pad = ' ' * (2 + _errorLabelWidth + rendered.starts[failedAtIndex]);
-      final marker = '~' * rendered.lengths[failedAtIndex];
-      lines.add('$pad$marker $markerText');
-    }
-  }
-
-  const valueIndent = 2 + _errorLabelWidth;
-  final valueBlock = _renderValueBlock(nodeValue, indent: valueIndent);
-
-  // Did the path break somewhere, or was the whole path followable and only
-  // the value at the end is the problem?
-  if (pathBroke) {
-    // the deepest node parsing could reach, and what was actually in it.
-    // Nothing is claimed about a pick that has no parent to look it up in.
-    if (failedAtIndex != null && nodeKnown) {
-      final reached = _RenderedPath.of(fullPath.take(failedAtIndex).toList());
-      final reachedText = reached.text.isEmpty ? '<root>' : reached.text;
-      lines.add(_errorRow('at', '$reachedText = ${valueBlock.first}'));
-      lines.addAll(valueBlock.skip(1));
-    }
+  final rows = <String>[];
+  final missingIndex = pick.missingValueAtIndex;
+  if (missingIndex == null) {
+    rows.addAll(_rowsForFoundValue(pick));
   } else {
-    // the whole path was followable, the value itself is the problem
-    final suffix = () {
-      if (nodeValue == null) {
-        return '';
-      }
-      return '  (${_describeType(nodeValue)})';
-    }();
-    lines.add(_errorRow('found', '${valueBlock.first}$suffix'));
-    lines.addAll(valueBlock.skip(1));
+    rows.addAll(_rowsForBrokenPath(pick, missingIndex));
   }
-
   if (detail != null) {
-    lines.add(_errorRow('detail', detail));
+    rows.add(_errorRow('detail', detail));
   }
-
   for (final hint in hints) {
-    lines.add(_errorRow('hint', hint));
+    rows.add(_errorRow('hint', hint));
   }
 
-  if (lines.isEmpty) {
+  if (rows.isEmpty) {
     return headline;
   }
-  return [headline, '', ...lines].join('\n');
+  return [headline, '', ...rows].join('\n');
+}
+
+/// The rows of a [pick] whose path was followed to the end, the value there
+/// is the problem
+List<String> _rowsForFoundValue(Pick pick) {
+  final value = pick.value;
+  final valueBlock = _renderValueBlock(value, indent: _errorValueIndent);
+  final type = () {
+    if (value == null) {
+      return '';
+    }
+    if (valueBlock.length > 1) {
+      // a wrapped value opens with its bracket, which tells the type
+      return '';
+    }
+    return '  (${_describeType(value)})';
+  }();
+  return [
+    if (pick.path.isNotEmpty) _errorRow('query', _describeLocation(pick.path)),
+    _errorRow('found', '${valueBlock.first}$type'),
+    ...valueBlock.skip(1),
+  ];
+}
+
+/// The rows of a [pick] whose path broke at [missingIndex]: a marker under
+/// the segment that was not found, and what the data holds right before it
+List<String> _rowsForBrokenPath(Pick pick, int missingIndex) {
+  final path = pick.path;
+  if (path.isEmpty) {
+    return [];
+  }
+  final rendered = _RenderedPath.of(path);
+  final query = _errorRow('query', rendered.text);
+  if (missingIndex >= path.length) {
+    // an index outside of the path can't be pointed at
+    return [query];
+  }
+  final marker = ' ' * (_errorValueIndent + rendered.starts[missingIndex]) +
+      '~' * rendered.lengths[missingIndex];
+  if (pick._parent == null) {
+    // nothing is claimed about a pick that has no parent to look the data up
+    // in
+    return [query, '$marker not found'];
+  }
+  final reachedValue = _valueBeforeMissingSegment(pick);
+  final reason = _describeAbsentReason(reachedValue, path[missingIndex]);
+  final reached = _describeLocation(path.sublist(0, missingIndex));
+  final valueBlock = _renderValueBlock(reachedValue, indent: _errorValueIndent);
+  return [
+    query,
+    '$marker $reason',
+    _errorRow('at', '$reached = ${valueBlock.first}'),
+    ...valueBlock.skip(1),
+  ];
 }
 
 /// Why drilling down stopped at [node] when applying [selector]
