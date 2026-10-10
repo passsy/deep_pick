@@ -528,7 +528,7 @@ void main() {
       expect(
         () => continued.required(),
         throwsA(isA<PickException>()
-            .having((e) => e.path, 'path', ['missing', 'child'])
+            .having((e) => e.message, 'message', contains('missing.child'))
             .having((e) => e.message, 'message', contains('no such key'))
             // the root map is still the value the error shows
             .having((e) => e.message, 'message', contains('secret'))),
@@ -588,7 +588,7 @@ void main() {
           pick.required();
           return 'no error';
         } on PickException catch (e) {
-          return '${e.reason} ${e.path}\n${e.message}';
+          return e.message;
         }
       }();
       return 'isAbsent=${pick.isAbsent} '

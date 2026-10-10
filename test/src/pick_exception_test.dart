@@ -14,18 +14,6 @@ PickException grabException(void Function() body) {
   fail('body did not throw a PickException');
 }
 
-/// A reason this version of the test doesn't know, as a consumer sees one
-/// that was added in a later release
-class _FutureReason implements PickErrorReason {
-  const _FutureReason();
-
-  @override
-  String get name => 'tooLarge';
-
-  @override
-  String toString() => 'PickErrorReason.$name';
-}
-
 class UnprintableValue {
   @override
   String toString() => throw StateError('unrelated value cannot be printed');
@@ -53,9 +41,8 @@ void main() {
         expect(original.isAbsent, isTrue);
         expect(original.path, ['missing']);
         final e = grabException(original.required);
-        expect(e.reason, PickErrorReason.absent);
-        expect(e.path, ['missing']);
-        expect(e.expected, 'a non-null value');
+        expect(e.message.split('\n').first,
+            'expected a non-null value at missing, but it is absent');
         expect(e.message, contains('"<UnprintableValue>"'));
         if (expanded) {
           expect(e.message, contains('  at      <root> = {\n'));
@@ -88,9 +75,9 @@ void main() {
       expect(
         () => result.required(),
         throwsA(isA<PickException>().having(
-          (error) => error.reason,
-          'reason',
-          PickErrorReason.absent,
+          (error) => error.message,
+          'message',
+          contains('but it is absent'),
         )),
       );
     });
@@ -142,7 +129,7 @@ void main() {
       for (final entry in cases.entries) {
         test(entry.key, () {
           final e = grabException(entry.value().required);
-          expect(e.reason, PickErrorReason.absent);
+          expect(e.message, contains('but it is absent'));
           final marker = e.message.split('\n')[3];
           expect(marker.trimLeft(), startsWith('~'));
           expect(marker, endsWith(' ${entry.key}'));
@@ -158,7 +145,7 @@ void main() {
       );
       expect(
         e.message,
-        'expected a List at meta, found a String\n'
+        'expected a List at meta\n'
         '\n'
         '  query   meta\n'
         '  found   "yes"  (a String)',
@@ -171,7 +158,7 @@ void main() {
       );
       expect(
         e.message,
-        'expected an int at price, found a double\n'
+        'expected an int at price\n'
         '\n'
         '  query   price\n'
         '  found   12.5  (a double)\n'
@@ -263,84 +250,58 @@ void main() {
     });
   });
 
-  group('structured fields', () {
-    test('known error reasons have stable names and constant identity', () {
-      const absent = PickErrorReason.absent;
-      expect(absent, same(PickErrorReason.absent));
-      expect(absent.name, 'absent');
-      expect(absent.toString(), 'PickErrorReason.absent');
-      expect(PickErrorReason.nullValue.name, 'nullValue');
-      expect(PickErrorReason.wrongType.name, 'wrongType');
-      expect(PickErrorReason.unparsable.name, 'unparsable');
-      expect(PickErrorReason.setIndexUnsupported.name, 'setIndexUnsupported');
-      expect(absent, isNot(PickErrorReason.nullValue));
+  group('the headline says what is wrong', () {
+    String headline(void Function() body) {
+      return grabException(body).message.split('\n').first;
+    }
+
+    test('a value that is absent', () {
+      expect(
+        headline(() => pick(json, 'shoes', 0, 'name').required()),
+        'expected a non-null value at shoes[0].name, but it is absent',
+      );
     });
 
-    test('a reason added in a later release still renders', () {
-      final e = PickException.fromPick(
-        pick({'n': 99}, 'n'),
-        reason: const _FutureReason(),
-        expected: 'a small int',
+    test('a null value at the end of the path', () {
+      expect(
+        headline(() => pick({'a': null}, 'a').required()),
+        'expected a non-null value at a, but it is null',
       );
-      expect(e.reason, const _FutureReason());
-      expect(e.expected, 'a small int');
+    });
+
+    test('a value of the wrong type', () {
+      expect(
+        headline(() => pick({'count': true}, 'count').asIntOrThrow()),
+        'expected an int at count',
+      );
+    });
+
+    test('a value of the right type that cannot be parsed', () {
+      expect(
+        headline(() => pick({'count': 'twelve'}, 'count').asIntOrThrow()),
+        'could not parse an int at count',
+      );
+    });
+
+    test('an index into a Set', () {
+      final e = grabException(() {
+        pick({
+          's': {'a', 'b'},
+        }, 's', 0);
+      });
       expect(
         e.message,
-        'could not parse a small int at n (PickErrorReason.tooLarge)\n'
+        'cannot pick by index at s[0], it is a Set\n'
         '\n'
-        '  query   n\n'
-        '  found   99',
+        '  query   s[0]\n'
+        '           ~~~ a Set is unordered\n'
+        '  at      s = Set with 2 items',
       );
     });
 
-    test('fromPick fills path, reason and expected', () {
-      final e = grabException(
-        () => pick(json, 'shoes', 0, 'name').required(),
-      );
-      expect(e.path, ['shoes', 0, 'name']);
-      expect(e.reason, PickErrorReason.absent);
-      expect(e.expected, 'a non-null value');
-    });
-
-    test('wrong type reports the requested type', () {
-      final e = grabException(
-        () => pick({'count': true}, 'count').asIntOrThrow(),
-      );
-      expect(e.path, ['count']);
-      expect(e.reason, PickErrorReason.wrongType);
-      expect(e.expected, 'an int');
-    });
-
-    test('unparsable is distinguished from wrongType', () {
-      final e = grabException(
-        () => pick({'count': 'twelve'}, 'count').asIntOrThrow(),
-      );
-      expect(e.reason, PickErrorReason.unparsable);
-    });
-
-    test('null value at the end of the path', () {
-      final e = grabException(() => pick({'a': null}, 'a').required());
-      expect(e.reason, PickErrorReason.nullValue);
-    });
-
-    test('set index errors carry the reason', () {
-      final e = grabException(
-        () {
-          pick({
-            's': {'a', 'b'},
-          }, 's', 0);
-        },
-      );
-      expect(e.reason, PickErrorReason.setIndexUnsupported);
-      expect(e.path, ['s', 0]);
-    });
-
-    test('plain constructor keeps the fields null', () {
+    test('the plain constructor keeps the message as it is', () {
       final e = PickException('custom');
       expect(e.message, 'custom');
-      expect(e.path, isNull);
-      expect(e.reason, isNull);
-      expect(e.expected, isNull);
       expect(e.toString(), 'PickException: custom');
     });
   });
@@ -356,7 +317,6 @@ void main() {
         expect(query, isNot(contains('\t')));
         expect(query, '  query   [${jsonEncode(key)}].missing');
         expect(e.message.split('\n').length, 5);
-        expect(e.path, [key, 'missing']);
       });
     }
     test('expanded map diagnostics escape keys too', () {
@@ -402,27 +362,22 @@ void main() {
     });
   });
 
-  group('date parsing preserves structured errors', () {
+  group('date parsing says what it could not parse', () {
     for (final format in <PickDateFormat?>[null, PickDateFormat.ISO_8601]) {
       test('unknown timezone with format $format', () {
         final e = grabException(() {
           pick({'date': '2021-11-01T11:53:15 CUSTOMERSECRET'}, 'date')
               .asDateTimeOrThrow(format: format);
         });
-        expect(e.reason, PickErrorReason.unparsable);
-        expect(e.expected, 'a DateTime');
-        expect(e.path, ['date']);
+        expect(
+            e.message.split('\n').first, 'could not parse a DateTime at date');
       });
     }
   });
   group('diagnostic edge cases', () {
     test('expanded list shows six items, overflow and closing indentation', () {
       final values = List.generate(7, (i) => '${'x' * 30}$i');
-      final e = PickException.fromPick(
-        pick(values),
-        reason: PickErrorReason.wrongType,
-        expected: 'a Map',
-      );
+      final e = PickException.fromPick(pick(values), 'expected a Map');
       final rows = e.message.split('\n');
       expect(rows[2], '  found   [  (a List)');
       expect(rows.sublist(3, 9),
@@ -446,12 +401,12 @@ void main() {
     });
 
     test('long scalar output is bounded and marked as truncated', () {
-      final e = PickException.fromPick(
-        pick('x' * 200),
-        reason: PickErrorReason.unparsable,
-        expected: 'an int',
+      final e =
+          PickException.fromPick(pick('x' * 200), 'could not parse an int');
+      expect(
+        e.message.split('\n').last,
+        '  found   "${'x' * 99}…  (a String)',
       );
-      expect(e.message.split('\n').last, '  found   "${'x' * 99}…');
     });
 
     test('a pick created with Pick.absent claims nothing about the data', () {
@@ -500,8 +455,6 @@ void main() {
       final absent = pick(json, 'a', 'b', 'c');
       json.remove('a');
       final e = grabException(absent.required);
-      expect(e.reason, PickErrorReason.absent);
-      expect(e.path, ['a', 'b', 'c']);
       expect(e.message.split('\n').first,
           'expected a non-null value at a.b.c, but it is absent');
     });
@@ -519,20 +472,23 @@ void main() {
           'expected a non-null value at <root>, but it is absent');
     });
 
-    test('absent and null are taken from the pick, not from the caller', () {
+    test('absent and null are read from the pick', () {
       final onNull = PickException.fromPick(
         pick({'a': null}, 'a'),
-        reason: PickErrorReason.absent,
+        'expected a Timestamp',
       );
-      expect(onNull.reason, PickErrorReason.nullValue);
-      expect(onNull.message, contains('but it is null'));
+      expect(
+        onNull.message,
+        'expected a Timestamp at a, but it is null\n'
+        '\n'
+        '  query   a\n'
+        '  found   null',
+      );
 
       final onAbsent = PickException.fromPick(
         pick({'a': null}, 'b'),
-        reason: PickErrorReason.wrongType,
-        expected: 'a Timestamp',
+        'expected a Timestamp',
       );
-      expect(onAbsent.reason, PickErrorReason.absent);
       expect(
         onAbsent.message,
         'expected a Timestamp at b, but it is absent\n'
@@ -544,16 +500,22 @@ void main() {
 
       final onValue = PickException.fromPick(
         pick({'a': 1}, 'a'),
-        reason: PickErrorReason.absent,
+        'expected a Timestamp',
       );
-      expect(onValue.message.split('\n').last, '  found   1');
+      expect(
+        onValue.message,
+        'expected a Timestamp at a\n'
+        '\n'
+        '  query   a\n'
+        '  found   1  (an int)',
+      );
     });
 
     test('detail gets its own row and keeps the marker text of a broken path',
         () {
       final e = PickException.fromPick(
         pick({'a': 1}, 'b'),
-        reason: PickErrorReason.absent,
+        'expected a non-null value',
         detail: 'custom detail',
       );
       expect(
@@ -567,39 +529,10 @@ void main() {
       );
     });
 
-    test('a missing expected is not replaced for a value that exists', () {
-      final wrongType = PickException.fromPick(
-        pick({'a': 'x'}, 'a'),
-        reason: PickErrorReason.wrongType,
-      );
-      expect(wrongType.expected, isNull);
-      expect(
-        wrongType.message.split('\n').first,
-        'unexpected value at a, found a String',
-      );
-
-      final unparsable = PickException.fromPick(
-        pick({'a': 'x'}, 'a'),
-        reason: PickErrorReason.unparsable,
-      );
-      expect(unparsable.expected, isNull);
-      expect(
-        unparsable.message.split('\n').first,
-        'could not parse the value at a',
-      );
-
-      final absent = PickException.fromPick(
-        pick({'a': 'x'}, 'b'),
-        reason: PickErrorReason.absent,
-      );
-      expect(absent.expected, 'a non-null value');
-    });
-
     test('custom detail and both hint sources are rendered in order', () {
       final e = PickException.fromPick(
         pick(null).withContext(requiredPickErrorHintKey, 'context hint'),
-        reason: PickErrorReason.nullValue,
-        expected: 'a custom value',
+        'expected a custom value',
         detail: 'custom detail',
         hint: 'factory hint',
       );
@@ -629,11 +562,7 @@ void main() {
 
     test('a custom parser error does not advise letOrNull()', () {
       Never parse(RequiredPick pick) {
-        throw PickException.fromPick(
-          pick,
-          reason: PickErrorReason.unparsable,
-          expected: 'a Timestamp',
-        );
+        throw PickException.fromPick(pick, 'could not parse a Timestamp');
       }
 
       final e = grabException(() => pick({'ts': 'x'}, 'ts').letOrThrow(parse));
@@ -647,7 +576,7 @@ void main() {
         'could not parse a Timestamp at ts\n'
         '\n'
         '  query   ts\n'
-        '  found   "x"',
+        '  found   "x"  (a String)',
       );
     });
 
@@ -677,30 +606,24 @@ void main() {
       expect(inLet.message, isNot(contains('letOrNull')));
     });
 
-    test('exception snapshots path and message before input mutation', () {
+    test('exception snapshots the message before input mutation', () {
       final path = <Object>['value'];
       final data = <String, Object>{'visible': 'before'};
-      final e = PickException.fromPick(
-        Pick(data, path: path),
-        reason: PickErrorReason.wrongType,
-        expected: 'an int',
-      );
+      final e =
+          PickException.fromPick(Pick(data, path: path), 'expected an int');
       final message = e.message;
       path[0] = 'changed';
       data['visible'] = 'after';
-      expect(e.path, ['value']);
-      expect(() => e.path!.add('extra'), throwsUnsupportedError);
       expect(e.message, message);
+      expect(e.message, contains('  query   value'));
       expect(e.message, contains('before'));
       expect(e.message, isNot(contains('after')));
     });
 
-    test('bool wrong-type errors carry structured fields', () {
+    test('bool wrong-type errors name the expected type', () {
       final e = grabException(
           () => pick({'flag': <Object>[]}, 'flag').asBoolOrThrow());
-      expect(e.reason, PickErrorReason.wrongType);
-      expect(e.expected, 'a bool');
-      expect(e.path, ['flag']);
+      expect(e.message.split('\n').first, 'expected a bool at flag');
     });
 
     for (final format in [
@@ -708,14 +631,13 @@ void main() {
       PickDateFormat.RFC_850,
       PickDateFormat.ANSI_C_asctime
     ]) {
-      test('explicit $format failure keeps structure', () {
+      test('explicit $format failure names the format', () {
         final e = grabException(() {
           pick({'date': 'CUSTOMERSECRET'}, 'date')
               .asDateTimeOrThrow(format: format);
         });
-        expect(e.reason, PickErrorReason.unparsable);
-        expect(e.expected, 'a DateTime');
-        expect(e.path, ['date']);
+        expect(
+            e.message.split('\n').first, 'could not parse a DateTime at date');
         expect(e.message, contains('does not match $format'));
         expect(e.message, contains('  found   "CUSTOMERSECRET"'));
       });

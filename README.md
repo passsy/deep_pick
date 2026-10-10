@@ -253,11 +253,7 @@ extension TimestampPick on Pick {
     if (value is int) {
       return Timestamp.fromMillisecondsSinceEpoch(value);
     }
-    throw PickException.fromPick(
-      this,
-      reason: PickErrorReason.wrongType,
-      expected: 'a Timestamp',
-    );
+    throw PickException.fromPick(this, 'expected a Timestamp');
   }
 
   Timestamp? asFirestoreTimeStampOrNull() {

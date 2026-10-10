@@ -95,8 +95,7 @@ extension NullableDateTimePick on Pick {
     if (value is! String) {
       throw PickException.fromPick(
         this,
-        reason: PickErrorReason.wrongType,
-        expected: 'a DateTime',
+        'expected a DateTime',
       );
     }
 
@@ -129,8 +128,7 @@ extension NullableDateTimePick on Pick {
 
     throw PickException.fromPick(
       this,
-      reason: PickErrorReason.unparsable,
-      expected: 'a DateTime',
+      'could not parse a DateTime',
       detail: detail,
     );
   }

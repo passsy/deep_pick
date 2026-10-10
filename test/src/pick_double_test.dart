@@ -55,7 +55,8 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'expected a double at <root>, found an Object',
+                'expected a double at <root>',
+                '(an Object)',
               ],
             ),
           ),
@@ -137,7 +138,8 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'expected a double at <root>, found an Object',
+                'expected a double at <root>',
+                '(an Object)',
               ],
             ),
           ),

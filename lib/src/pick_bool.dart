@@ -31,15 +31,13 @@ extension BoolPick on Pick {
       if (value == 'false') return false;
       throw PickException.fromPick(
         this,
-        reason: PickErrorReason.unparsable,
-        expected: 'a bool',
+        'could not parse a bool',
         detail: 'only the exact Strings "true" and "false" are valid',
       );
     }
     throw PickException.fromPick(
       this,
-      reason: PickErrorReason.wrongType,
-      expected: 'a bool',
+      'expected a bool',
     );
   }
 

@@ -1,12 +1,5 @@
 export 'package:deep_pick/src/pick.dart'
-    show
-        Pick,
-        PickErrorReason,
-        PickException,
-        RequiredPick,
-        pick,
-        pickDeep,
-        pickFromJson;
+    show Pick, PickException, RequiredPick, pick, pickDeep, pickFromJson;
 export 'package:deep_pick/src/pick_bool.dart' show BoolPick;
 export 'package:deep_pick/src/pick_datetime.dart'
     show NullableDateTimePick, PickDateFormat;

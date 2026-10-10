@@ -7,8 +7,7 @@
   `pick({'a': null}, 'a', 'b').isAbsent` was `false`, while `pick({'a': null}, 'a')('b').isAbsent` was already `true`.
   An explicit `null` at the requested location is unchanged.
 - **Changed** `PickException` messages are multi-line with escaped values and paths, and `toString()` returns `PickException: <message>` instead of `PickException(<message>)`.
-  Prefer structured fields over parsing error text.
-- **New** `PickException.path`, `reason`, `expected`, `PickErrorReason` and `PickException.fromPick` expose structured errors, including explicit date-format failures.
+- **New** `PickException.fromPick(pick, 'expected a Timestamp')` gives custom parsers the same error message as the built-in ones.
 - **Deprecated** `Pick.debugParsingExit`, throw `PickException.fromPick` instead.
 
 ## 1.1.0 (`30.08.24`)

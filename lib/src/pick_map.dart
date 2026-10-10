@@ -45,8 +45,7 @@ extension NullableMapPick on Pick {
     }
     throw PickException.fromPick(
       this,
-      reason: PickErrorReason.wrongType,
-      expected: 'a Map',
+      'expected a Map',
     );
   }
 

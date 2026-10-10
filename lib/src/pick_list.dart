@@ -73,8 +73,7 @@ extension NullableListPick on Pick {
     }
     throw PickException.fromPick(
       this,
-      reason: PickErrorReason.wrongType,
-      expected: 'a List',
+      'expected a List',
     );
   }
 

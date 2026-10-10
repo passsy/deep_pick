@@ -43,7 +43,8 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'expected a DateTime at <root>, found an Object',
+                'expected a DateTime at <root>',
+                '(an Object)',
               ],
             ),
           ),
@@ -115,7 +116,8 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'expected a DateTime at <root>, found an Object',
+                'expected a DateTime at <root>',
+                '(an Object)',
               ],
             ),
           ),

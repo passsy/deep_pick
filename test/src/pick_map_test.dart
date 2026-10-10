@@ -56,8 +56,9 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'expected a Map at <root>, found a String',
+                'expected a Map at <root>',
                 'Bubblegum',
+                '(a String)',
               ],
             ),
           ),
@@ -67,7 +68,8 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'expected a Map at <root>, found an Object',
+                'expected a Map at <root>',
+                '(an Object)',
               ],
             ),
           ),

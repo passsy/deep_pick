@@ -140,12 +140,14 @@ Pick _drillDown(
     // index of [selector] inside [fullPath], not inside [selectors]
     final selectorIndex = parent.path.length + i;
     if (data is Set && selector is int) {
-      throw PickException.fromPick(
-        Pick._from(parent, null,
-            path: fullPath,
-            context: context,
-            missingValueAtIndex: selectorIndex),
-        reason: PickErrorReason.setIndexUnsupported,
+      final unpickable = Pick._from(parent, null,
+          path: fullPath, context: context, missingValueAtIndex: selectorIndex);
+      throw PickException(
+        _renderErrorMessage(
+          unpickable,
+          headline: 'cannot pick by index at ${_describeLocation(fullPath)}, '
+              'it is a Set',
+        ),
       );
     }
     if (!_hasChild(data, selector)) {
@@ -359,10 +361,7 @@ class Pick {
   RequiredPick required() {
     final value = this.value;
     if (value == null) {
-      throw PickException.fromPick(
-        this,
-        reason: isAbsent ? PickErrorReason.absent : PickErrorReason.nullValue,
-      );
+      throw PickException.fromPick(this, 'expected a non-null value');
     }
     return RequiredPick(value, path: path, context: context);
   }
@@ -537,40 +536,9 @@ class RequiredPick extends Pick {
 /// to the error message
 const requiredPickErrorHintKey = '_required_pick_error_hint';
 
-/// Classification of what went wrong when a [PickException] was thrown.
-///
-/// Compare known constants; additional reasons may be added in future releases.
-class PickErrorReason {
-  const PickErrorReason._(this.name);
-
-  /// A stable identifier for this reason.
-  final String name;
-
-  /// The data structure ended before [PickException.path] could be followed.
-  static const absent = PickErrorReason._('absent');
-
-  /// The path was followed completely but the value at the end is `null`.
-  static const nullValue = PickErrorReason._('nullValue');
-
-  /// A value exists but its type doesn't match the requested one.
-  static const wrongType = PickErrorReason._('wrongType');
-
-  /// A compatible value could not be parsed into the requested type.
-  static const unparsable = PickErrorReason._('unparsable');
-
-  /// Picking by index from an unordered [Set] is not supported.
-  static const setIndexUnsupported = PickErrorReason._('setIndexUnsupported');
-
-  @override
-  String toString() => 'PickErrorReason.$name';
-}
-
 class PickException implements Exception {
   /// A [PickException] with a freeform [message]
-  PickException(this.message)
-      : path = null,
-        reason = null,
-        expected = null;
+  PickException(this.message);
 
   /// Builds the standard deep_pick error message from the state of [pick]
   ///
@@ -580,8 +548,7 @@ class PickException implements Exception {
   /// ```dart
   /// throw PickException.fromPick(
   ///   pick,
-  ///   reason: PickErrorReason.unparsable,
-  ///   expected: 'a Timestamp',
+  ///   'could not parse a Timestamp',
   ///   detail: 'seconds since epoch must not be negative',
   ///   hint: 'use asTimestampOrNull() to ignore invalid values',
   /// );
@@ -589,65 +556,43 @@ class PickException implements Exception {
   /// // PickException: could not parse a Timestamp at createdAt
   /// //
   /// //   query   createdAt
-  /// //   found   -1
+  /// //   found   -1  (an int)
   /// //   detail  seconds since epoch must not be negative
   /// //   hint    use asTimestampOrNull() to ignore invalid values
   /// ```
   ///
-  /// - [reason] classifies the failure. Whether the value is absent or
-  ///   `null` is read from [pick], so pass [PickErrorReason.wrongType] or
-  ///   [PickErrorReason.unparsable] for a value that exists.
-  /// - [expected] names what was asked for, with its article, i.e.
-  ///   `'an int'` or `'a Timestamp'`. It becomes part of the headline and
-  ///   [PickException.expected]. Without it the headline stays neutral.
+  /// - [problem] says what is wrong, i.e. `'expected an int'` or
+  ///   `'could not parse a Timestamp'`. The location follows it, and for a
+  ///   value that is absent or `null` also that fact, which is read from
+  ///   [pick].
   /// - [detail] explains why this value was rejected and gets its own row.
   /// - [hint] tells the reader what to do about it and gets its own row.
   ///
-  /// [expected], [detail] and [hint] are printed as they are.
+  /// [problem], [detail] and [hint] are printed as they are.
   ///
   /// The message is rendered eagerly so the exception does not retain a
   /// reference into the parsed data structure.
   factory PickException.fromPick(
-    Pick pick, {
-    required PickErrorReason reason,
-    String? expected,
+    Pick pick,
+    String problem, {
     String? detail,
     String? hint,
   }) {
     final contextHint = pick.context[requiredPickErrorHintKey] as String?;
-    final resolvedReason = _reasonMatchingPick(reason, pick);
-    final pathBroke = pick.isAbsent;
-    final valueIsMissing = resolvedReason == PickErrorReason.absent ||
-        resolvedReason == PickErrorReason.nullValue;
-    final resolvedExpected = () {
-      if (resolvedReason == PickErrorReason.setIndexUnsupported) {
-        return null;
-      }
-      if (expected != null) {
-        return expected;
+    final valueIsMissing = pick.value == null;
+    final headline = () {
+      final located = '$problem at ${_describeLocation(pick.path)}';
+      if (pick.isAbsent) {
+        return '$located, but it is absent';
       }
       if (valueIsMissing) {
-        return 'a non-null value';
+        return '$located, but it is null';
       }
-      // the value exists, nothing is known about what the caller wanted
-      return null;
-    }();
-    final failedAtIndex = () {
-      final index = pick.missingValueAtIndex;
-      if (index == null || index >= pick.path.length) {
-        // an index outside of the path can't be pointed at
-        return null;
-      }
-      return index;
+      return located;
     }();
     final message = _renderErrorMessage(
-      fullPath: pick.path,
-      reason: resolvedReason,
-      expected: resolvedExpected,
-      nodeValue: pathBroke ? _valueBeforeMissingSegment(pick) : pick.value,
-      nodeKnown: pick._parent != null,
-      pathBroke: pathBroke,
-      failedAtIndex: failedAtIndex,
+      pick,
+      headline: headline,
       detail: detail,
       hints: [
         if (hint != null) hint,
@@ -656,40 +601,11 @@ class PickException implements Exception {
         if (contextHint != null && valueIsMissing) contextHint,
       ],
     );
-    return PickException._(
-      message: message,
-      path: List.unmodifiable(pick.path),
-      reason: resolvedReason,
-      expected: resolvedExpected,
-    );
+    return PickException(message);
   }
-
-  PickException._({
-    required this.message,
-    required this.path,
-    required this.reason,
-    required this.expected,
-  });
 
   /// The complete, human readable error message
   final String message;
-
-  /// The full path that was requested when the error occurred
-  ///
-  /// `null` when the exception was created with the plain [PickException]
-  /// constructor.
-  final List<Object>? path;
-
-  /// What went wrong, see [PickErrorReason]
-  ///
-  /// `null` when the exception was created with the plain [PickException]
-  /// constructor.
-  final PickErrorReason? reason;
-
-  /// What the caller asked for, i.e. `'an int'`
-  ///
-  /// `null` when unknown or not applicable.
-  final String? expected;
 
   @override
   String toString() {
@@ -702,46 +618,35 @@ const _errorLabelWidth = 8;
 String _errorRow(String label, String content) =>
     '  ${label.padRight(_errorLabelWidth)}$content';
 
-String _renderErrorMessage({
-  required List<Object> fullPath,
-  required PickErrorReason reason,
-  required String? expected,
-  required Object? nodeValue,
-  required bool nodeKnown,
-  required bool pathBroke,
-  required int? failedAtIndex,
-  required String? detail,
-  required List<String> hints,
-}) {
-  final rendered = _RenderedPath.of(fullPath);
-  final where = fullPath.isEmpty ? '<root>' : rendered.text;
-
-  final String headline;
-  switch (reason) {
-    case PickErrorReason.absent:
-      headline = 'expected $expected at $where, but it is absent';
-      break;
-    case PickErrorReason.nullValue:
-      headline = 'expected $expected at $where, but it is null';
-      break;
-    case PickErrorReason.wrongType:
-      final found = _describeType(nodeValue);
-      if (expected == null) {
-        headline = 'unexpected value at $where, found $found';
-        break;
-      }
-      headline = 'expected $expected at $where, found $found';
-      break;
-    case PickErrorReason.unparsable:
-      headline = 'could not parse ${expected ?? 'the value'} at $where';
-      break;
-    case PickErrorReason.setIndexUnsupported:
-      headline = 'cannot pick by index at $where, it is a Set';
-      break;
-    default:
-      headline =
-          'could not parse ${expected ?? 'the value'} at $where ($reason)';
+/// Where [path] points to, as it is written in an error message
+String _describeLocation(List<Object> path) {
+  if (path.isEmpty) {
+    return '<root>';
   }
+  return _RenderedPath.of(path).text;
+}
+
+/// The [headline] followed by rows that show where [pick] points to and what
+/// the data holds there
+String _renderErrorMessage(
+  Pick pick, {
+  required String headline,
+  String? detail,
+  List<String> hints = const [],
+}) {
+  final fullPath = pick.path;
+  final rendered = _RenderedPath.of(fullPath);
+  final pathBroke = pick.isAbsent;
+  final nodeValue = pathBroke ? _valueBeforeMissingSegment(pick) : pick.value;
+  final nodeKnown = pick._parent != null;
+  final failedAtIndex = () {
+    final index = pick.missingValueAtIndex;
+    if (index == null || index >= fullPath.length) {
+      // an index outside of the path can't be pointed at
+      return null;
+    }
+    return index;
+  }();
 
   final lines = <String>[];
 
@@ -752,8 +657,7 @@ String _renderErrorMessage({
         if (!nodeKnown) {
           return 'not found';
         }
-        return _describeAbsentReason(
-            nodeValue, fullPath[failedAtIndex], reason);
+        return _describeAbsentReason(nodeValue, fullPath[failedAtIndex]);
       }();
       final pad = ' ' * (2 + _errorLabelWidth + rendered.starts[failedAtIndex]);
       final marker = '~' * rendered.lengths[failedAtIndex];
@@ -778,10 +682,10 @@ String _renderErrorMessage({
   } else {
     // the whole path was followable, the value itself is the problem
     final suffix = () {
-      if (reason == PickErrorReason.wrongType) {
-        return '  (${_describeType(nodeValue)})';
+      if (nodeValue == null) {
+        return '';
       }
-      return '';
+      return '  (${_describeType(nodeValue)})';
     }();
     lines.add(_errorRow('found', '${valueBlock.first}$suffix'));
     lines.addAll(valueBlock.skip(1));
@@ -801,28 +705,9 @@ String _renderErrorMessage({
   return [headline, '', ...lines].join('\n');
 }
 
-/// [PickErrorReason.absent] and [PickErrorReason.nullValue] are facts about
-/// [pick], so they are read from it instead of trusting the caller
-PickErrorReason _reasonMatchingPick(PickErrorReason reason, Pick pick) {
-  if (reason == PickErrorReason.setIndexUnsupported) {
-    return reason;
-  }
-  if (pick.isAbsent) {
-    return PickErrorReason.absent;
-  }
-  if (pick.value == null) {
-    return PickErrorReason.nullValue;
-  }
-  return reason;
-}
-
 /// Why drilling down stopped at [node] when applying [selector]
-String _describeAbsentReason(
-  Object? node,
-  Object selector,
-  PickErrorReason reason,
-) {
-  if (reason == PickErrorReason.setIndexUnsupported) {
+String _describeAbsentReason(Object? node, Object selector) {
+  if (node is Set && selector is int) {
     return 'a Set is unordered';
   }
   if (node is Map) {

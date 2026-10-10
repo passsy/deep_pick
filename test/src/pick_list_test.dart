@@ -103,8 +103,9 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'expected a List at <root>, found a String',
+                'expected a List at <root>',
                 'Bubblegum',
+                '(a String)',
               ],
             ),
           ),
@@ -114,7 +115,8 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'expected a List at <root>, found an Object',
+                'expected a List at <root>',
+                '(an Object)',
               ],
             ),
           ),

@@ -60,7 +60,8 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'expected an int at <root>, found an Object',
+                'expected an int at <root>',
+                '(an Object)',
               ],
             ),
           ),
@@ -123,7 +124,8 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'expected an int at <root>, found an Object',
+                'expected an int at <root>',
+                '(an Object)',
               ],
             ),
           ),

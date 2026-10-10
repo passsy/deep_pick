@@ -33,23 +33,20 @@ extension NullableIntPick on Pick {
       }
       throw PickException.fromPick(
         this,
-        reason: PickErrorReason.unparsable,
-        expected: 'an int',
+        'could not parse an int',
       );
     }
     if (value is num) {
       throw PickException.fromPick(
         this,
-        reason: PickErrorReason.wrongType,
-        expected: 'an int',
+        'expected an int',
         hint:
             'set roundDouble: true or truncateDouble: true to parse a double as int',
       );
     }
     throw PickException.fromPick(
       this,
-      reason: PickErrorReason.wrongType,
-      expected: 'an int',
+      'expected an int',
     );
   }
 
