@@ -14,6 +14,18 @@ PickException grabException(void Function() body) {
   fail('body did not throw a PickException');
 }
 
+/// A reason this version of the test doesn't know, as a consumer sees one
+/// that was added in a later release
+class _FutureReason implements PickErrorReason {
+  const _FutureReason();
+
+  @override
+  String get name => 'tooLarge';
+
+  @override
+  String toString() => 'PickErrorReason.$name';
+}
+
 class UnprintableValue {
   @override
   String toString() => throw StateError('unrelated value cannot be printed');
@@ -376,6 +388,23 @@ void main() {
       expect(PickErrorReason.unparsable.name, 'unparsable');
       expect(PickErrorReason.setIndexUnsupported.name, 'setIndexUnsupported');
       expect(absent, isNot(PickErrorReason.nullValue));
+    });
+
+    test('a reason added in a later release still renders', () {
+      final e = PickException.fromPick(
+        pick({'n': 99}, 'n'),
+        reason: const _FutureReason(),
+        expected: 'a small int',
+      );
+      expect(e.reason, const _FutureReason());
+      expect(e.expected, 'a small int');
+      expect(
+        e.message,
+        'could not parse a small int at n (PickErrorReason.tooLarge)\n'
+        '\n'
+        '  query   n\n'
+        '  found   99',
+      );
     });
 
     test('fromPick fills path, reason and expected', () {
