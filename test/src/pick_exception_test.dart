@@ -608,6 +608,24 @@ void main() {
       expect(onValue.message.split('\n').last, '  found   1');
     });
 
+    test('detail gets its own row and keeps the marker text of a broken path',
+        () {
+      final e = PickException.fromPick(
+        pick({'a': 1}, 'b'),
+        reason: PickErrorReason.absent,
+        detail: 'custom detail',
+      );
+      expect(
+        e.message,
+        'expected a non-null value at b, but it is absent\n'
+        '\n'
+        '  query   b\n'
+        '          ~ no such key\n'
+        '  at      <root> = {"a": 1}\n'
+        '  detail  custom detail',
+      );
+    });
+
     test('custom detail and both hint sources are rendered in order', () {
       final e = PickException.fromPick(
         pick('bad').withContext(requiredPickErrorHintKey, 'context hint'),

@@ -595,6 +595,35 @@ class PickException implements Exception {
   /// Use it in custom `.let()` parsers to throw errors consistent with the
   /// built-in `as*OrThrow` methods.
   ///
+  /// ```dart
+  /// throw PickException.fromPick(
+  ///   pick,
+  ///   reason: PickErrorReason.unparsable,
+  ///   expected: 'a Timestamp',
+  ///   detail: 'seconds since epoch must not be negative',
+  ///   hint: 'use asTimestampOrNull() to ignore invalid values',
+  /// );
+  ///
+  /// // PickException: could not parse a Timestamp at createdAt
+  /// //
+  /// //   query   createdAt
+  /// //   found   -1
+  /// //   detail  seconds since epoch must not be negative
+  /// //   hint    use asTimestampOrNull() to ignore invalid values
+  /// ```
+  ///
+  /// - [reason] classifies the failure. Whether the value is absent or
+  ///   `null` is read from [pick], so pass [PickErrorReason.wrongType] or
+  ///   [PickErrorReason.unparsable] for a value that exists.
+  /// - [expected] names what was asked for, with its article, i.e.
+  ///   `'an int'` or `'a Timestamp'`. It becomes part of the headline and
+  ///   [PickException.expected].
+  /// - [detail] explains why this value was rejected and gets its own row.
+  /// - [hint] tells the reader what to do about it and gets its own row.
+  ///
+  /// [expected], [detail] and [hint] are printed as they are, also with
+  /// [Pick.redactValues]. Don't put the picked value into them.
+  ///
   /// The message is rendered eagerly so the exception does not retain a
   /// reference into the parsed data structure. Respects
   /// [Pick.redactValues].
@@ -727,9 +756,6 @@ String _renderErrorMessage({
     lines.add(_errorRow('query', rendered.text));
     if (failedAtIndex != null) {
       final markerText = () {
-        if (detail != null) {
-          return detail;
-        }
         if (!nodeKnown) {
           return 'not found';
         }
@@ -767,9 +793,10 @@ String _renderErrorMessage({
     }();
     lines.add(_errorRow('found', '${valueBlock.first}$suffix'));
     lines.addAll(valueBlock.skip(1));
-    if (detail != null) {
-      lines.add(_errorRow('detail', detail));
-    }
+  }
+
+  if (detail != null) {
+    lines.add(_errorRow('detail', detail));
   }
 
   for (final hint in hints) {
