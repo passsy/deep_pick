@@ -1,14 +1,15 @@
 # Changelog
 
-## 2.0.0 (`10.10.26`)
+## 1.2.0 (`10.10.26`)
 
 - **Fix** Chained picks report and preserve the missing segment in the full path. [#64](https://github.com/passsy/deep_pick/pull/64)
-- **Breaking** `Pick.isAbsent` is now `true` below a `null`: `pick({'a': null}, 'a', 'b').isAbsent`.
+- **Fix** `Pick.isAbsent` is `true` below a `null`, however the path is written.
+  `pick({'a': null}, 'a', 'b').isAbsent` was `false`, while `pick({'a': null}, 'a')('b').isAbsent` was already `true`.
   An explicit `null` at the requested location is unchanged.
-- **Breaking** `PickException.toString()` returns `PickException: <message>` instead of `PickException(<message>)`, and messages are multi-line with escaped values and paths.
+- **Changed** `PickException` messages are multi-line with escaped values and paths, and `toString()` returns `PickException: <message>` instead of `PickException(<message>)`.
   Prefer structured fields over parsing error text.
-- **Breaking** `Pick.absent` requires `lastReachableValue`, the value the path could be followed to. Error messages show it: `Pick.absent(0, lastReachableValue: json)`.
 - **New** `PickException.path`, `reason`, `expected`, `PickErrorReason` and `PickException.fromPick` expose structured errors, including explicit date-format failures.
+  `Pick.reachedValue` is the value at `Pick.followablePath`, for an absent pick the place the path broke.
 - **New** `Pick.redactValues()` and `RequiredPick.redactValues()` return independent views that mask diagnostic values while retaining keys and types.
   `redactValues(enabled: kReleaseMode)` switches it at runtime, and `Pick.redactsValues` lets custom parsers follow the same rule.
 - **Deprecated** `Pick.debugParsingExit`, throw `PickException.fromPick` instead.
