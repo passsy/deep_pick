@@ -655,15 +655,17 @@ void main() {
       });
     }
 
-    test('a pick created with Pick.absent claims nothing about the data', () {
-      // Pick.absent is told where the path broke, not what was there
+    test('a pick created with Pick.absent reads as if null blocked the way',
+        () {
+      // Pick.absent is told where the path broke, it holds no data
       final absent = Pick.absent(1, path: ['shoes', 'name']);
       expect(
         grabException(absent.required).message,
         'expected a non-null value at shoes.name, but it is absent\n'
         '\n'
         '  query   shoes.name\n'
-        '                ~~~~ not found',
+        '                ~~~~ null has no key "name"\n'
+        '  at      shoes = null',
       );
     });
 

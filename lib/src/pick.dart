@@ -95,31 +95,23 @@ Pick pickDeep(
   return _drillDown(json, selector);
 }
 
-/// Marks a selector that is not part of the data, as opposed to a selector
-/// that is mapped to `null`
-final Object _notFound = Object();
-
-/// Stands in for the reached value of a pick created with [Pick.absent],
-/// which is told where the path broke but not what was there. A `null` in
-/// its place would claim that a `null` value blocked the way down.
-final Object _unknownValue = Object();
-
-/// Looks up [selector] in [data], returns [_notFound] when [data] doesn't
-/// contain it
-dynamic _childOf(/*Map|List|null*/ dynamic data, Object selector) {
-  if (data is List && selector is int) {
-    if (selector < 0 || selector >= data.length) {
-      return _notFound;
-    }
-    return data[selector];
+/// Whether [data] holds something at [selector], which may be `null`
+bool _hasChild(/*Map|List|null*/ dynamic data, Object selector) {
+  if (data is List) {
+    return selector is int && selector >= 0 && selector < data.length;
   }
   if (data is Map) {
-    if (!data.containsKey(selector)) {
-      return _notFound;
-    }
-    return data[selector];
+    return data.containsKey(selector);
   }
-  return _notFound;
+  return false;
+}
+
+/// The value [data] holds at [selector], ask [_hasChild] first
+dynamic _childOf(/*Map|List*/ dynamic data, Object selector) {
+  if (data is List) {
+    return data[selector as int];
+  }
+  return (data as Map)[selector];
 }
 
 /// Traverses the object along [selectors]
@@ -146,8 +138,7 @@ Pick _drillDown(
         reason: PickErrorReason.setIndexUnsupported,
       );
     }
-    final dynamic child = _childOf(data, selector);
-    if (identical(child, _notFound)) {
+    if (!_hasChild(data, selector)) {
       // can't drill down any more to find the exact location.
       return Pick._raw(
         data,
@@ -156,6 +147,7 @@ Pick _drillDown(
         missingValueAtIndex: selectorIndex,
       );
     }
+    final dynamic child = _childOf(data, selector);
     // a `null` at the last segment is the result, anywhere else a dead end
     final isLastSelector = i == selectors.length - 1;
     if (child == null && !isLastSelector) {
@@ -195,9 +187,8 @@ class Pick {
   ///
   /// [value] will always return `null` and [isAbsent] always `true`.
   ///
-  /// The pick is not told what the data held instead, its error messages
-  /// only show where the path broke. Pick from a value to get one whose
-  /// errors show it:
+  /// The pick holds no data, its error messages read as if a `null` blocked
+  /// the way down. Pick from a value to get one whose errors show the data:
   /// ```dart
   /// Pick({'id': 1}, path: ['shoes'])('name'); // absent, {'id': 1} has no name
   /// ```
@@ -206,7 +197,7 @@ class Pick {
     List<Object> path = const [],
     Map<String, Object?>? context,
   }) : this._raw(
-          _unknownValue,
+          null,
           path: path,
           context: context,
           missingValueAtIndex: missingValueAtIndex,
@@ -243,8 +234,6 @@ class Pick {
   /// the path broke: the `Map` which did not contain the requested key, the
   /// `List` the index was out of range for, or `null` when a `null` value
   /// blocked the way down. Only error messages need it.
-  ///
-  /// [_unknownValue] for a pick created with [Pick.absent].
   final Object? _reachedValue;
 
   /// Allows the distinction between the actual [value] `null` and the value not
@@ -715,7 +704,6 @@ class PickException implements Exception {
       reason: resolvedReason,
       expected: resolvedExpected,
       nodeValue: pathBroke ? pick._reachedValue : pick.value,
-      nodeKnown: !identical(pick._reachedValue, _unknownValue),
       pathBroke: pathBroke,
       failedAtIndex: failedAtIndex,
       redact: redact,
@@ -778,7 +766,6 @@ String _renderErrorMessage({
   required PickErrorReason reason,
   required String? expected,
   required Object? nodeValue,
-  required bool nodeKnown,
   required bool pathBroke,
   required int? failedAtIndex,
   required bool redact,
@@ -820,13 +807,8 @@ String _renderErrorMessage({
   if (fullPath.isNotEmpty) {
     lines.add(_errorRow('query', rendered.text));
     if (failedAtIndex != null) {
-      final markerText = () {
-        if (!nodeKnown) {
-          return 'not found';
-        }
-        return _describeAbsentReason(
-            nodeValue, fullPath[failedAtIndex], reason);
-      }();
+      final markerText =
+          _describeAbsentReason(nodeValue, fullPath[failedAtIndex], reason);
       final pad = ' ' * (2 + _errorLabelWidth + rendered.starts[failedAtIndex]);
       final marker = '~' * rendered.lengths[failedAtIndex];
       lines.add('$pad$marker $markerText');
@@ -840,9 +822,8 @@ String _renderErrorMessage({
   // Did the path break somewhere, or was the whole path followable and only
   // the value at the end is the problem?
   if (pathBroke) {
-    // the deepest node parsing could reach, and what was actually in it.
-    // Nothing is claimed about a node nobody handed in.
-    if (failedAtIndex != null && nodeKnown) {
+    // the deepest node parsing could reach, and what was actually in it
+    if (failedAtIndex != null) {
       final reached = _RenderedPath.of(fullPath.take(failedAtIndex).toList());
       final reachedText = reached.text.isEmpty ? '<root>' : reached.text;
       lines.add(_errorRow('at', '$reachedText = ${valueBlock.first}'));
