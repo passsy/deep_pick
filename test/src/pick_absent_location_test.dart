@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use_from_same_package
 import 'package:deep_pick/deep_pick.dart';
 import 'package:test/test.dart';
 

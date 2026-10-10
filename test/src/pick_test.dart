@@ -1,4 +1,4 @@
-// ignore_for_file: unreachable_from_main
+// ignore_for_file: unreachable_from_main, deprecated_member_use_from_same_package
 
 import 'package:deep_pick/deep_pick.dart';
 import 'package:test/test.dart';
@@ -210,7 +210,6 @@ void main() {
 
     test('toString() prints value and path', () {
       expect(
-        // ignore: deprecated_member_use_from_same_package
         Pick('a', path: ['b', 0]).toString(),
         'Pick(value=a, path=[b, 0])',
       );

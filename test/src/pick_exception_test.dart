@@ -329,6 +329,25 @@ void main() {
       expect(e.message, isNot(contains('"M"')));
     });
 
+    test('redactsValues and debugParsingExit follow the redaction', () {
+      final plain = pick({'iban': 'DE89 3704 0044'}, 'iban');
+      expect(plain.redactsValues, isFalse);
+      expect(
+        // ignore: deprecated_member_use_from_same_package
+        plain.debugParsingExit,
+        'picked value "DE89 3704 0044" using pick(json, "iban"(DE89 3704 0044))',
+      );
+
+      final redacted = pick({'iban': 'DE89 3704 0044'}).redactValues()('iban');
+      expect(redacted.redactsValues, isTrue);
+      expect(redacted.required().redactsValues, isTrue);
+      expect(
+        // ignore: deprecated_member_use_from_same_package
+        redacted.debugParsingExit,
+        'picked value "<String>" using pick(json, "iban"(<String>))',
+      );
+    });
+
     test('RequiredPick.redactValues() stays chainable', () {
       final RequiredPick redacted = pick(json).required().redactValues();
       final e = grabException(() {

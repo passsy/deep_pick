@@ -348,6 +348,9 @@ class Pick {
   /// Keys count as schema and stay visible. That includes the keys of a
   /// [Map] that is keyed by data, like `{"jane@example.com": {...}}`.
   ///
+  /// Redaction is about the picked data. Values stored with [withContext]
+  /// are not part of it and show up unredacted in errors of [fromContext].
+  ///
   /// Add it once at the root to cover the whole parsing tree:
   /// ```dart
   /// pick(response).redactValues().letOrThrow((pick) => User.fromPick(pick));
@@ -365,6 +368,12 @@ class Pick {
     }
     return Pick(value, path: path, context: redactedContext);
   }
+
+  /// Whether [redactValues] was called on this pick or on a pick above it
+  ///
+  /// A custom parser that writes its own error message should leave the
+  /// picked [value] out of it when this is `true`.
+  bool get redactsValues => context[_redactValuesContextKey] == true;
 
   /// Enter a "required" context which requires the picked value to be non-null
   /// or a [PickException] is thrown.
@@ -458,8 +467,20 @@ class Pick {
   /// picked value "null" using pick(json, "a" (null))
   /// picked value "Instance of \'Object\'" using `pick(<root>)`
   /// "unknownKey" in pick(json, "unknownKey" (absent))
+  ///
+  /// With [redactValues] the value is replaced by its type.
+  @Deprecated(
+    'Throw PickException.fromPick() instead of building an error message '
+    'from debugParsingExit',
+  )
   String get debugParsingExit {
     final access = <String>[];
+    final shownValue = () {
+      if (redactsValues) {
+        return _renderValueRedacted(value);
+      }
+      return '$value';
+    }();
 
     // The full path to [value] inside of the object
     // I.e. ['shoes', 0, 'name']
@@ -481,7 +502,7 @@ class Pick {
             foundNullPart = true;
             return ' (null)';
           } else {
-            return '($value)';
+            return '($shownValue)';
           }
         }
         if (part == null) {
@@ -500,7 +521,7 @@ class Pick {
 
     var valueOrExit = '';
     if (foundValue) {
-      valueOrExit = 'picked value "$value" using';
+      valueOrExit = 'picked value "$shownValue" using';
     } else {
       final firstMissing = fullPath.isEmpty
           ? '<root>'
@@ -647,7 +668,7 @@ class PickException implements Exception {
     String? detail,
     String? hint,
   }) {
-    final redact = pick.context[_redactValuesContextKey] == true;
+    final redact = pick.redactsValues;
     final contextHint = pick.context[requiredPickErrorHintKey] as String?;
     final resolvedReason = _reasonMatchingPick(reason, pick);
     final pathBroke = pick.isAbsent;
