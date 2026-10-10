@@ -95,6 +95,22 @@ Pick pickDeep(
   return _drillDown(json, selector);
 }
 
+/// Where the path of an absent [Pick] broke and what the data held there,
+/// both are only known together
+class _Absence {
+  const _Absence(this.missingValueAtIndex, this.reachedValue);
+
+  /// The index in [Pick.path] which couldn't be found
+  final int missingValueAtIndex;
+
+  /// The deepest value the data allowed following the path to
+  ///
+  /// The `Map` which did not contain the requested key, the `List` the index
+  /// was out of range for, or `null` when a `null` value blocked the way
+  /// down. Only error messages need it.
+  final Object? reachedValue;
+}
+
 /// Whether [data] holds something at [selector], which may be `null`
 bool _hasChild(/*Map|List|null*/ dynamic data, Object selector) {
   if (data is List) {
@@ -130,10 +146,10 @@ Pick _drillDown(
     if (data is Set && selector is int) {
       throw PickException.fromPick(
         Pick._raw(
-          data,
+          null,
           path: fullPath,
           context: context,
-          missingValueAtIndex: selectorIndex,
+          absence: _Absence(selectorIndex, data),
         ),
         reason: PickErrorReason.setIndexUnsupported,
       );
@@ -141,10 +157,10 @@ Pick _drillDown(
     if (!_hasChild(data, selector)) {
       // can't drill down any more to find the exact location.
       return Pick._raw(
-        data,
+        null,
         path: fullPath,
         context: context,
-        missingValueAtIndex: selectorIndex,
+        absence: _Absence(selectorIndex, data),
       );
     }
     final dynamic child = _childOf(data, selector);
@@ -157,7 +173,7 @@ Pick _drillDown(
         null,
         path: fullPath,
         context: context,
-        missingValueAtIndex: selectorIndex + 1,
+        absence: _Absence(selectorIndex + 1, null),
       );
     }
     data = child;
@@ -175,12 +191,7 @@ class Pick {
     Object? value, {
     List<Object> path = const [],
     Map<String, dynamic>? context,
-  }) : this._raw(
-          value,
-          path: path,
-          context: context,
-          missingValueAtIndex: null,
-        );
+  }) : this._raw(value, path: path, context: context, absence: null);
 
   /// Pick of an absent value. While drilling down [path] the structure of the
   /// data did not match the [path] and the value wasn't found.
@@ -200,16 +211,17 @@ class Pick {
           null,
           path: path,
           context: context,
-          missingValueAtIndex: missingValueAtIndex,
+          absence: _Absence(missingValueAtIndex, null),
         );
 
   /// Sets every field as given, [Pick] and [Pick.absent] are shortcuts to it
   Pick._raw(
-    this._reachedValue, {
+    this.value, {
     required this.path,
     required Map<String, dynamic>? context,
-    required this.missingValueAtIndex,
-  }) : context = context != null ? Map.of(context) : {};
+    required _Absence? absence,
+  })  : _absence = absence,
+        context = context != null ? Map.of(context) : {};
 
   /// A copy at a different [path] or with a different [context]
   ///
@@ -217,24 +229,18 @@ class Pick {
   /// at.
   Pick _copyWith({List<Object>? path, Map<String, dynamic>? context}) {
     return Pick._raw(
-      _reachedValue,
+      value,
       path: path ?? this.path,
       context: context ?? this.context,
-      missingValueAtIndex: missingValueAtIndex,
+      absence: _absence,
     );
   }
 
   /// The picked value, might be `null`
-  Object? get value => isAbsent ? null : _reachedValue;
+  final Object? value;
 
-  /// The value at [followablePath], the deepest value the data allowed
-  /// following [path] to
-  ///
-  /// That is the picked [value], unless the pick [isAbsent]. Then it is where
-  /// the path broke: the `Map` which did not contain the requested key, the
-  /// `List` the index was out of range for, or `null` when a `null` value
-  /// blocked the way down. Only error messages need it.
-  final Object? _reachedValue;
+  /// Set when the picked value is unavailable ([isAbsent])
+  final _Absence? _absence;
 
   /// Allows the distinction between the actual [value] `null` and the value not
   /// being available
@@ -259,7 +265,7 @@ class Pick {
   ///
   /// pick([], "a").isAbsent; // true
   /// ```
-  bool get isAbsent => missingValueAtIndex != null;
+  bool get isAbsent => _absence != null;
 
   /// Attaches additional information which can be used during parsing.
   /// i.e the HTTP request/response including headers
@@ -289,7 +295,7 @@ class Pick {
 
   /// When the picked value is unavailable ([Pick.isAbsent]) the index in
   /// [path] which couldn't be found
-  final int? missingValueAtIndex;
+  int? get missingValueAtIndex => _absence?.missingValueAtIndex;
 
   /// The full path to [value] inside of the object
   ///
@@ -548,6 +554,7 @@ class RequiredPick extends Pick {
         super(value, path: path, context: context);
 
   @override
+  // ignore: overridden_fields
   covariant Object value;
 
   @override
@@ -675,7 +682,7 @@ class PickException implements Exception {
     final redact = pick.redactsValues;
     final contextHint = pick.context[requiredPickErrorHintKey] as String?;
     final resolvedReason = _reasonMatchingPick(reason, pick);
-    final pathBroke = pick.isAbsent;
+    final absence = pick._absence;
     final valueIsMissing = resolvedReason == PickErrorReason.absent ||
         resolvedReason == PickErrorReason.nullValue;
     final resolvedExpected = () {
@@ -703,8 +710,8 @@ class PickException implements Exception {
       fullPath: pick.path,
       reason: resolvedReason,
       expected: resolvedExpected,
-      nodeValue: pathBroke ? pick._reachedValue : pick.value,
-      pathBroke: pathBroke,
+      nodeValue: absence != null ? absence.reachedValue : pick.value,
+      pathBroke: absence != null,
       failedAtIndex: failedAtIndex,
       redact: redact,
       detail: detail,
