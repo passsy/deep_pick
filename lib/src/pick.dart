@@ -223,10 +223,7 @@ class Pick {
           absence: _Absence(missingValueAtIndex, lastReachableValue),
         );
 
-  /// Sets every field as given, without deriving one from another.
-  ///
-  /// [Pick] and [Pick.absent] are shortcuts to it. A copy that differs in a
-  /// single field, like [redactValues], hands all others through.
+  /// Sets every field as given, [Pick] and [Pick.absent] are shortcuts to it
   Pick._raw(
     this.value, {
     required this.path,
@@ -234,6 +231,19 @@ class Pick {
     required _Absence? absence,
   })  : _absence = absence,
         context = context != null ? Map.of(context) : {};
+
+  /// A copy at a different [path] or with a different [context]
+  ///
+  /// What was picked stays, be it the [value] or the location it is absent
+  /// at.
+  Pick _copyWith({List<Object>? path, Map<String, dynamic>? context}) {
+    return Pick._raw(
+      value,
+      path: path ?? this.path,
+      context: context ?? this.context,
+      absence: _absence,
+    );
+  }
 
   /// The picked value, might be `null`
   final Object? value;
@@ -329,12 +339,7 @@ class Pick {
 
     if (isAbsent) {
       // nothing to drill into, a longer path is absent at the same location
-      return Pick._raw(
-        value,
-        path: [...path, ...selectors],
-        context: context,
-        absence: _absence,
-      );
+      return _copyWith(path: [...path, ...selectors]);
     }
     return _drillDown(
       value,
@@ -375,12 +380,7 @@ class Pick {
   /// `enabled: false` returns a copy that shows values again, also when a
   /// pick above it redacted them. [redactsValues] tells which one applies.
   Pick redactValues({bool enabled = true}) {
-    return Pick._raw(
-      value,
-      path: path,
-      context: {...context, _redactValuesContextKey: enabled},
-      absence: _absence,
-    );
+    return _copyWith(context: {...context, _redactValuesContextKey: enabled});
   }
 
   /// Whether [redactValues] is enabled for this pick, by a call on it or on
@@ -579,12 +579,17 @@ class RequiredPick extends Pick {
   }
 
   @override
-  RequiredPick redactValues({bool enabled = true}) {
+  RequiredPick _copyWith({List<Object>? path, Map<String, dynamic>? context}) {
     return RequiredPick(
       value,
-      path: path,
-      context: {...context, _redactValuesContextKey: enabled},
+      path: path ?? this.path,
+      context: context ?? this.context,
     );
+  }
+
+  @override
+  RequiredPick redactValues({bool enabled = true}) {
+    return _copyWith(context: {...context, _redactValuesContextKey: enabled});
   }
 }
 
