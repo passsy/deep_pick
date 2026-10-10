@@ -673,6 +673,18 @@ void main() {
       );
     });
 
+    test('an absent pick has no value, whatever it reached', () {
+      final absent = Pick.absent(
+        1,
+        path: ['shoes', 'name'],
+        lastReachableValue: {'id': 1},
+      );
+      expect(absent.isAbsent, isTrue);
+      expect(absent.value, isNull);
+      expect(absent.asMapOrNull<String, int>(), isNull);
+      expect(absent('id').value, isNull);
+    });
+
     test('an absent index outside of the path has no marker', () {
       final e = grabException(() =>
           Pick.absent(5, path: ['a'], lastReachableValue: null).required());

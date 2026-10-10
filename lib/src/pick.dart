@@ -105,22 +105,6 @@ class _Sentinel {
   final String name;
 }
 
-/// Where a [Pick] left the data and what it reached right before, both are
-/// only known together and only for a pick that [Pick.isAbsent]
-class _Absence {
-  const _Absence(this.missingValueAtIndex, this.lastReachableValue);
-
-  /// The index in [Pick.path] which couldn't be found
-  final int missingValueAtIndex;
-
-  /// The value at the deepest location the data allowed following the path
-  ///
-  /// I.e. the `Map` which did not contain the requested key, the `List` the
-  /// index was out of range for, or `null` when a `null` value blocked the
-  /// way down.
-  final Object? lastReachableValue;
-}
-
 /// Looks up [selector] in [data], returns [_notFound] when [data] doesn't
 /// contain it
 dynamic _childOf(/*Map|List|null*/ dynamic data, Object selector) {
@@ -200,7 +184,12 @@ class Pick {
     Object? value, {
     List<Object> path = const [],
     Map<String, dynamic>? context,
-  }) : this._raw(value, path: path, context: context, absence: null);
+  }) : this._raw(
+          value,
+          path: path,
+          context: context,
+          missingValueAtIndex: null,
+        );
 
   /// Pick of an absent value. While drilling down [path] the structure of the
   /// data did not match the [path] and the value wasn't found.
@@ -217,20 +206,19 @@ class Pick {
     List<Object> path = const [],
     Map<String, Object?>? context,
   }) : this._raw(
-          null,
+          lastReachableValue,
           path: path,
           context: context,
-          absence: _Absence(missingValueAtIndex, lastReachableValue),
+          missingValueAtIndex: missingValueAtIndex,
         );
 
   /// Sets every field as given, [Pick] and [Pick.absent] are shortcuts to it
   Pick._raw(
-    this.value, {
+    this._reachedValue, {
     required this.path,
     required Map<String, dynamic>? context,
-    required _Absence? absence,
-  })  : _absence = absence,
-        context = context != null ? Map.of(context) : {};
+    required this.missingValueAtIndex,
+  }) : context = context != null ? Map.of(context) : {};
 
   /// A copy at a different [path] or with a different [context]
   ///
@@ -238,18 +226,23 @@ class Pick {
   /// at.
   Pick _copyWith({List<Object>? path, Map<String, dynamic>? context}) {
     return Pick._raw(
-      value,
+      _reachedValue,
       path: path ?? this.path,
       context: context ?? this.context,
-      absence: _absence,
+      missingValueAtIndex: missingValueAtIndex,
     );
   }
 
   /// The picked value, might be `null`
-  final Object? value;
+  Object? get value => isAbsent ? null : _reachedValue;
 
-  /// Set when the picked value is unavailable ([isAbsent])
-  final _Absence? _absence;
+  /// The value at the deepest location the data allowed following [path]
+  ///
+  /// That is the picked [value], unless the pick [isAbsent]. Then it is where
+  /// the path broke: the `Map` which did not contain the requested key, the
+  /// `List` the index was out of range for, or `null` when a `null` value
+  /// blocked the way down. Error messages show it.
+  final Object? _reachedValue;
 
   /// Allows the distinction between the actual [value] `null` and the value not
   /// being available
@@ -274,7 +267,7 @@ class Pick {
   ///
   /// pick([], "a").isAbsent; // true
   /// ```
-  bool get isAbsent => _absence != null;
+  bool get isAbsent => missingValueAtIndex != null;
 
   /// Attaches additional information which can be used during parsing.
   /// i.e the HTTP request/response including headers
@@ -304,7 +297,7 @@ class Pick {
 
   /// When the picked value is unavailable ([Pick.isAbsent]) the index in
   /// [path] which couldn't be found
-  int? get missingValueAtIndex => _absence?.missingValueAtIndex;
+  final int? missingValueAtIndex;
 
   /// The full path to [value] inside of the object
   ///
@@ -563,7 +556,6 @@ class RequiredPick extends Pick {
         super(value, path: path, context: context);
 
   @override
-  // ignore: overridden_fields
   covariant Object value;
 
   @override
@@ -691,7 +683,7 @@ class PickException implements Exception {
     final redact = pick.redactsValues;
     final contextHint = pick.context[requiredPickErrorHintKey] as String?;
     final resolvedReason = _reasonMatchingPick(reason, pick);
-    final absence = pick._absence;
+    final pathBroke = pick.isAbsent;
     final valueIsMissing = resolvedReason == PickErrorReason.absent ||
         resolvedReason == PickErrorReason.nullValue;
     final resolvedExpected = () {
@@ -719,8 +711,8 @@ class PickException implements Exception {
       fullPath: pick.path,
       reason: resolvedReason,
       expected: resolvedExpected,
-      nodeValue: absence != null ? absence.lastReachableValue : pick.value,
-      pathBroke: absence != null,
+      nodeValue: pathBroke ? pick._reachedValue : pick.value,
+      pathBroke: pathBroke,
       failedAtIndex: failedAtIndex,
       redact: redact,
       detail: detail,
