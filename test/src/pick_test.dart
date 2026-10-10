@@ -536,6 +536,112 @@ void main() {
     });
   });
 
+  group('every spelling of a path reports the same', () {
+    final datas = <Object?>[
+      {
+        'a': {
+          'b': {'c': 1, 'n': null},
+          'l': [
+            1,
+            null,
+            {'x': 2},
+          ],
+        },
+        'n': null,
+        's': 'str',
+      },
+      [
+        null,
+        [1, 2],
+        {'k': null},
+      ],
+      null,
+      'scalar',
+    ];
+    final paths = <List<Object>>[
+      ['a', 'b', 'c'],
+      ['a', 'b', 'c', 'd'],
+      ['a', 'b', 'n'],
+      ['a', 'b', 'n', 'x', 'y'],
+      ['a', 'l', 1],
+      ['a', 'l', 1, 'x'],
+      ['a', 'l', 2, 'x'],
+      ['a', 'l', 5, 'x'],
+      ['a', 'l', 'x'],
+      ['n'],
+      ['n', 'x', 'y'],
+      ['s', 'x'],
+      ['s', 0],
+      ['zz', 'y', 'z'],
+      [0],
+      [0, 'x'],
+      [1, 5],
+      [2, 'k', 'z'],
+      [9, 9],
+      [],
+    ];
+
+    // everything a caller can observe about where a pick ended
+    String describe(Pick pick) {
+      final error = () {
+        try {
+          pick.required();
+          return 'no error';
+        } on PickException catch (e) {
+          return '${e.reason} ${e.path}\n${e.message}';
+        }
+      }();
+      return 'isAbsent=${pick.isAbsent} '
+          'missingValueAtIndex=${pick.missingValueAtIndex} '
+          'followablePath=${pick.followablePath} path=${pick.path} '
+          'value=${pick.value} lastReachable=${pick.lastReachableValue}\n'
+          '$error';
+    }
+
+    Pick continued(Pick pick, List<Object> selectors) {
+      Object? at(int i) => i < selectors.length ? selectors[i] : null;
+      return pick(at(0), at(1), at(2), at(3), at(4));
+    }
+
+    for (var d = 0; d < datas.length; d++) {
+      for (final path in paths) {
+        test('data $d, path $path', () {
+          final data = datas[d];
+          final direct = describe(pickDeep(data, path));
+          // every way to split the path over up to three calls, followed by
+          // an empty call
+          for (var i = 0; i <= path.length; i++) {
+            for (var j = i; j <= path.length; j++) {
+              final first = pickDeep(data, path.sublist(0, i));
+              final second = continued(first, path.sublist(i, j));
+              final third = continued(second, path.sublist(j));
+              expect(
+                describe(third()),
+                direct,
+                reason: 'split at $i and $j',
+              );
+            }
+          }
+        });
+      }
+    }
+
+    test('a list element callback reports like a direct pick', () {
+      final data = {
+        'list': [
+          {'name': 'John'},
+        ],
+      };
+      final direct = pick(data, 'list', 0, 'nope');
+      Pick? inCallback;
+      pick(data, 'list').asListOrThrow((it) {
+        inCallback = it('nope');
+        return 0;
+      });
+      expect(describe(inCallback!), describe(direct));
+    });
+  });
+
   group('context API', () {
     test('add and read from context', () {
       final data = [
