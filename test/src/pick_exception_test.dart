@@ -440,6 +440,30 @@ void main() {
       expect(e.message, contains(r'"line\nbreak": "value\nline"'));
       expect(e.message.split('\n').length, 5);
     });
+    test('controls above U+001F are escaped in values, keys and the query', () {
+      // LINE SEPARATOR, NEXT LINE, C1 CSI, DEL, RIGHT-TO-LEFT OVERRIDE
+      const raw = 'x\u2028y\u0085z\u009b31m\u007f\u202e';
+      const escaped = r'x\u2028y\u0085z\u009b31m\u007f\u202e';
+      final value = grabException(() => pick({'a': raw}, 'a').asIntOrThrow());
+      expect(value.message, contains('  found   "$escaped"'));
+      final key =
+          grabException(() => pick({raw: 1}, raw, 'missing').required());
+      expect(key.message, contains('  query   ["$escaped"].missing'));
+      final sibling = grabException(() => pick({raw: 1}, 'missing').required());
+      expect(sibling.message, contains('  at      <root> = {"$escaped": 1}'));
+    });
+    test('truncation never splits a surrogate pair', () {
+      final value = 'a' * 48 + '😀' * 30;
+      final e = grabException(() {
+        pick({
+          'k': {'v': value}
+        }, 'k', 'x')
+            .required();
+      });
+      // the opening quote and 48 characters are kept, the emoji that would
+      // have been cut in half is dropped as a whole
+      expect(e.message, contains('  at      k = {"v": "${'a' * 48}…}'));
+    });
   });
 
   group('date parsing preserves structured errors and redaction', () {

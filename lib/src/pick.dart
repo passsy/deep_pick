@@ -753,7 +753,7 @@ String _describeAbsentReason(
     return 'index out of range, the List has $count';
   }
   final noun =
-      selector is int ? 'index $selector' : 'key ${jsonEncode('$selector')}';
+      selector is int ? 'index $selector' : 'key ${_quote('$selector')}';
   if (node == null) {
     return 'null has no $noun';
   }
@@ -830,18 +830,38 @@ String _truncate(String text, int maxLength) {
   if (text.length <= maxLength) {
     return text;
   }
-  return '${text.substring(0, maxLength)}…';
+  // never keep the first half of a surrogate pair without its second half
+  final lastKept = text.codeUnitAt(maxLength - 1);
+  final splitsSurrogatePair = lastKept >= 0xD800 && lastKept <= 0xDBFF;
+  final end = splitsSurrogatePair ? maxLength - 1 : maxLength;
+  return '${text.substring(0, end)}…';
+}
+
+/// Characters `jsonEncode` keeps as they are although they break or reorder
+/// a line: DEL, the C1 controls, line and paragraph separator and the
+/// bidirectional controls
+final _unescapedControls = RegExp(
+  '[\\u007f-\\u009f\\u2028\\u2029\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069]',
+);
+
+/// Quotes [text] like JSON and escapes every character that could break or
+/// reorder a log line
+String _quote(String text) {
+  return jsonEncode(text).replaceAllMapped(_unescapedControls, (match) {
+    final code = match[0]!.codeUnitAt(0);
+    return '\\u${code.toRadixString(16).padLeft(4, '0')}';
+  });
 }
 
 // Opaque keys use their type so diagnostics never invoke user-defined toString.
 String _renderMapKey(Object? key) {
   if (key is String) {
-    return jsonEncode(key);
+    return _quote(key);
   }
   if (key == null || key is num || key is bool) {
-    return jsonEncode('$key');
+    return _quote('$key');
   }
-  return jsonEncode('<${key.runtimeType}>');
+  return _quote('<${key.runtimeType}>');
 }
 
 /// Renders [value] showing actual data, unbounded for a long `String`
@@ -854,7 +874,7 @@ String _renderValue(Object? value) {
     return 'null';
   }
   if (value is String) {
-    return jsonEncode(value);
+    return _quote(value);
   }
   if (value is num || value is bool) {
     return '$value';
@@ -955,7 +975,7 @@ class _RenderedPath {
       } else if (_plainKey.hasMatch('$segment')) {
         token = i == 0 ? '$segment' : '.$segment';
       } else {
-        token = '[${jsonEncode('$segment')}]';
+        token = '[${_quote('$segment')}]';
       }
       // the marker skips a leading dot, it belongs to the separator
       final skip = token.startsWith('.') ? 1 : 0;
