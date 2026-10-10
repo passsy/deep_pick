@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.2.0 (`09.10.26`)
+## 2.0.0 (`10.10.26`)
 
 - **Fix** Chained picks report and preserve the missing segment in the full path. [#64](https://github.com/passsy/deep_pick/pull/64)
 - **Breaking** `Pick.isAbsent` is now `true` below a `null`: `pick({'a': null}, 'a', 'b').isAbsent`.
