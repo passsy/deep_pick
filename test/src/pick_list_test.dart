@@ -129,7 +129,6 @@ void main() {
               containing: [
                 'expected a non-null value at [1].name, but it is absent',
                 'no such key',
-                'Use asListOrEmpty()/asListOrNull() when the value may be null/absent at some point (List<Person>?).',
               ],
             ),
           ),

@@ -326,7 +326,12 @@ class Pick {
         lastReachableValue: _lastReachable,
       );
     }
-    return _drillDown(value, selectors, parentPath: path, context: context);
+    return _drillDown(
+      value,
+      selectors,
+      parentPath: path,
+      context: selectors.isEmpty ? context : contextWithoutHint(context),
+    );
   }
 
   /// Returns a copy that redacts data values in its error messages and those
@@ -551,6 +556,14 @@ class RequiredPick extends Pick {
 /// to the error message
 const requiredPickErrorHintKey = '_required_pick_error_hint';
 
+/// A copy of [context] for a pick further down the path
+///
+/// The hint is advice for the pick a parser was called on. A pick below it
+/// has its own location and parser, the hint doesn't apply to it.
+Map<String, dynamic> contextWithoutHint(Map<String, dynamic> context) {
+  return Map.of(context)..remove(requiredPickErrorHintKey);
+}
+
 /// Used internally with [Pick.redactValues] to mark a pick chain as carrying
 /// sensitive data
 const _redactValuesContextKey = '_redact_values';
@@ -638,6 +651,8 @@ class PickException implements Exception {
     final contextHint = pick.context[requiredPickErrorHintKey] as String?;
     final resolvedReason = _reasonMatchingPick(reason, pick);
     final pathBroke = pick.isAbsent;
+    final valueIsMissing = resolvedReason == PickErrorReason.absent ||
+        resolvedReason == PickErrorReason.nullValue;
     final resolvedExpected = () {
       if (resolvedReason == PickErrorReason.setIndexUnsupported) {
         return null;
@@ -645,8 +660,6 @@ class PickException implements Exception {
       if (expected != null) {
         return expected;
       }
-      final valueIsMissing = resolvedReason == PickErrorReason.absent ||
-          resolvedReason == PickErrorReason.nullValue;
       if (valueIsMissing) {
         return 'a non-null value';
       }
@@ -673,7 +686,9 @@ class PickException implements Exception {
       detail: detail,
       hints: [
         if (hint != null) hint,
-        if (contextHint != null) contextHint,
+        // the context hint advises an `OrNull` parser, which only helps when
+        // the value is missing
+        if (contextHint != null && valueIsMissing) contextHint,
       ],
     );
     return PickException._(

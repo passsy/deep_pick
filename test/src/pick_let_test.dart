@@ -95,7 +95,7 @@ void main() {
           pickException(
             containing: [
               'expected a non-null value at name, but it is absent',
-              'Use letOrNull() when the value may be null/absent at some point',
+              'no such key',
             ],
           ),
         ),

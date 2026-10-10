@@ -137,9 +137,7 @@ void main() {
         'expected a List at meta, found a String\n'
         '\n'
         '  query   meta\n'
-        '  found   "yes"  (a String)\n'
-        '  hint    Use asListOrEmpty()/asListOrNull() when the value may be '
-        'null/absent at some point (List<String>?).',
+        '  found   "yes"  (a String)',
       );
     });
 
@@ -154,9 +152,7 @@ void main() {
         '  query   price\n'
         '  found   12.5  (a double)\n'
         '  hint    set roundDouble: true or truncateDouble: true to parse a '
-        'double as int\n'
-        '  hint    Use asIntOrNull() when the value may be null/absent at '
-        'some point (int?).',
+        'double as int',
       );
     });
 
@@ -316,9 +312,7 @@ void main() {
         'could not parse an int at count\n'
         '\n'
         '  query   count\n'
-        '  found   <String>\n'
-        '  hint    Use asIntOrNull() when the value may be null/absent at '
-        'some point (int?).',
+        '  found   <String>',
       );
     });
 
@@ -656,19 +650,84 @@ void main() {
 
     test('custom detail and both hint sources are rendered in order', () {
       final e = PickException.fromPick(
-        pick('bad').withContext(requiredPickErrorHintKey, 'context hint'),
-        reason: PickErrorReason.unparsable,
+        pick(null).withContext(requiredPickErrorHintKey, 'context hint'),
+        reason: PickErrorReason.nullValue,
         expected: 'a custom value',
         detail: 'custom detail',
         hint: 'factory hint',
       );
       expect(
           e.message,
-          'could not parse a custom value at <root>\n\n'
-          '  found   "bad"\n'
+          'expected a custom value at <root>, but it is null\n\n'
+          '  found   null\n'
           '  detail  custom detail\n'
           '  hint    factory hint\n'
           '  hint    context hint');
+    });
+
+    test('the OrNull hint is only shown when the value is missing', () {
+      // asIntOrNull() is advice for a missing value, "abc" is not missing
+      final unparsable =
+          grabException(() => pick({'id': 'abc'}, 'id').asIntOrThrow());
+      expect(unparsable.message, isNot(contains('hint')));
+
+      final missing =
+          grabException(() => pick({'id': 'abc'}, 'nope').asIntOrThrow());
+      expect(
+        missing.message.split('\n').last,
+        '  hint    Use asIntOrNull() when the value may be null/absent at '
+        'some point (int?).',
+      );
+    });
+
+    test('a custom parser error does not advise letOrNull()', () {
+      Never parse(RequiredPick pick) {
+        throw PickException.fromPick(
+          pick,
+          reason: PickErrorReason.unparsable,
+          expected: 'a Timestamp',
+        );
+      }
+
+      final e = grabException(() => pick({'ts': 'x'}, 'ts').letOrThrow(parse));
+      // letOrNull() runs the same block for a non-null value and throws too
+      expect(
+        () => pick({'ts': 'x'}, 'ts').letOrNull(parse),
+        throwsA(isA<PickException>()),
+      );
+      expect(
+        e.message,
+        'could not parse a Timestamp at ts\n'
+        '\n'
+        '  query   ts\n'
+        '  found   "x"',
+      );
+    });
+
+    test('a pick further down does not inherit the hint of its parent', () {
+      final data = [
+        {'name': 'John Snow'},
+        {'no name': 'Daenerys'},
+      ];
+      String name(RequiredPick pick) => pick('name').required().asString();
+
+      final inList = grabException(() => pick(data).asListOrThrow(name));
+      // asListOrEmpty() runs the same callback and throws the same error
+      expect(
+        () => pick(data).asListOrEmpty(name),
+        throwsA(isA<PickException>()),
+      );
+      expect(
+        inList.message,
+        'expected a non-null value at [1].name, but it is absent\n'
+        '\n'
+        '  query   [1].name\n'
+        '              ~~~~ no such key\n'
+        '  at      [1] = {"no name": "Daenerys"}',
+      );
+
+      final inLet = grabException(() => pick(data, 1).letOrThrow(name));
+      expect(inLet.message, isNot(contains('letOrNull')));
     });
 
     test('exception snapshots path and message before input mutation', () {

@@ -47,12 +47,16 @@ extension NullableListPick on Pick {
     final value = required().value;
     if (value is List) {
       final result = <T>[];
+      final itemContext = contextWithoutHint(context);
       var index = -1;
       for (final item in value) {
         index++;
         if (item != null) {
-          final picked =
-              RequiredPick(item, path: [...path, index], context: context);
+          final picked = RequiredPick(
+            item,
+            path: [...path, index],
+            context: itemContext,
+          );
           result.add(map(picked));
           continue;
         }
@@ -60,7 +64,7 @@ extension NullableListPick on Pick {
           // skip null items when whenNull isn't provided
           continue;
         }
-        final pick = Pick(null, path: [...path, index], context: context);
+        final pick = Pick(null, path: [...path, index], context: itemContext);
         result.add(whenNull(pick));
       }
       return result;
