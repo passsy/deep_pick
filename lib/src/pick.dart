@@ -97,13 +97,7 @@ Pick pickDeep(
 
 /// Marks a selector that is not part of the data, as opposed to a selector
 /// that is mapped to `null`
-const Object _notFound = _Sentinel('notFound');
-
-class _Sentinel {
-  const _Sentinel(this.name);
-
-  final String name;
-}
+final Object _notFound = Object();
 
 /// Looks up [selector] in [data], returns [_notFound] when [data] doesn't
 /// contain it
