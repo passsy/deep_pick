@@ -551,6 +551,63 @@ void main() {
       });
     }
 
+    test('an absent pick without a last reachable value claims nothing', () {
+      // the only way to build an absent pick before lastReachableValue existed
+      final e = grabException(
+        () => Pick.absent(1, path: ['shoes', 'name']).required(),
+      );
+      expect(
+        e.message,
+        'expected a non-null value at shoes.name, but it is absent\n'
+        '\n'
+        '  query   shoes.name\n'
+        '                ~~~~ not found',
+      );
+    });
+
+    test('an absent index outside of the path has no marker', () {
+      final e = grabException(() => Pick.absent(5, path: ['a']).required());
+      expect(
+        e.message,
+        'expected a non-null value at a, but it is absent\n'
+        '\n'
+        '  query   a',
+      );
+      final root = grabException(() => Pick.absent(0).required());
+      expect(root.message,
+          'expected a non-null value at <root>, but it is absent');
+    });
+
+    test('absent and null are taken from the pick, not from the caller', () {
+      final onNull = PickException.fromPick(
+        pick({'a': null}, 'a'),
+        reason: PickErrorReason.absent,
+      );
+      expect(onNull.reason, PickErrorReason.nullValue);
+      expect(onNull.message, contains('but it is null'));
+
+      final onAbsent = PickException.fromPick(
+        pick({'a': null}, 'b'),
+        reason: PickErrorReason.wrongType,
+        expected: 'a Timestamp',
+      );
+      expect(onAbsent.reason, PickErrorReason.absent);
+      expect(
+        onAbsent.message,
+        'expected a Timestamp at b, but it is absent\n'
+        '\n'
+        '  query   b\n'
+        '          ~ no such key\n'
+        '  at      <root> = {"a": null}',
+      );
+
+      final onValue = PickException.fromPick(
+        pick({'a': 1}, 'a'),
+        reason: PickErrorReason.absent,
+      );
+      expect(onValue.message.split('\n').last, '  found   1');
+    });
+
     test('custom detail and both hint sources are rendered in order', () {
       final e = PickException.fromPick(
         pick('bad').withContext(requiredPickErrorHintKey, 'context hint'),
