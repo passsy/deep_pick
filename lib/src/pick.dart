@@ -103,6 +103,31 @@ const Object _notFound = _Sentinel('notFound');
 /// to a `null` that blocked the way down
 const Object _unknownNode = _Sentinel('unknownNode');
 
+/// Where a [Pick] left the data and what it reached right before, both are
+/// only known together and only for a pick that [Pick.isAbsent]
+class _Absence {
+  /// [lastReachable] is [_unknownNode] when nobody handed the value in
+  const _Absence(this.missingValueAtIndex, this._lastReachable);
+
+  /// The index in [Pick.path] which couldn't be found
+  final int missingValueAtIndex;
+
+  final Object? _lastReachable;
+
+  /// Whether [lastReachableValue] was handed in. A known `null` blocked the
+  /// way down, an unknown one says nothing about the data.
+  bool get isLastReachableValueKnown =>
+      !identical(_lastReachable, _unknownNode);
+
+  /// The value at the deepest location the data allowed following the path
+  Object? get lastReachableValue {
+    if (!isLastReachableValueKnown) {
+      return null;
+    }
+    return _lastReachable;
+  }
+}
+
 class _Sentinel {
   const _Sentinel(this.name);
 
@@ -185,11 +210,10 @@ class Pick {
   /// [value] may still be `null` but the structure was correct, therefore
   /// [isAbsent] will always return `false`.
   Pick(
-    this.value, {
-    this.path = const [],
+    Object? value, {
+    List<Object> path = const [],
     Map<String, dynamic>? context,
-  })  : _lastReachable = _unknownNode,
-        context = context != null ? Map.of(context) : {};
+  }) : this._raw(value, path: path, context: context, absence: null);
 
   /// Pick of an absent value. While drilling down [path] the structure of the
   /// data did not match the [path] and the value wasn't found.
@@ -202,12 +226,26 @@ class Pick {
   /// `null` states that a `null` value blocked the way down.
   Pick.absent(
     int missingValueAtIndex, {
-    this.path = const [],
+    List<Object> path = const [],
     Map<String, Object?>? context,
     Object? lastReachableValue = _unknownNode,
-  })  : value = null,
-        _missingValueAtIndex = missingValueAtIndex,
-        _lastReachable = lastReachableValue,
+  }) : this._raw(
+          null,
+          path: path,
+          context: context,
+          absence: _Absence(missingValueAtIndex, lastReachableValue),
+        );
+
+  /// Sets every field as given, without deriving one from another.
+  ///
+  /// [Pick] and [Pick.absent] are shortcuts to it. A copy that differs in a
+  /// single field, like [redactValues], hands all others through.
+  Pick._raw(
+    this.value, {
+    required this.path,
+    required Map<String, dynamic>? context,
+    required _Absence? absence,
+  })  : _absence = absence,
         context = context != null ? Map.of(context) : {};
 
   /// The picked value, might be `null`
@@ -220,15 +258,10 @@ class Pick {
   /// index was out of range for, or `null` when a `null` value blocked the
   /// way down. Always `null` when the pick is not [isAbsent], or when it
   /// was created with [Pick.absent] without a last reachable value.
-  Object? get lastReachableValue {
-    if (identical(_lastReachable, _unknownNode)) {
-      return null;
-    }
-    return _lastReachable;
-  }
+  Object? get lastReachableValue => _absence?.lastReachableValue;
 
-  /// The last reachable value, or [_unknownNode] when nobody handed it in
-  final Object? _lastReachable;
+  /// Set when the picked value is unavailable ([isAbsent])
+  final _Absence? _absence;
 
   /// Allows the distinction between the actual [value] `null` and the value not
   /// being available
@@ -253,7 +286,7 @@ class Pick {
   ///
   /// pick([], "a").isAbsent; // true
   /// ```
-  bool get isAbsent => missingValueAtIndex != null;
+  bool get isAbsent => _absence != null;
 
   /// Attaches additional information which can be used during parsing.
   /// i.e the HTTP request/response including headers
@@ -283,8 +316,7 @@ class Pick {
 
   /// When the picked value is unavailable ([Pick.isAbsent]) the index in
   /// [path] which couldn't be found
-  int? get missingValueAtIndex => _missingValueAtIndex;
-  int? _missingValueAtIndex;
+  int? get missingValueAtIndex => _absence?.missingValueAtIndex;
 
   /// The full path to [value] inside of the object
   ///
@@ -295,7 +327,7 @@ class Pick {
   ///
   /// I.e. `['shoes']` for an empty shoes list
   List<Object> get followablePath =>
-      path.take(_missingValueAtIndex ?? path.length).toList();
+      path.take(missingValueAtIndex ?? path.length).toList();
 
   // Pick even further
   Pick call([
@@ -317,13 +349,13 @@ class Pick {
             .cast<Object>()
             .toList(growable: false);
 
-    final missingIndex = missingValueAtIndex;
-    if (missingIndex != null) {
-      return Pick.absent(
-        missingIndex,
+    if (isAbsent) {
+      // nothing to drill into, a longer path is absent at the same location
+      return Pick._raw(
+        value,
         path: [...path, ...selectors],
         context: context,
-        lastReachableValue: _lastReachable,
+        absence: _absence,
       );
     }
     return _drillDown(
@@ -365,17 +397,12 @@ class Pick {
   /// `enabled: false` returns a copy that shows values again, also when a
   /// pick above it redacted them. [redactsValues] tells which one applies.
   Pick redactValues({bool enabled = true}) {
-    final redactedContext = {...context, _redactValuesContextKey: enabled};
-    final missingIndex = missingValueAtIndex;
-    if (missingIndex != null) {
-      return Pick.absent(
-        missingIndex,
-        path: path,
-        context: redactedContext,
-        lastReachableValue: _lastReachable,
-      );
-    }
-    return Pick(value, path: path, context: redactedContext);
+    return Pick._raw(
+      value,
+      path: path,
+      context: {...context, _redactValuesContextKey: enabled},
+      absence: _absence,
+    );
   }
 
   /// Whether [redactValues] is enabled for this pick, by a call on it or on
@@ -710,7 +737,7 @@ class PickException implements Exception {
       reason: resolvedReason,
       expected: resolvedExpected,
       nodeValue: pathBroke ? pick.lastReachableValue : pick.value,
-      nodeKnown: !identical(pick._lastReachable, _unknownNode),
+      nodeKnown: pick._absence?.isLastReachableValueKnown ?? false,
       pathBroke: pathBroke,
       failedAtIndex: failedAtIndex,
       redact: redact,
