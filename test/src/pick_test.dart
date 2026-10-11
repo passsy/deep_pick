@@ -1,4 +1,4 @@
-// ignore_for_file: unreachable_from_main
+// ignore_for_file: unreachable_from_main, deprecated_member_use_from_same_package
 
 import 'package:deep_pick/deep_pick.dart';
 import 'package:test/test.dart';
@@ -113,7 +113,7 @@ void main() {
             (e) => e.message,
             'message',
             contains(
-              'Expected a non-null value but location picked value "null" using pick(<root>) is null',
+              'expected a non-null value at <root>, but it is null',
             ),
           ),
         ),
@@ -170,7 +170,7 @@ void main() {
               (e) => e.message,
               'message',
               contains(
-                'Expected a non-null value but location picked value "null" using pick(json, 0 (null)) is null',
+                'expected a non-null value at [0], but it is null',
               ),
             ),
           ),
@@ -185,7 +185,7 @@ void main() {
               (e) => e.message,
               'message',
               contains(
-                'Expected a non-null value but location "some" in pick(json, "some" (absent), "path") is absent',
+                'expected a non-null value at some.path, but it is absent',
               ),
             ),
           ),
@@ -200,7 +200,7 @@ void main() {
               (e) => e.message,
               'message',
               contains(
-                'Expected a non-null value but location "some" in pick(json, "some" (absent), "path") is absent.',
+                'expected a non-null value at some.path, but it is absent',
               ),
             ),
           ),
@@ -210,7 +210,6 @@ void main() {
 
     test('toString() prints value and path', () {
       expect(
-        // ignore: deprecated_member_use_from_same_package
         Pick('a', path: ['b', 0]).toString(),
         'Pick(value=a, path=[b, 0])',
       );
@@ -228,7 +227,10 @@ void main() {
           isA<PickException>().having(
             (e) => e.toString(),
             'toString',
-            allOf(contains('[set]'), contains('Set'), contains('index (0)')),
+            allOf(
+              contains('cannot pick by index at set[0], it is a Set'),
+              contains('a Set is unordered'),
+            ),
           ),
         ),
       );
@@ -347,6 +349,296 @@ void main() {
       final p = pick([], 'a');
       expect(p.value, isNull);
       expect(p.isAbsent, true);
+    });
+  });
+
+  // The absent marker has to sit on the path segment where drilling down
+  // actually stopped. missingValueAtIndex is an index into path and
+  // followablePath derives from it, so all three have to agree.
+  group('absent location survives chained picks', () {
+    final json = {
+      'a': {'b': 1},
+      'list': [
+        {'name': 'John'},
+      ],
+    };
+
+    test('missing key one level below a chained pick', () {
+      final chained = pick(json, 'a')('x');
+      final direct = pick(json, 'a', 'x');
+
+      // both describe the very same location and must not disagree
+      expect(chained.path, direct.path);
+      expect(chained.missingValueAtIndex, direct.missingValueAtIndex);
+      expect(chained.followablePath, direct.followablePath);
+      expect(chained.debugParsingExit, direct.debugParsingExit);
+
+      expect(chained.missingValueAtIndex, 1);
+      expect(chained.followablePath, ['a']);
+      expect(
+        chained.debugParsingExit,
+        '"x" in pick(json, "a", "x" (absent))',
+      );
+    });
+
+    test('missing key two levels below a chained pick', () {
+      final chained = pick(json, 'a')('b')('c');
+
+      expect(chained.path, ['a', 'b', 'c']);
+      expect(chained.missingValueAtIndex, 2);
+      expect(chained.followablePath, ['a', 'b']);
+      expect(
+        chained.debugParsingExit,
+        '"c" in pick(json, "a", "b", "c" (absent))',
+      );
+    });
+
+    test('index out of range below a chained pick', () {
+      final chained = pick(json, 'list')(5);
+
+      expect(chained.missingValueAtIndex, 1);
+      expect(chained.followablePath, ['list']);
+      expect(
+        chained.debugParsingExit,
+        'list index 5 in pick(json, "list", 5 (absent))',
+      );
+    });
+
+    test('pickDeep continued via call()', () {
+      final chained = pickDeep(json, ['a'])('b', 'c');
+
+      expect(chained.missingValueAtIndex, 2);
+      expect(chained.followablePath, ['a', 'b']);
+    });
+
+    test('required() reports the segment that could not be followed', () {
+      expect(
+        () => pick(json, 'a')('x').required(),
+        throwsA(pickException(containing: [
+          'expected a non-null value at a.x, but it is absent'
+        ])),
+      );
+    });
+
+    test('missing key inside a asListOrThrow element', () {
+      // the list exists, only "nope" inside the element is missing
+      expect(
+        () {
+          pick(json, 'list')
+              .asListOrThrow((it) => it('nope').required().asString());
+        },
+        throwsA(pickException(containing: [
+          'expected a non-null value at list[0].nope, but it is absent'
+        ])),
+      );
+    });
+
+    test('picking by index from a Set reports the full location', () {
+      final data = {
+        'deep': {
+          'set': {'a', 'b', 'c'},
+        },
+      };
+      expect(
+        () => pick(data, 'deep')('set', 0),
+        throwsA(pickException(
+            containing: ['cannot pick by index at deep.set[0], it is a Set'])),
+      );
+    });
+  });
+
+  group('a null on the way down stops the path there', () {
+    test('null value with further selectors is absent at the null', () {
+      final p = pick({'a': null}, 'a', 'b');
+
+      expect(p.value, isNull);
+      expect(p.isAbsent, isTrue);
+      expect(p.missingValueAtIndex, 1);
+      expect(p.followablePath, ['a']);
+      expect(p.debugParsingExit, '"b" in pick(json, "a", "b" (absent))');
+    });
+
+    test('null list element with further selectors is absent at the null', () {
+      final p = pick([null], 0, 'x');
+
+      expect(p.isAbsent, isTrue);
+      expect(p.missingValueAtIndex, 1);
+      expect(p.followablePath, [0]);
+      expect(p.debugParsingExit, '"x" in pick(json, 0, "x" (absent))');
+    });
+
+    test('null as the last segment stays a non-absent null', () {
+      // documented behaviour, must not change
+      expect(pick({'a': null}, 'a').isAbsent, isFalse);
+      expect(pick([null], 0).isAbsent, isFalse);
+      expect(
+        pick({'a': null}, 'a').debugParsingExit,
+        'picked value "null" using pick(json, "a" (null))',
+      );
+    });
+  });
+
+  group('continuing an already absent pick', () {
+    final cases = <String, List<Object?>>{
+      'missing map key': [
+        {'a': <String, Object?>{}},
+        'a',
+        'missing',
+        'child'
+      ],
+      'missing list index': [
+        {'a': <Object?>[]},
+        'a',
+        2,
+        'child'
+      ],
+      'null intermediate value': [
+        {'a': null},
+        'a',
+        'missing',
+        'child'
+      ],
+    };
+    for (final entry in cases.entries) {
+      test(entry.key, () {
+        final input = entry.value;
+        final direct = pick(input[0], input[1], input[2], input[3]);
+        final chained = pick(input[0], input[1])(input[2])(input[3]);
+        expect(chained.path, direct.path);
+        expect(chained.missingValueAtIndex, direct.missingValueAtIndex);
+        expect(chained.followablePath, direct.followablePath);
+        expect(_requiredError(chained), _requiredError(direct));
+        expect(chained.debugParsingExit, direct.debugParsingExit);
+      });
+    }
+
+    test('empty call preserves the original absent state', () {
+      final missing = pick(<String, Object?>{}, 'missing');
+      final continued = missing();
+      expect(continued.isAbsent, isTrue);
+      expect(continued.path, missing.path);
+      expect(continued.missingValueAtIndex, missing.missingValueAtIndex);
+      expect(_requiredError(continued), _requiredError(missing));
+    });
+
+    test('the original missing node survives continuation', () {
+      final root = pick({'secret': 'PRIVATE'});
+      final missing = root('missing');
+      final continued = missing('child');
+      expect(
+        () => continued.required(),
+        throwsA(isA<PickException>()
+            .having((e) => e.message, 'message', contains('missing.child'))
+            .having((e) => e.message, 'message', contains('no such key'))
+            // the root map is still the value the error shows
+            .having((e) => e.message, 'message', contains('secret'))),
+      );
+    });
+  });
+
+  group('every spelling of a path reports the same', () {
+    final datas = <Object?>[
+      {
+        'a': {
+          'b': {'c': 1, 'n': null},
+          'l': [
+            1,
+            null,
+            {'x': 2},
+          ],
+        },
+        'n': null,
+        's': 'str',
+      },
+      [
+        null,
+        [1, 2],
+        {'k': null},
+      ],
+      null,
+      'scalar',
+    ];
+    final paths = <List<Object>>[
+      ['a', 'b', 'c'],
+      ['a', 'b', 'c', 'd'],
+      ['a', 'b', 'n'],
+      ['a', 'b', 'n', 'x', 'y'],
+      ['a', 'l', 1],
+      ['a', 'l', 1, 'x'],
+      ['a', 'l', 2, 'x'],
+      ['a', 'l', 5, 'x'],
+      ['a', 'l', 'x'],
+      ['n'],
+      ['n', 'x', 'y'],
+      ['s', 'x'],
+      ['s', 0],
+      ['zz', 'y', 'z'],
+      [0],
+      [0, 'x'],
+      [1, 5],
+      [2, 'k', 'z'],
+      [9, 9],
+      [],
+    ];
+
+    // everything a caller can observe about where a pick ended
+    String describe(Pick pick) {
+      final error = () {
+        try {
+          pick.required();
+          return 'no error';
+        } on PickException catch (e) {
+          return e.message;
+        }
+      }();
+      return 'isAbsent=${pick.isAbsent} '
+          'missingValueAtIndex=${pick.missingValueAtIndex} '
+          'followablePath=${pick.followablePath} path=${pick.path} '
+          'value=${pick.value}\n'
+          '$error';
+    }
+
+    Pick continued(Pick pick, List<Object> selectors) {
+      Object? at(int i) => i < selectors.length ? selectors[i] : null;
+      return pick(at(0), at(1), at(2), at(3), at(4));
+    }
+
+    for (var d = 0; d < datas.length; d++) {
+      for (final path in paths) {
+        test('data $d, path $path', () {
+          final data = datas[d];
+          final direct = describe(pickDeep(data, path));
+          // every way to split the path over up to three calls, followed by
+          // an empty call
+          for (var i = 0; i <= path.length; i++) {
+            for (var j = i; j <= path.length; j++) {
+              final first = pickDeep(data, path.sublist(0, i));
+              final second = continued(first, path.sublist(i, j));
+              final third = continued(second, path.sublist(j));
+              expect(
+                describe(third()),
+                direct,
+                reason: 'split at $i and $j',
+              );
+            }
+          }
+        });
+      }
+    }
+
+    test('a list element callback reports like a direct pick', () {
+      final data = {
+        'list': [
+          {'name': 'John'},
+        ],
+      };
+      final direct = pick(data, 'list', 0, 'nope');
+      Pick? inCallback;
+      pick(data, 'list').asListOrThrow((it) {
+        inCallback = it('nope');
+        return 0;
+      });
+      expect(describe(inCallback!), describe(direct));
     });
   });
 
@@ -469,4 +761,15 @@ class Person {
 
   @override
   int get hashCode => name.hashCode;
+}
+
+/// The message [pick] fails with when it is required, `null` when it holds a
+/// value. For an absent pick it shows the data at the place the path broke.
+String? _requiredError(Pick pick) {
+  try {
+    pick.required();
+    return null;
+  } on PickException catch (e) {
+    return e.message;
+  }
 }

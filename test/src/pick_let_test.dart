@@ -54,7 +54,7 @@ void main() {
         throwsA(
           pickException(
             containing: [
-              'Expected a non-null value but location "name" in pick(json, "name" (absent)) is absent.',
+              'expected a non-null value at name, but it is absent',
             ],
           ),
         ),
@@ -65,7 +65,7 @@ void main() {
         throwsA(
           pickException(
             containing: [
-              'Expected a non-null value but location "name" in pick(json, "name" (absent)) is absent.',
+              'expected a non-null value at name, but it is absent',
             ],
           ),
         ),
@@ -82,7 +82,8 @@ void main() {
         throwsA(
           pickException(
             containing: [
-              'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use letOrNull() when the value may be null/absent at some point.',
+              'expected a non-null value at unknownKey, but it is absent',
+              'Use letOrNull() when the value may be null/absent at some point.',
             ],
           ),
         ),
@@ -93,7 +94,8 @@ void main() {
         throwsA(
           pickException(
             containing: [
-              'Expected a non-null value but location "name" in pick(json, "name" (absent)) is absent. Use letOrNull() when the value may be null/absent at some point',
+              'expected a non-null value at name, but it is absent',
+              'no such key',
             ],
           ),
         ),

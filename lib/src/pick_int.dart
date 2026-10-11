@@ -31,11 +31,17 @@ extension NullableIntPick on Pick {
       if (parsed != null) {
         return parsed;
       }
+      throw PickException.fromPick(this, 'could not parse an int');
     }
-
-    throw PickException(
-      'Type ${value.runtimeType} of $debugParsingExit can not be parsed as int, set [roundDouble] or [truncateDouble] to parse from double',
-    );
+    if (value is num) {
+      throw PickException.fromPick(
+        this,
+        'expected an int',
+        hint:
+            'set roundDouble: true or truncateDouble: true to parse a double as int',
+      );
+    }
+    throw PickException.fromPick(this, 'expected an int');
   }
 
   /// Returns the picked [value] as [int] or throws

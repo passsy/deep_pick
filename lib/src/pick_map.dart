@@ -43,9 +43,7 @@ extension NullableMapPick on Pick {
       // and not lazily type checked when accessing them
       return Map.of(view);
     }
-    throw PickException(
-      'Type ${value.runtimeType} of $debugParsingExit can not be casted to Map<dynamic, dynamic>',
-    );
+    throw PickException.fromPick(this, 'expected a Map');
   }
 
   /// Returns the picked [value] as [Map]. This method throws when [value] is

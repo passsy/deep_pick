@@ -29,10 +29,13 @@ extension BoolPick on Pick {
     if (value is String) {
       if (value == 'true') return true;
       if (value == 'false') return false;
+      throw PickException.fromPick(
+        this,
+        'could not parse a bool',
+        detail: 'only the exact Strings "true" and "false" are valid',
+      );
     }
-    throw PickException(
-      'Type ${value.runtimeType} of $debugParsingExit can not be casted to bool',
-    );
+    throw PickException.fromPick(this, 'expected a bool');
   }
 
   /// Returns the picked [value] as [bool] or throws a [PickException]

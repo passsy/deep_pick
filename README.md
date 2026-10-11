@@ -1,8 +1,8 @@
 # deep_pick
 
-[![Pub](https://img.shields.io/pub/v/deep_pick)](https://pub.dartlang.org/packages/deep_pick)
+[![Pub](https://img.shields.io/pub/v/deep_pick)](https://pub.dev/packages/deep_pick)
 [![Pub Likes](https://img.shields.io/pub/likes/deep_pick)](https://pub.dev/packages/deep_pick/score)
-![Build](https://img.shields.io/github/actions/workflow/status/passsy/deep_pick/dart.yml?branch=master)
+![Build](https://img.shields.io/github/actions/workflow/status/passsy/deep_pick/dart.yml?branch=main)
 ![License](https://img.shields.io/github/license/passsy/deep_pick)
 [![style: lint](https://img.shields.io/badge/style-lint-4BC0F5.svg)](https://pub.dev/packages/lint)
 
@@ -14,7 +14,7 @@ Simplifies manual JSON parsing with a type-safe API.
 ```dart
 import 'package:deep_pick/deep_pick.dart';
 
-pick(json, 'parsing', 'is', 'fun').asBool(); // true
+pick(json, 'parsing', 'is', 'fun').asBoolOrThrow(); // true
 ```
 
 ```bash
@@ -23,7 +23,7 @@ $ dart pub add deep_pick
 
 ```yaml
 dependencies:
-  deep_pick: ^1.0.0
+  deep_pick: ^1.2.0
 ```
 
 ### Example
@@ -126,7 +126,7 @@ pick("2.7").asDoubleOrNull(); // 2.7
 Parsing a bool couldn't be easier with those self-explaining methods
 ```dart
 pick(true).asBoolOrThrow(); // true
-pick(false).asBoolOrThrow(); // true
+pick(false).asBoolOrThrow(); // false
 pick(null).asBoolOrTrue(); // true
 pick(null).asBoolOrFalse(); // false
 pick(null).asBoolOrNull(); // null
@@ -175,7 +175,7 @@ final users = [
 ];
 List<Person> persons = pick(users).asListOrEmpty((pick) {
   return Person(
-    name: pick('name').required().asString(),
+    name: pick('name').required().asStringOrThrow(),
   );
 });
 
@@ -193,9 +193,8 @@ Extract the mapper function and use it as a reference allows to write it in a si
 List<Person> persons = pick(users).asListOrEmpty(Person.fromPick);
 ```
 
-Replacing the static function with a factory constructor doesn't work.
-Constructors cannot be referenced as functions, yet ([dart-lang/language/issues/216](https://github.com/dart-lang/language/issues/216)).
-Meanwhile, use `.asListOrEmpty((it) => Person.fromPick(it))` when using a factory constructor.
+Dart 2.15 and newer also support constructor tear-offs, so `Person.fromPick` can be a factory constructor.
+For Dart 2.12–2.14, use `.asListOrEmpty((it) => Person.fromPick(it))` when using a factory constructor.
 
 #### Note 2
 `pick` called in the `fromPick` function uses the parameter `pick`, not the top-level function.
@@ -217,8 +216,8 @@ When `null` is important for your logic you can process the `null` value by prov
 
 ```dart
 pick([1, null, 3]).asListOrNull(
-  (it) => it.asInt(), 
-  whenNull: (Pick pick) => 25;
+  (it) => it.asIntOrThrow(),
+  whenNull: (Pick pick) => 25,
 ); 
 // [1, 25, 3]
 ``` 
@@ -254,7 +253,7 @@ extension TimestampPick on Pick {
     if (value is int) {
       return Timestamp.fromMillisecondsSinceEpoch(value);
     }
-    throw PickException("value $value at $debugParsingExit can't be casted to Timestamp");
+    throw PickException.fromPick(this, 'expected a Timestamp');
   }
 
   Timestamp? asFirestoreTimeStampOrNull() {
@@ -274,9 +273,9 @@ When using a custom type in only a few places, it might be overkill to create al
 For those cases use the [let function](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/let.html) borrowed from Kotlin to creating neat one-liners.
 
 ```dart
-final UserId id = pick(json, 'id').letOrNull((it) => UserId(it.asString()));
+final UserId? id = pick(json, 'id').letOrNull((it) => UserId(it.asStringOrThrow()));
 final Timestamp timestamp = pick(json, 'time')
-    .letOrThrow((it) => Timestamp.fromMillisecondsSinceEpoch(it.asInt()));
+    .letOrThrow((it) => Timestamp.fromMillisecondsSinceEpoch(it.asIntOrThrow()));
 ```
 
 ## Examples
@@ -296,7 +295,7 @@ final DocumentSnapshot userDoc =
     await FirebaseFirestore.instance.collection('users').doc(userId).get();
 final data = userDoc.data();
 final String fullName = pick(data, 'full_name').asStringOrThrow();
-final String? level = pick(data, 'level').asIntOrNull();
+final int? level = pick(data, 'level').asIntOrNull();
 ```
 
 `deep_pick` offers an alternative `required()` API with the same result. 
@@ -304,7 +303,7 @@ This is useful to make sure a value exists before parsing it.
 In case it is `null` or absent a useful error message is printed.
 
 ```dart
-final String fullName = pick(data, 'full_name').required().asString();
+final String fullName = pick(data, 'full_name').required().asStringOrThrow();
 ```
 
 ## Background & Justification
@@ -401,15 +400,19 @@ final milestoneCreator = json?['milestone']?['creator']?['login'] as String;
 final milestoneCreator = pick(json, 'milestone', 'creator', 'login').asStringOrThrow();
 
 // Unhandled exception:
-// PickException(
-//   Expected a non-null value but location "milestone" in pick(json, "milestone" (absent), "creator", "login") is absent. 
-//   Use asStringOrNull() when the value may be null at some point (String?).
-// )
+// PickException: expected a non-null value at milestone.creator.login, but it is absent
+//
+//   query   milestone.creator.login
+//                     ~~~~~~~ null has no key "creator"
+//   at      milestone = null
+//   hint    Use asStringOrNull() when the value may be null/absent at some point (String?).
 ```
 
+The `query` row shows the full requested path with a marker under the segment that could not be followed, and the `at` row shows the data at the deepest reachable location.
+
 Notice the distinction between "absent" and "null" when you see such errors.
-- `"absent"` means the key isn't found in a Map or a List has no item at the requested index
-- `"null"` means the value at that position is actually `null`
+- `"absent"` means the path could not be followed to the end, e.g. the key isn't found in a Map, a List has no item at the requested index, or a `null` value blocked the way down
+- `"null"` means the path was fully followed and the value at the end is actually `null`
 
 ### 4. Null is default, crashes intentional
 
@@ -459,7 +462,7 @@ final UserId id = value == null ? null : UserId(value);
 `deep_pick` borrows the [let function](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/let.html) from Kotlin creating a neat one-liner
 
 ```dart
-final UserId id = pick(json, 'id').letOrNull((it) => UserId(it.asString()));
+final UserId? id = pick(json, 'id').letOrNull((it) => UserId(it.asStringOrThrow()));
 ```
 
 ## License

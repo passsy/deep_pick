@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.0 (`10.10.26`)
+
+- **Fix** Chained picks report and preserve the missing segment in the full path. [#64](https://github.com/passsy/deep_pick/pull/64)
+- **Fix** `Pick.isAbsent` is `true` below a `null`, however the path is written.
+  `pick({'a': null}, 'a', 'b').isAbsent` was `false`, while `pick({'a': null}, 'a')('b').isAbsent` was already `true`.
+  An explicit `null` at the requested location is unchanged.
+- **Changed** `PickException` messages are multi-line with escaped values and paths, and `toString()` returns `PickException: <message>` instead of `PickException(<message>)`.
+- **New** `PickException.fromPick(pick, 'expected a Timestamp')` gives custom parsers the same error message as the built-in ones.
+- **Deprecated** `Pick.debugParsingExit`, throw `PickException.fromPick` instead.
+
 ## 1.1.0 (`30.08.24`)
 
 - Allow `.letOrNull((pick) => null)` to return `null` without manually setting a nullable type [#61](https://github.com/passsy/deep_pick/pull/61)
@@ -11,7 +21,6 @@
 - Add support for timezones in `asDateTime*` methods [#47](https://github.com/passsy/deep_pick/pull/47), [#51](https://github.com/passsy/deep_pick/pull/51)
 - Add official support for date formats `RFC 3339`, `RFC 2822` and `RFC 1036`
 - Push test coverage to 100% 🤘
-
 
 ## 0.10.0 (`01.10.21`)
 

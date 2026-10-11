@@ -92,6 +92,9 @@ extension NullableDateTimePick on Pick {
     if (value is DateTime) {
       return value;
     }
+    if (value is! String) {
+      throw PickException.fromPick(this, 'expected a DateTime');
+    }
 
     final Map<PickDateFormat, DateTime? Function()> formats = {
       PickDateFormat.ISO_8601: _parseIso8601,
@@ -100,34 +103,30 @@ extension NullableDateTimePick on Pick {
       PickDateFormat.ANSI_C_asctime: _parseAnsiCAsctime,
     };
 
-    if (format != null) {
-      // Use one specific format
-      final dateTime = formats[format]!();
-      if (dateTime != null) {
-        return dateTime;
-      }
-
-      throw PickException(
-        'Type ${value.runtimeType} of $debugParsingExit can not be parsed as DateTime using $format',
-      );
-    }
-
-    // Try all available formats
-    final errorsByFormat = <PickDateFormat, Object>{};
-    for (final entry in formats.entries) {
+    final selectedFormats =
+        format == null ? formats : {format: formats[format]!};
+    for (final entry in selectedFormats.entries) {
       try {
         final dateTime = entry.value();
         if (dateTime != null) {
           return dateTime;
         }
-      } catch (e) {
-        errorsByFormat[entry.key] = e;
+      } catch (_) {
+        // A parser that throws did not match, like one that returns null.
       }
     }
 
-    throw PickException(
-      'Type ${value.runtimeType} of $debugParsingExit can not be parsed as DateTime. '
-      'The different parsers produced the following errors: $errorsByFormat',
+    final detail = () {
+      if (format != null) {
+        return 'does not match $format';
+      }
+      return 'no known format matched (ISO 8601, RFC 1123, RFC 850, asctime)';
+    }();
+
+    throw PickException.fromPick(
+      this,
+      'could not parse a DateTime',
+      detail: detail,
     );
   }
 

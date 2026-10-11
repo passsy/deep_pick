@@ -47,12 +47,15 @@ extension NullableListPick on Pick {
     final value = required().value;
     if (value is List) {
       final result = <T>[];
+      // the hint is advice for the list, an element has its own location
+      // and parser
+      final itemContext = Map.of(context)..remove(requiredPickErrorHintKey);
       var index = -1;
       for (final item in value) {
         index++;
         if (item != null) {
           final picked =
-              RequiredPick(item, path: [...path, index], context: context);
+              RequiredPick(item, path: [...path, index], context: itemContext);
           result.add(map(picked));
           continue;
         }
@@ -60,23 +63,12 @@ extension NullableListPick on Pick {
           // skip null items when whenNull isn't provided
           continue;
         }
-        try {
-          final pick = Pick(null, path: [...path, index], context: context);
-          result.add(whenNull(pick));
-          continue;
-        } catch (e) {
-          // ignore: avoid_print
-          print(
-            'whenNull at location $debugParsingExit index: $index crashed instead of returning a $T',
-          );
-          rethrow;
-        }
+        final pick = Pick(null, path: [...path, index], context: itemContext);
+        result.add(whenNull(pick));
       }
       return result;
     }
-    throw PickException(
-      'Type ${value.runtimeType} of $debugParsingExit can not be casted to List<dynamic>',
-    );
+    throw PickException.fromPick(this, 'expected a List');
   }
 
   /// Returns the picked [value] as [List]. This method throws when [value] is
