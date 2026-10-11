@@ -108,25 +108,6 @@ Pick _pickFromRoot(
   return _drillDown(root, selectors);
 }
 
-/// Whether [data] holds something at [selector], which may be `null`
-bool _hasChild(/*Map|List|null*/ dynamic data, Object selector) {
-  if (data is List) {
-    return selector is int && selector >= 0 && selector < data.length;
-  }
-  if (data is Map) {
-    return data.containsKey(selector);
-  }
-  return false;
-}
-
-/// The value [data] holds at [selector], ask [_hasChild] first
-dynamic _childOf(/*Map|List*/ dynamic data, Object selector) {
-  if (data is List) {
-    return data[selector as int];
-  }
-  return (data as Map)[selector];
-}
-
 /// Traverses the value of [parent] along [selectors]
 Pick _drillDown(
   Pick parent,
@@ -168,6 +149,25 @@ Pick _drillDown(
     data = child;
   }
   return Pick._from(parent, data, path: fullPath, context: context);
+}
+
+/// Whether [data] holds something at [selector], which may be `null`
+bool _hasChild(/*Map|List|null*/ dynamic data, Object selector) {
+  if (data is List) {
+    return selector is int && selector >= 0 && selector < data.length;
+  }
+  if (data is Map) {
+    return data.containsKey(selector);
+  }
+  return false;
+}
+
+/// The value [data] holds at [selector], ask [_hasChild] first
+dynamic _childOf(/*Map|List*/ dynamic data, Object selector) {
+  if (data is List) {
+    return data[selector as int];
+  }
+  return (data as Map)[selector];
 }
 
 /// What the data holds right before the segment [absent] is missing
