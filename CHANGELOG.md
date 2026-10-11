@@ -8,6 +8,8 @@
   An explicit `null` at the requested location is unchanged.
 - **Changed** `PickException` messages are multi-line with escaped values and paths, and `toString()` returns `PickException: <message>` instead of `PickException(<message>)`.
 - **New** `PickException.fromPick(pick, 'expected a Timestamp')` gives custom parsers the same error message as the built-in ones.
+- **New** `Pick.redactValues()` and `RequiredPick.redactValues()` return independent views that mask diagnostic values while retaining keys and types.
+  `redactValues(enabled: kReleaseMode)` switches it at runtime, and `Pick.redactsValues` lets custom parsers follow the same rule.
 - **Deprecated** `Pick.debugParsingExit`, throw `PickException.fromPick` instead.
 
 ## 1.1.0 (`30.08.24`)
