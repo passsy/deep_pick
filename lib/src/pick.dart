@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:convert';
 
 /// Picks a values from a [json] String at location arg0, arg1...
@@ -119,10 +120,41 @@ Pick _pickFromRoot(
   return _drillDown(root, selectors, context: {});
 }
 
+/// A path that was built by this library and frozen without a copy, because
+/// nobody else holds the list behind it
+class _FrozenPath extends UnmodifiableListView<Object> {
+  _FrozenPath(this._source) : super(_source);
+
+  final List<Object> _source;
+}
+
+/// A new list of [path] followed by [selectors]
+List<Object> _extended(List<Object> path, List<Object> selectors) {
+  // copying from the list behind a frozen path is a lot faster than iterating
+  // the view in front of it
+  final source = path is _FrozenPath ? path._source : path;
+  return [...source, ...selectors];
+}
+
+/// [path] as a list nobody can change, neither through the pick nor through
+/// the list the caller passed in
+List<Object> _snapshotOf(List<Object> path) {
+  if (path is _FrozenPath) {
+    // already the path of a pick, i.e. when a pick is required()
+    return path;
+  }
+  if (path.isEmpty) {
+    return const [];
+  }
+  // the list belongs to the caller, it is copied and frozen
+  return _FrozenPath(List.of(path));
+}
+
 /// Traverses the value of [parent] along [selectors]
 ///
-/// The returned pick keeps [context] as its own, it is not copied.
-/// Its path is an unmodifiable snapshot of the full selectors.
+/// The returned pick keeps [context] as its own, it is not copied. The same
+/// goes for [selectors], which become the path of a pick from the root. The
+/// caller hands over a map and a list nobody else holds.
 ///
 /// This runs for every pick. A value that is found costs one lookup per
 /// selector, everything about a path that breaks is worked out only then.
@@ -132,7 +164,7 @@ Pick _drillDown(
   required Map<String, dynamic> context,
 }) {
   final fullPath =
-      parent.path.isEmpty ? selectors : [...parent.path, ...selectors];
+      parent.path.isEmpty ? selectors : _extended(parent.path, selectors);
   final lastIndex = selectors.length - 1;
   /*Map|List|null*/ dynamic data = parent.value;
   for (var i = 0; i < selectors.length; i++) {
@@ -232,7 +264,7 @@ class Pick {
     this.value, {
     List<Object> path = const [],
     Map<String, dynamic>? context,
-  })  : path = List.unmodifiable(path),
+  })  : path = _snapshotOf(path),
         missingValueAtIndex = null,
         _parent = null,
         context = context != null ? Map.of(context) : {};
@@ -251,7 +283,7 @@ class Pick {
     int this.missingValueAtIndex, {
     List<Object> path = const [],
     Map<String, Object?>? context,
-  })  : path = List.unmodifiable(path),
+  })  : path = _snapshotOf(path),
         value = null,
         _parent = null,
         context = context != null ? Map.of(context) : {};
@@ -259,14 +291,15 @@ class Pick {
   /// A pick that was picked from [parent], absent when it comes with a
   /// [missingValueAtIndex]. Only absent picks retain [parent] for diagnostics.
   ///
-  /// Keeps [context] as its own without copying it.
+  /// Keeps [context] and [path] as its own without copying them, the caller
+  /// hands over a map and a list nobody else holds.
   Pick._from(
     Pick? parent,
     this.value, {
     required List<Object> path,
     required this.context,
     this.missingValueAtIndex,
-  })  : path = List.unmodifiable(path),
+  })  : path = _FrozenPath(path),
         _parent = missingValueAtIndex == null ? null : parent;
 
   /// The picked value, might be `null`
@@ -381,7 +414,7 @@ class Pick {
       return Pick._from(
         _parent,
         null,
-        path: [...path, ...selectors],
+        path: _extended(path, selectors),
         context: Map.of(context),
         missingValueAtIndex: missingIndex,
       );
