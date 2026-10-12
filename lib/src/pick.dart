@@ -100,51 +100,70 @@ Pick _pickFromRoot(
   /*Map|List|null*/ dynamic json,
   List< /*String|int*/ Object> selectors,
 ) {
-  final root = Pick(json);
   if (selectors.isEmpty) {
     // nothing to traverse, the root is the picked value
-    return root;
+    return Pick(json);
   }
-  return _drillDown(root, selectors);
+  // This root is only the parent of the returned pick and never handed out,
+  // nobody can write to its context. It gets by without a map of its own.
+  final root = Pick._from(null, json, path: const [], context: const {});
+  return _drillDown(root, selectors, context: {});
 }
 
 /// Traverses the value of [parent] along [selectors]
+///
+/// The returned pick keeps [context] as its own, it is not copied.
+///
+/// This runs for every pick. A value that is found costs one lookup per
+/// selector, everything about a path that breaks is worked out only then.
 Pick _drillDown(
   Pick parent,
   List< /*String|int*/ Object> selectors, {
-  Map<String, dynamic>? context,
+  required Map<String, dynamic> context,
 }) {
   final fullPath = [...parent.path, ...selectors];
+  final lastIndex = selectors.length - 1;
   /*Map|List|null*/ dynamic data = parent.value;
   for (var i = 0; i < selectors.length; i++) {
     final selector = selectors[i];
-    // index of [selector] inside [fullPath], not inside [selectors]
-    final selectorIndex = parent.path.length + i;
-    if (data is Set && selector is int) {
-      final unpickable = Pick._from(parent, null,
-          path: fullPath, context: context, missingValueAtIndex: selectorIndex);
-      throw PickException(
-        _renderErrorMessage(
-          unpickable,
-          headline: 'cannot pick by index at ${_describeLocation(fullPath)}, '
-              'it is a Set',
-        ),
-      );
-    }
-    if (!_hasChild(data, selector)) {
+    final dynamic child;
+    if (data is Map) {
+      child = data[selector];
+      if (child == null && !data.containsKey(selector)) {
+        return Pick._from(parent, null,
+            path: fullPath,
+            context: context,
+            missingValueAtIndex: parent.path.length + i);
+      }
+    } else if (data is List &&
+        selector is int &&
+        selector >= 0 &&
+        selector < data.length) {
+      child = data[selector];
+    } else {
       // can't drill down any more to find the exact location.
-      return Pick._from(parent, null,
-          path: fullPath, context: context, missingValueAtIndex: selectorIndex);
+      final unreachable = Pick._from(parent, null,
+          path: fullPath,
+          context: context,
+          missingValueAtIndex: parent.path.length + i);
+      if (data is Set && selector is int) {
+        throw PickException(
+          _renderErrorMessage(
+            unreachable,
+            headline: 'cannot pick by index at '
+                '${_describeLocation(fullPath)}, it is a Set',
+          ),
+        );
+      }
+      return unreachable;
     }
-    final dynamic child = _childOf(data, selector);
     // a `null` at the last segment is the result, anywhere else a dead end
-    final isLastSelector = i == selectors.length - 1;
-    if (child == null && !isLastSelector) {
+    if (child == null && i != lastIndex) {
       // null can't be drilled into, the next segment is unreachable
       return Pick._from(parent, null,
           path: fullPath,
           context: context,
-          missingValueAtIndex: selectorIndex + 1);
+          missingValueAtIndex: parent.path.length + i + 1);
     }
     data = child;
   }
@@ -227,15 +246,16 @@ class Pick {
 
   /// A pick that was picked from [parent], absent when it comes with a
   /// [missingValueAtIndex]
+  ///
+  /// Keeps [context] as its own without copying it.
   Pick._from(
     Pick? parent,
     this.value, {
     required this.path,
-    required Map<String, dynamic>? context,
+    required this.context,
     int? missingValueAtIndex,
   })  : _parent = parent,
-        _missingValueAtIndex = missingValueAtIndex,
-        context = context != null ? Map.of(context) : {};
+        _missingValueAtIndex = missingValueAtIndex;
 
   /// The picked value, might be `null`
   final Object? value;
@@ -341,15 +361,15 @@ class Pick {
         _parent,
         null,
         path: [...path, ...selectors],
-        context: context,
+        context: Map.of(context),
         missingValueAtIndex: missingIndex,
       );
     }
-    var childContext = context;
+    final childContext = Map.of(context);
     if (selectors.isNotEmpty) {
       // the hint is advice for this pick, a pick further down the path has
       // its own location and parser
-      childContext = Map.of(context)..remove(requiredPickErrorHintKey);
+      childContext.remove(requiredPickErrorHintKey);
     }
     return _drillDown(this, selectors, context: childContext);
   }
