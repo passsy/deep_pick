@@ -233,7 +233,7 @@ class Pick {
     this.value, {
     this.path = const [],
     Map<String, dynamic>? context,
-  })  : _missingValueAtIndex = null,
+  })  : missingValueAtIndex = null,
         _parent = null,
         context = context != null ? Map.of(context) : {};
 
@@ -248,11 +248,10 @@ class Pick {
   /// Pick({'id': 1}, path: ['shoes'])('name'); // absent, {'id': 1} has no name
   /// ```
   Pick.absent(
-    int missingValueAtIndex, {
+    int this.missingValueAtIndex, {
     this.path = const [],
     Map<String, Object?>? context,
   })  : value = null,
-        _missingValueAtIndex = missingValueAtIndex,
         _parent = null,
         context = context != null ? Map.of(context) : {};
 
@@ -265,9 +264,8 @@ class Pick {
     this.value, {
     required this.path,
     required this.context,
-    int? missingValueAtIndex,
-  })  : _parent = parent,
-        _missingValueAtIndex = missingValueAtIndex;
+    this.missingValueAtIndex,
+  }) : _parent = parent;
 
   /// The picked value, might be `null`
   final Object? value;
@@ -332,8 +330,7 @@ class Pick {
 
   /// When the picked value is unavailable ([Pick.isAbsent]) the index in
   /// [path] which couldn't be found
-  int? get missingValueAtIndex => _missingValueAtIndex;
-  final int? _missingValueAtIndex;
+  final int? missingValueAtIndex;
 
   /// The full path to [value] inside of the object
   ///
