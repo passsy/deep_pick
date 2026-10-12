@@ -521,6 +521,59 @@ void main() {
       expect(_requiredError(continued), _requiredError(missing));
     });
 
+    group('paths snapshot their input and reject mutation', () {
+      final constructors = <String, Pick Function(List<Object>)>{
+        'Pick': (path) => Pick(1, path: path),
+        'Pick.absent': (path) => Pick.absent(0, path: path),
+        'RequiredPick': (path) => RequiredPick(1, path: path),
+      };
+      for (final entry in constructors.entries) {
+        test(entry.key, () {
+          final source = <Object>['root'];
+          final selected = entry.value(source);
+          expect(selected.path, ['root']);
+
+          source.add('later');
+          expect(selected.path, ['root']);
+          expect(() => selected.path.add('later'), throwsUnsupportedError);
+          expect(() => selected.path[0] = 'other', throwsUnsupportedError);
+          expect(selected.path, ['root']);
+        });
+      }
+
+      test('an absent child keeps its diagnostic location', () {
+        final source = <Object>['root'];
+        final parent = Pick(<String, Object?>{}, path: source);
+        final child = parent('missing');
+        expect(child.isAbsent, isTrue);
+        expect(child.missingValueAtIndex, 1);
+        final message = _requiredError(child);
+
+        source.add('later');
+        expect(() => parent.path.add('later'), throwsUnsupportedError);
+        expect(child.path, ['root', 'missing']);
+        expect(_requiredError(child), message);
+        expect(message, contains('root.missing'));
+      });
+
+      test('traversal and nullable views expose unmodifiable paths', () {
+        final root = pick({'a': 1});
+        final results = [
+          pick({'a': 1}, 'a'),
+          pickDeep({'a': 1}, ['a']),
+          root('a'),
+          root('missing'),
+          root('missing')('child'),
+          root('a').required().nullable(),
+        ];
+        for (final result in results) {
+          final original = List<Object>.of(result.path);
+          expect(() => result.path.clear(), throwsUnsupportedError);
+          expect(result.path, original);
+        }
+      });
+    });
+
     test('a pick keeps its path when the selector list changes later', () {
       final selectors = <Object>['a'];
       final deep = pickDeep({'a': 1}, selectors);
@@ -531,7 +584,7 @@ void main() {
       // the path of a top-level pick is its own list as well
       final first = pick({'a': 1}, 'a');
       final second = pick({'a': 1}, 'a');
-      first.path.add('changed');
+      expect(() => first.path.add('changed'), throwsUnsupportedError);
       expect(second.path, ['a']);
     });
 

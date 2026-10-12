@@ -231,9 +231,10 @@ class Pick {
   /// [isAbsent] will always return `false`.
   Pick(
     this.value, {
-    this.path = const [],
+    List<Object> path = const [],
     Map<String, dynamic>? context,
-  })  : missingValueAtIndex = null,
+  })  : path = List.unmodifiable(path),
+        missingValueAtIndex = null,
         _parent = null,
         context = context != null ? Map.of(context) : {};
 
@@ -249,9 +250,10 @@ class Pick {
   /// ```
   Pick.absent(
     int this.missingValueAtIndex, {
-    this.path = const [],
+    List<Object> path = const [],
     Map<String, Object?>? context,
-  })  : value = null,
+  })  : path = List.unmodifiable(path),
+        value = null,
         _parent = null,
         context = context != null ? Map.of(context) : {};
 
@@ -262,10 +264,11 @@ class Pick {
   Pick._from(
     Pick? parent,
     this.value, {
-    required this.path,
+    required List<Object> path,
     required this.context,
     this.missingValueAtIndex,
-  }) : _parent = parent;
+  })  : path = List.unmodifiable(path),
+        _parent = parent;
 
   /// The picked value, might be `null`
   final Object? value;
@@ -335,6 +338,9 @@ class Pick {
   /// The full path to [value] inside of the object
   ///
   /// I.e. `['shoes', 0, 'name']`
+  ///
+  /// An unmodifiable snapshot of the selectors supplied when this pick was
+  /// created. Later changes to the caller's list do not change the location.
   final List<Object> path;
 
   /// The path segments containing non-null values parsing could follow along
