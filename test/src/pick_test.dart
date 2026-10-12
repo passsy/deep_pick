@@ -521,6 +521,28 @@ void main() {
       expect(_requiredError(continued), _requiredError(missing));
     });
 
+    test('a pick keeps its path when the selector list changes later', () {
+      final selectors = <Object>['a'];
+      final deep = pickDeep({'a': 1}, selectors);
+      selectors.add('b');
+      expect(deep.path, ['a']);
+      expect(deep.value, 1);
+
+      // the path of a top-level pick is its own list as well
+      final first = pick({'a': 1}, 'a');
+      final second = pick({'a': 1}, 'a');
+      first.path.add('changed');
+      expect(second.path, ['a']);
+    });
+
+    test('unused arguments in between are skipped', () {
+      final skipped = pick({
+        'a': {'b': 1}
+      }, null, 'a', null, 'b');
+      expect(skipped.path, ['a', 'b']);
+      expect(skipped.value, 1);
+    });
+
     test('the original missing node survives continuation', () {
       final root = pick({'secret': 'PRIVATE'});
       final missing = root('missing');

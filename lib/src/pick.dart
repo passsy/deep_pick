@@ -74,11 +74,19 @@ Pick pick(
   /*String|int|null*/ Object? arg8,
   /*String|int|null*/ Object? arg9,
 ]) {
-  final selectors = [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9]
-      // null is a sign for unused 'varargs'
-      .where((dynamic it) => it != null)
-      .cast<Object>()
-      .toList(growable: false);
+  // null is a sign for unused 'varargs'
+  final selectors = <Object>[
+    if (arg0 != null) arg0,
+    if (arg1 != null) arg1,
+    if (arg2 != null) arg2,
+    if (arg3 != null) arg3,
+    if (arg4 != null) arg4,
+    if (arg5 != null) arg5,
+    if (arg6 != null) arg6,
+    if (arg7 != null) arg7,
+    if (arg8 != null) arg8,
+    if (arg9 != null) arg9,
+  ];
   return _pickFromRoot(json, selectors);
 }
 
@@ -92,7 +100,8 @@ Pick pickDeep(
   /*Map|List|null*/ dynamic json,
   List< /*String|int*/ Object> selector,
 ) {
-  return _pickFromRoot(json, selector);
+  // the list belongs to the caller, the pick gets its own
+  return _pickFromRoot(json, [...selector]);
 }
 
 /// Picks from the root [json] along [selectors]
@@ -112,7 +121,9 @@ Pick _pickFromRoot(
 
 /// Traverses the value of [parent] along [selectors]
 ///
-/// The returned pick keeps [context] as its own, it is not copied.
+/// The returned pick keeps [context] as its own, it is not copied. The same
+/// goes for [selectors], which become the path of a pick from the root. The
+/// caller hands over a map and a list nobody else holds.
 ///
 /// This runs for every pick. A value that is found costs one lookup per
 /// selector, everything about a path that breaks is worked out only then.
@@ -121,7 +132,8 @@ Pick _drillDown(
   List< /*String|int*/ Object> selectors, {
   required Map<String, dynamic> context,
 }) {
-  final fullPath = [...parent.path, ...selectors];
+  final fullPath =
+      parent.path.isEmpty ? selectors : [...parent.path, ...selectors];
   final lastIndex = selectors.length - 1;
   /*Map|List|null*/ dynamic data = parent.value;
   for (var i = 0; i < selectors.length; i++) {
@@ -347,12 +359,19 @@ class Pick {
     Object? arg8,
     Object? arg9,
   ]) {
-    final selectors =
-        [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9]
-            // null is a sign for unused 'varargs'
-            .where((Object? it) => it != null)
-            .cast<Object>()
-            .toList(growable: false);
+    // null is a sign for unused 'varargs'
+    final selectors = <Object>[
+      if (arg0 != null) arg0,
+      if (arg1 != null) arg1,
+      if (arg2 != null) arg2,
+      if (arg3 != null) arg3,
+      if (arg4 != null) arg4,
+      if (arg5 != null) arg5,
+      if (arg6 != null) arg6,
+      if (arg7 != null) arg7,
+      if (arg8 != null) arg8,
+      if (arg9 != null) arg9,
+    ];
 
     final missingIndex = missingValueAtIndex;
     if (missingIndex != null) {
