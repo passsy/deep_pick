@@ -121,9 +121,8 @@ Pick _pickFromRoot(
 
 /// Traverses the value of [parent] along [selectors]
 ///
-/// The returned pick keeps [context] as its own, it is not copied. The same
-/// goes for [selectors], which become the path of a pick from the root. The
-/// caller hands over a map and a list nobody else holds.
+/// The returned pick keeps [context] as its own, it is not copied.
+/// Its path is an unmodifiable snapshot of the full selectors.
 ///
 /// This runs for every pick. A value that is found costs one lookup per
 /// selector, everything about a path that breaks is worked out only then.
@@ -258,7 +257,7 @@ class Pick {
         context = context != null ? Map.of(context) : {};
 
   /// A pick that was picked from [parent], absent when it comes with a
-  /// [missingValueAtIndex]
+  /// [missingValueAtIndex]. Only absent picks retain [parent] for diagnostics.
   ///
   /// Keeps [context] as its own without copying it.
   Pick._from(
@@ -268,13 +267,13 @@ class Pick {
     required this.context,
     this.missingValueAtIndex,
   })  : path = List.unmodifiable(path),
-        _parent = parent;
+        _parent = missingValueAtIndex == null ? null : parent;
 
   /// The picked value, might be `null`
   final Object? value;
 
-  /// The pick this one was picked from, `null` for a pick built with a
-  /// constructor
+  /// The source of an absent pick, `null` for a successful pick or a pick
+  /// built with a public constructor
   ///
   /// The error message of an absent pick looks up in it what the data held
   /// where the path broke.
