@@ -2,11 +2,34 @@
 
 ## 1.2.0 (`10.10.26`)
 
-- **Fix** Chained picks report and preserve the missing segment in the full path. [#64](https://github.com/passsy/deep_pick/pull/64)
+- Error messages point at the segment that is missing and show what the data holds there. [#64](https://github.com/passsy/deep_pick/pull/64)
+  For `pick(json, 'shoes')(0)('name').asStringOrThrow()`, a chained pick used to blame `shoes`.
+
+  ```text
+  // 1.1.0
+  PickException(Expected a non-null value but location "shoes" in pick(json, "shoes" (absent), 0, "name") is absent. Use asStringOrNull() when the value may be null/absent at some point (String?).)
+
+  // 1.2.0
+  PickException: expected a non-null value at shoes[0].name, but it is absent
+
+    query   shoes[0].name
+                     ~~~~ no such key
+    at      shoes[0] = {"id": 42, "size": "M"}
+    hint    Use asStringOrNull() when the value may be null/absent at some point (String?).
+  ```
+
+  A value that can't be parsed is shown with its type, and large values are shortened.
+
+  ```text
+  PickException: could not parse an int at shoes[0].size
+
+    query   shoes[0].size
+    found   "M"  (a String)
+  ```
+
 - **Fix** `Pick.isAbsent` is `true` below a `null`, however the path is written.
   `pick({'a': null}, 'a', 'b').isAbsent` was `false`, while `pick({'a': null}, 'a')('b').isAbsent` was already `true`.
   An explicit `null` at the requested location is unchanged.
-- **Changed** `PickException` messages are multi-line with escaped values and paths, and `toString()` returns `PickException: <message>` instead of `PickException(<message>)`.
 - **New** `PickException.fromPick(pick, 'expected a Timestamp')` gives custom parsers the same error message as the built-in ones.
 - **Deprecated** `Pick.debugParsingExit`, throw `PickException.fromPick` instead.
 
