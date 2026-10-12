@@ -114,10 +114,15 @@ Pick _pickFromRoot(
     // nothing to traverse, the root is the picked value
     return Pick(json);
   }
-  // This root is only the parent of the returned pick and never handed out,
-  // nobody can write to its context. It gets by without a map of its own.
-  final root = Pick._from(null, json, path: const [], context: const {});
-  return _drillDown(root, selectors, context: {});
+  return _drillDown(json, selectors, parent: null, context: {});
+}
+
+/// The pick of the root [json], as the parent of an absent top-level pick
+///
+/// It is never handed out, nobody can write to its context. It gets by
+/// without a map of its own.
+Pick _rootOf(/*Map|List|null*/ dynamic json) {
+  return Pick._from(null, json, path: const [], context: const {});
 }
 
 /// A path that was built by this library and frozen without a copy, because
@@ -150,7 +155,10 @@ List<Object> _snapshotOf(List<Object> path) {
   return _FrozenPath(List.of(path));
 }
 
-/// Traverses the value of [parent] along [selectors]
+/// Traverses [start] along [selectors]
+///
+/// [parent] is the pick [start] is the value of. A top-level pick has none,
+/// only an absent pick keeps its parent and the root is created for it then.
 ///
 /// The returned pick keeps [context] as its own, it is not copied. The same
 /// goes for [selectors], which become the path of a pick from the root. The
@@ -159,24 +167,26 @@ List<Object> _snapshotOf(List<Object> path) {
 /// This runs for every pick. A value that is found costs one lookup per
 /// selector, everything about a path that breaks is worked out only then.
 Pick _drillDown(
-  Pick parent,
+  /*Map|List|null*/ dynamic start,
   List< /*String|int*/ Object> selectors, {
+  required Pick? parent,
   required Map<String, dynamic> context,
 }) {
+  final parentPath = parent == null ? const <Object>[] : parent.path;
   final fullPath =
-      parent.path.isEmpty ? selectors : _extended(parent.path, selectors);
+      parentPath.isEmpty ? selectors : _extended(parentPath, selectors);
   final lastIndex = selectors.length - 1;
-  /*Map|List|null*/ dynamic data = parent.value;
+  /*Map|List|null*/ dynamic data = start;
   for (var i = 0; i < selectors.length; i++) {
     final selector = selectors[i];
     final dynamic child;
     if (data is Map) {
       child = data[selector];
       if (child == null && !data.containsKey(selector)) {
-        return Pick._from(parent, null,
+        return Pick._from(parent ?? _rootOf(start), null,
             path: fullPath,
             context: context,
-            missingValueAtIndex: parent.path.length + i);
+            missingValueAtIndex: parentPath.length + i);
       }
     } else if (data is List &&
         selector is int &&
@@ -185,10 +195,10 @@ Pick _drillDown(
       child = data[selector];
     } else {
       // can't drill down any more to find the exact location.
-      final unreachable = Pick._from(parent, null,
+      final unreachable = Pick._from(parent ?? _rootOf(start), null,
           path: fullPath,
           context: context,
-          missingValueAtIndex: parent.path.length + i);
+          missingValueAtIndex: parentPath.length + i);
       if (data is Set && selector is int) {
         throw PickException(
           _renderErrorMessage(
@@ -203,10 +213,10 @@ Pick _drillDown(
     // a `null` at the last segment is the result, anywhere else a dead end
     if (child == null && i != lastIndex) {
       // null can't be drilled into, the next segment is unreachable
-      return Pick._from(parent, null,
+      return Pick._from(parent ?? _rootOf(start), null,
           path: fullPath,
           context: context,
-          missingValueAtIndex: parent.path.length + i + 1);
+          missingValueAtIndex: parentPath.length + i + 1);
     }
     data = child;
   }
@@ -425,7 +435,7 @@ class Pick {
       // its own location and parser
       childContext.remove(requiredPickErrorHintKey);
     }
-    return _drillDown(this, selectors, context: childContext);
+    return _drillDown(value, selectors, parent: this, context: childContext);
   }
 
   /// Enter a "required" context which requires the picked value to be non-null
