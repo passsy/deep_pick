@@ -224,6 +224,8 @@ pick([1, null, 3]).asListOrNull(
 // [1, 25, 3]
 ```
 
+For the `null` values of a `Map`, the same function is called [`whenNullValue`](#whennullvalue).
+
 ### `Map`
 
 Picking the `Map` is rarely used, because `Pick` itself grants further picking using the `.call(args)` method.
@@ -234,6 +236,8 @@ pick(json).asMapOrNull<String, dynamic>();
 pick(json).asMapOrThrow<String, dynamic>();
 pick(json).asMapOrEmpty<String, dynamic>();
 ```
+
+To parse the entries instead of casting them, see [Mapping the keys and values of a `Map`](#mapping-the-keys-and-values-of-a-map).
 
 ### JSON objects
 
@@ -258,9 +262,13 @@ pick({'a': 1, 2: 'two'}).asJsonObjectOrThrow();
 // {'a': 1}
 ```
 
-#### Mapping keys and values
+### Mapping the keys and values of a `Map`
 
-`asJsonObject*` and `asMap*` take a `mapValue` function that parses each value, like the mapper of `asList*` does for the items of a list.
+`asMap*` and `asJsonObject*` take three optional functions to parse the entries: `mapValue`, `whenNullValue` and `mapKey`.
+
+#### mapValue
+
+`mapValue` parses each value, like the mapper of `asList*` does for the items of a list.
 
 ```dart
 // {"nike": {"id": "421"}, "adidas": {"id": "532"}}
@@ -269,8 +277,10 @@ Map<String, Shoe> shoes = pick(json).asJsonObjectOrEmpty(mapValue: Shoe.fromPick
 
 An error inside a value reports the full location, like `adidas.id`.
 
-Entries with a `null` value are ignored, like `null` items of a list.
-Use `whenNullValue` to map them as well.
+#### whenNullValue
+
+`mapValue` ignores entries with a `null` value, like `asList*` ignores `null` items.
+Use `whenNullValue` to map them as well, it is the `whenNull` of maps.
 
 ```dart
 // {"nike": {"id": "421"}, "reebok": null}
@@ -278,7 +288,10 @@ Map<String, Shoe?> shoes = pick(json).asJsonObjectOrEmpty(
   mapValue: Shoe.fromPick,
   whenNullValue: (pick) => null,
 );
+// reebok is kept, with a null value
 ```
+
+#### mapKey
 
 `mapKey` converts the keys.
 It receives a pick of the key, so the usual parsers work on it.
