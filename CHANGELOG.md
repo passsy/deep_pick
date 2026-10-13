@@ -22,9 +22,9 @@
     found   "M"  (a String)
   ```
 
-- **New** `asJsonObjectOrThrow()`, `asJsonObjectOrEmpty()` and `asJsonObjectOrNull()` return a `Map<String, Object?>` that goes straight into a `fromJson` function, no type arguments needed.
+- **New** `asJsonObjectOrThrow()`, `asJsonObjectOrEmpty()` and `asJsonObjectOrNull()` return a `Map<String, Object?>` that goes straight into a `fromJson` function, no type arguments needed [#70](https://github.com/passsy/deep_pick/pull/70).
   Entries with a key that isn't a `String` are ignored.
-- **New** `asJsonObjectListOrThrow()`, `asJsonObjectListOrEmpty()` and `asJsonObjectListOrNull()` for a list of JSON objects.
+- **New** `asJsonObjectListOrThrow()`, `asJsonObjectListOrEmpty()` and `asJsonObjectListOrNull()` for a list of JSON objects [#70](https://github.com/passsy/deep_pick/pull/70).
 
   ```dart
   // before
@@ -33,16 +33,16 @@
   pick(json, 'users').asJsonObjectListOrEmpty();
   ```
 
-- **New** `asMapListOrThrow<K, V>()`, `asMapListOrEmpty<K, V>()` and `asMapListOrNull<K, V>()` for a list of maps with any key type.
-- **Fix** `Pick.isAbsent` is `true` below a `null`, however the path is written.
+- **New** `asMapListOrThrow<K, V>()`, `asMapListOrEmpty<K, V>()` and `asMapListOrNull<K, V>()` for a list of maps with any key type [#70](https://github.com/passsy/deep_pick/pull/70).
+- **Fix** `Pick.isAbsent` is `true` below a `null`, however the path is written [#64](https://github.com/passsy/deep_pick/pull/64).
   `pick({'a': null}, 'a', 'b').isAbsent` was `false`, while `pick({'a': null}, 'a')('b').isAbsent` was `true`.
-- **New** `PickException.fromPick(pick, 'expected a Timestamp')` but honestly, nobody outside deep_pick should call it.
+- **New** `PickException.fromPick(pick, 'expected a Timestamp')` lets custom parsers throw errors like the built-in ones [#64](https://github.com/passsy/deep_pick/pull/64).
 - **New** `Pick.redactValues()` masks error values while keeping keys and types visible; `Pick.redactsValues` exposes the policy to custom parsers and `RequiredPick.redactValues()` preserves non-null chaining [#65](https://github.com/passsy/deep_pick/pull/65).
 - **Fix** `as*OrThrow()` and `letOrThrow()` no longer leave an internal `_required_pick_error_hint` entry in `Pick.context`.
   That also makes them as fast as their `OrNull` counterparts [#68](https://github.com/passsy/deep_pick/pull/68).
 - **Deprecated** `Pick.path`, `Pick.missingValueAtIndex`, `Pick.followablePath` and `Pick.debugParsingExit`.
   The error message of a `PickException` shows where a pick failed.
-  A custom parser that built its message from them throws `PickException.fromPick(this, 'expected a Foo')` instead.
+  A custom parser that built its message from them throws `PickException.fromPick(this, 'expected a Foo')` instead [#69](https://github.com/passsy/deep_pick/pull/69).
 
 ## 1.1.0 (`30.08.24`)
 
