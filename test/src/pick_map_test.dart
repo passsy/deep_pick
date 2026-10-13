@@ -661,6 +661,77 @@ void main() {
       );
     });
   });
+  group('empty/null map parser callback contracts', () {
+    final parsers = <String,
+        Map<String, int>? Function({
+      String Function(Pick)? mapKey,
+      int Function(RequiredPick)? mapValue,
+      int Function(Pick)? whenNullValue,
+    })
+            Function(Pick)>{
+      'asMapOrEmpty': (p) => p.asMapOrEmpty,
+      'asMapOrNull': (p) => p.asMapOrNull,
+      'asJsonObjectOrEmpty': (p) => p.asJsonObjectOrEmpty,
+      'asJsonObjectOrNull': (p) => p.asJsonObjectOrNull,
+    };
+
+    for (final entry in parsers.entries) {
+      group(entry.key, () {
+        test('maps a present null entry and preserves its key', () {
+          final parse = entry.value(pick({'a': null, 'b': 2}));
+          final result = parse(whenNullValue: (p) {
+            expect(p.value, isNull);
+            expect(p.isAbsent, isFalse);
+            return 7;
+          });
+          expect(result, {'a': 7, 'b': 2});
+        });
+
+        test('propagates mapValue failures', () {
+          final error = StateError('value callback failed');
+          final parse = entry.value(pick({'a': 1}));
+          expect(
+            () {
+              return parse(mapValue: (p) {
+                expect(p.value, 1);
+                throw error;
+              });
+            },
+            throwsA(same(error)),
+          );
+        });
+
+        test('propagates mapKey failures', () {
+          final error = StateError('key callback failed');
+          final parse = entry.value(pick({'a': 1}));
+          expect(
+            () {
+              return parse(mapKey: (p) {
+                expect(p.value, 'a');
+                throw error;
+              });
+            },
+            throwsA(same(error)),
+          );
+        });
+
+        test('propagates whenNullValue failures', () {
+          final error = StateError('null callback failed');
+          final parse = entry.value(pick({'a': null}));
+          expect(
+            () {
+              return parse(whenNullValue: (p) {
+                expect(p.value, isNull);
+                expect(p.isAbsent, isFalse);
+                throw error;
+              });
+            },
+            throwsA(same(error)),
+          );
+        });
+      });
+    }
+  });
 }
 
 class _User {
