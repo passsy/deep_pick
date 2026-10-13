@@ -332,6 +332,58 @@ void main() {
   });
 
   group('redactValues', () {
+    final parityValues = <String, Object>{
+      'String': 'PRIVATE_VALUE',
+      'number': 12.5,
+      'Map': {'secret': 'PRIVATE_VALUE'},
+      'List': ['PRIVATE_VALUE'],
+    };
+    for (final entry in parityValues.entries) {
+      for (final inherited in [false, true]) {
+        for (final enabled in [false, true]) {
+          test(
+              'ordinary and required redaction copies agree for ${entry.key} '
+              '(inherited=$inherited, enabled=$enabled)', () {
+            final source = pick({'payload': entry.value})
+                .redactValues(enabled: inherited)
+                .withContext('custom', 'kept')('payload');
+            expect(source.isAbsent, isFalse);
+            expect(source.value, same(entry.value));
+            expect(source.path, ['payload']);
+            expect(source.redactsValues, inherited);
+            final originalContext = Map.of(source.context);
+
+            final ordinary = source.redactValues(enabled: enabled).required();
+            final required = source.required().redactValues(enabled: enabled);
+            expect(ordinary.redactsValues, enabled);
+            expect(required.redactsValues, ordinary.redactsValues);
+            expect(ordinary.value, same(source.value));
+            expect(required.value, same(ordinary.value));
+            expect(ordinary.path, source.path);
+            expect(required.path, ordinary.path);
+            expect(ordinary.context['custom'], 'kept');
+            expect(required.context, ordinary.context);
+            expect(ordinary.context, isNot(same(source.context)));
+            expect(required.context, isNot(same(source.context)));
+            expect(required.context, isNot(same(ordinary.context)));
+            expect(grabException(required.asDateTimeOrThrow).message,
+                grabException(ordinary.asDateTimeOrThrow).message);
+            expect(
+              grabException(() => required('missing').required()).message,
+              grabException(() => ordinary('missing').required()).message,
+            );
+
+            ordinary.withContext('custom', 'ordinary');
+            expect(required.context['custom'], 'kept');
+            expect(source.context, originalContext);
+            required.withContext('custom', 'required');
+            expect(ordinary.context['custom'], 'ordinary');
+            expect(source.context, originalContext);
+          });
+        }
+      }
+    }
+
     test('returns an independent view without changing existing picks', () {
       final original =
           pick({'secret': 'PRIVATE_VALUE'}).withContext('custom', 'kept');
