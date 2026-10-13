@@ -390,6 +390,59 @@ void main() {
   });
 
   group('pick().asMapList*', () {
+    group('typed entry validation', () {
+      final converters = <String, List<Map<int, String>>? Function(Pick)>{
+        'OrThrow': (it) => it.asMapListOrThrow<int, String>(),
+        'OrEmpty': (it) => it.asMapListOrEmpty<int, String>(),
+        'OrNull': (it) => it.asMapListOrNull<int, String>(),
+      };
+      for (final entry in converters.entries) {
+        group(entry.key, () {
+          test('rejects an invalid key during extraction', () {
+            final data = <Map<Object?, Object?>>[
+              {1: 'valid'},
+              {'invalid': 'value'},
+            ];
+            expect(data[1].keys.single, isNot(isA<int>()));
+            expect(data[1].values.single, isA<String>());
+
+            expect(() => entry.value(pick(data)), throwsA(isA<TypeError>()));
+          });
+
+          test('rejects an invalid value during extraction', () {
+            final data = <Map<Object?, Object?>>[
+              {1: 'valid'},
+              {2: 42},
+            ];
+            expect(data[1].keys.single, isA<int>());
+            expect(data[1].values.single, isNot(isA<String>()));
+
+            expect(() => entry.value(pick(data)), throwsA(isA<TypeError>()));
+          });
+        });
+      }
+
+      final nullableConverters =
+          <String, List<Map<int, String?>>? Function(Pick)>{
+        'OrThrow': (it) => it.asMapListOrThrow<int, String?>(),
+        'OrEmpty': (it) => it.asMapListOrEmpty<int, String?>(),
+        'OrNull': (it) => it.asMapListOrNull<int, String?>(),
+      };
+      for (final entry in nullableConverters.entries) {
+        test('${entry.key} retains allowed null values', () {
+          final data = <Map<Object?, Object?>>[
+            {1: null, 2: 'valid'},
+          ];
+          expect(data.single.containsKey(1), isTrue);
+          expect(data.single[1], isNull);
+
+          expect(entry.value(pick(data)), [
+            <int, String?>{1: null, 2: 'valid'},
+          ]);
+        });
+      }
+    });
+
     group('asMapListOrThrow', () {
       test('returns the maps of the list', () {
         final data = [
