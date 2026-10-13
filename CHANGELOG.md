@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.3.0
+
+- **New** `mapValues()` parses the values of a picked map, like the mapper of `asList*` does for the items of a list [#55](https://github.com/passsy/deep_pick/issues/55).
+  An error inside a value reports the full location, like `adidas.id`.
+
+  ```dart
+  // {"nike": {"id": "421"}, "adidas": {"id": "532"}}
+  Map<String, Shoe> shoes = pick(json).asJsonObjectOrEmpty().mapValues(Shoe.fromPick);
+  ```
+
+- **New** `mapKeys()` converts the keys of a picked map.
+  It receives a pick of the key, so the usual parsers work on it.
+
+  ```dart
+  // {"421": {"name": "Nike Zoom Fly 3"}}
+  Map<int, Shoe> shoes = pick(json)
+      .asJsonObjectOrEmpty()
+      .mapKeys((key) => key.asIntOrThrow())
+      .mapValues(Shoe.fromPick);
+  ```
+
+- **New** `PickedMap<K, V>` is the type that carries `mapValues()` and `mapKeys()`.
+  `asMapOrThrow()`, `asMapOrEmpty()`, `asMapOrNull()`, `asJsonObjectOrThrow()`, `asJsonObjectOrEmpty()` and `asJsonObjectOrNull()` return it instead of a plain `Map`.
+  It is a `Map<K, V>`, so existing code keeps working.
+
 ## 1.2.0 (`13.10.26`)
 
 - Better error messages [#64](https://github.com/passsy/deep_pick/pull/64), especially for absent values

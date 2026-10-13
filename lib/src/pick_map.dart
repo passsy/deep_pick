@@ -35,12 +35,12 @@ extension NullableMapPick on Pick {
   /// }
   /// ```
   /// {@endtemplate}
-  Map<RK, RV> _parse<RK, RV>(Object value) {
+  PickedMap<RK, RV> _parse<RK, RV>(Object value) {
     if (value is Map) {
       final view = value.cast<RK, RV>();
       // create copy of casted view so all items are type checked here
       // and not lazily type checked when accessing them
-      return Map.of(view);
+      return PickedMap(Map.of(view), this);
     }
     throw PickException.fromPick(this, 'expected a Map');
   }
@@ -49,7 +49,7 @@ extension NullableMapPick on Pick {
   /// not a [Map] or [isAbsent]
   ///
   /// {@macro Pick.asMap}
-  Map<RK, RV> asMapOrThrow<RK, RV>() {
+  PickedMap<RK, RV> asMapOrThrow<RK, RV>() {
     final value = this.value;
     if (value == null) {
       throw PickException.fromPick(
@@ -66,10 +66,10 @@ extension NullableMapPick on Pick {
   /// isn't a [Map] or [isAbsent].
   ///
   /// {@macro Pick.asMap}
-  Map<RK, RV> asMapOrEmpty<RK, RV>() {
+  PickedMap<RK, RV> asMapOrEmpty<RK, RV>() {
     final value = this.value;
-    if (value == null) return <RK, RV>{};
-    if (value is! Map) return <RK, RV>{};
+    if (value == null) return PickedMap(<RK, RV>{}, this);
+    if (value is! Map) return PickedMap(<RK, RV>{}, this);
     return _parse(value);
   }
 
@@ -77,7 +77,7 @@ extension NullableMapPick on Pick {
   /// isn't a [Map] or [isAbsent].
   ///
   /// {@macro Pick.asMap}
-  Map<RK, RV>? asMapOrNull<RK, RV>() {
+  PickedMap<RK, RV>? asMapOrNull<RK, RV>() {
     final value = this.value;
     if (value == null) return null;
     if (value is! Map) return null;
@@ -97,7 +97,7 @@ extension NullableMapPick on Pick {
   /// final user = User.fromJson(pick(json, 'user').asJsonObjectOrThrow());
   /// ```
   /// {@endtemplate}
-  Map<String, Object?> _parseJsonObject(Object value) {
+  PickedMap<String, Object?> _parseJsonObject(Object value) {
     if (value is Map) {
       final result = <String, Object?>{};
       for (final entry in value.entries) {
@@ -106,7 +106,7 @@ extension NullableMapPick on Pick {
           result[key] = entry.value;
         }
       }
-      return result;
+      return PickedMap(result, this);
     }
     throw PickException.fromPick(this, 'expected a Map');
   }
@@ -115,7 +115,7 @@ extension NullableMapPick on Pick {
   /// [value] is not a [Map] or [isAbsent]
   ///
   /// {@macro Pick.asJsonObject}
-  Map<String, Object?> asJsonObjectOrThrow() {
+  PickedMap<String, Object?> asJsonObjectOrThrow() {
     final value = this.value;
     if (value == null) {
       throw PickException.fromPick(
@@ -132,10 +132,10 @@ extension NullableMapPick on Pick {
   /// `value` isn't a [Map] or [isAbsent].
   ///
   /// {@macro Pick.asJsonObject}
-  Map<String, Object?> asJsonObjectOrEmpty() {
+  PickedMap<String, Object?> asJsonObjectOrEmpty() {
     final value = this.value;
-    if (value == null) return <String, Object?>{};
-    if (value is! Map) return <String, Object?>{};
+    if (value == null) return PickedMap(<String, Object?>{}, this);
+    if (value is! Map) return PickedMap(<String, Object?>{}, this);
     return _parseJsonObject(value);
   }
 
@@ -143,7 +143,7 @@ extension NullableMapPick on Pick {
   /// isn't a [Map] or [isAbsent].
   ///
   /// {@macro Pick.asJsonObject}
-  Map<String, Object?>? asJsonObjectOrNull() {
+  PickedMap<String, Object?>? asJsonObjectOrNull() {
     final value = this.value;
     if (value == null) return null;
     if (value is! Map) return null;

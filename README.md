@@ -253,6 +253,30 @@ pick({'a': 1, 2: 'two'}).asJsonObjectOrThrow();
 // {'a': 1}
 ```
 
+#### Mapping keys and values
+
+`asJsonObject*` and `asMap*` return a `PickedMap`.
+It is a regular `Map` that also knows where it was picked from, which allows parsing its values with `mapValues`, like the mapper of `asList*` does for the items of a list.
+
+```dart
+// {"nike": {"id": "421"}, "adidas": {"id": "532"}}
+Map<String, Shoe> shoes = pick(json).asJsonObjectOrEmpty().mapValues(Shoe.fromPick);
+```
+
+An error inside a value reports the full location, like `adidas.id`.
+Entries with a `null` value are ignored.
+
+`mapKeys` converts the keys.
+It receives a pick of the key, so the usual parsers work on it.
+
+```dart
+// {"421": {"name": "Nike Zoom Fly 3"}, "532": {"name": "adidas Ultraboost"}}
+Map<int, Shoe> shoes = pick(json)
+    .asJsonObjectOrEmpty()
+    .mapKeys((key) => key.asIntOrThrow())
+    .mapValues(Shoe.fromPick);
+```
+
 ### Lists of JSON objects and `Map`s
 
 `asJsonObjectList*` is the shorthand for a `List` of JSON objects.

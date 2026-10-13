@@ -9,6 +9,7 @@ import 'src/pick_list_test.dart' as pick_list_test;
 import 'src/pick_map_test.dart' as pick_map_test;
 import 'src/pick_string_test.dart' as pick_string_test;
 import 'src/pick_test.dart' as pick_test;
+import 'src/picked_map_test.dart' as picked_map_test;
 import 'src/required_pick_test.dart' as required_pick_test;
 
 void main() {
@@ -23,5 +24,6 @@ void main() {
   pick_map_test.main();
   pick_string_test.main();
   pick_test.main();
+  picked_map_test.main();
   required_pick_test.main();
 }
