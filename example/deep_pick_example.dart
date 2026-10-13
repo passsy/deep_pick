@@ -24,6 +24,25 @@ const String rawJson = '''
 }
 ''';
 
+/// The same shoes in a JSON object, with the brand as key
+const String rawJsonByBrand = '''
+{
+  "nike": { 
+    "id": "421",
+    "name": "Nike Zoom Fly 3",
+    "manufacturer": "nike",
+    "tags": ["nike", "JustDoIt"]
+  },
+  "adidas": { 
+    "id": "532",
+    "name": "adidas Ultraboost",
+    "manufacturer": "adidas",
+    "tags": ["adidas", "ImpossibleIsNothing"],
+    "price": null
+  }
+}
+''';
+
 Future<void> main() async {
   final firstTag3 =
       pickFromJson(rawJson, 'shoes', 1, 'tags', 0).asStringOrThrow();
@@ -73,6 +92,23 @@ Future<void> main() async {
   //   Shoe{id: 421, name: Nike Zoom Fly 3, tags: [nike, JustDoIt]},
   //   Shoe{id: 532, name: adidas Ultraboost, tags: [adidas, ImpossibleIsNothing]}
   // ]
+
+  // map the values of a JSON object to dart objects
+  final Map<String, Shoe> shoesByBrand = pickFromJson(rawJsonByBrand)
+      .asJsonObjectOrEmpty()
+      .mapValues((p) => Shoe.fromPick(p));
+  print(shoesByBrand);
+  // {
+  //   nike: Shoe{id: 421, name: "Nike Zoom Fly 3", price: "Not for sale", tags: [nike, JustDoIt]},
+  //   adidas: Shoe{id: 532, name: "adidas Ultraboost", price: "Price available soon", tags: [adidas, ImpossibleIsNothing]}
+  // }
+
+  // convert the keys as well, a key is a pick too
+  final Map<Uri, Shoe> shoesByWebsite = pickFromJson(rawJsonByBrand)
+      .asJsonObjectOrEmpty()
+      .mapKeys((key) => Uri.parse('https://${key.asStringOrThrow()}.com'))
+      .mapValues((p) => Shoe.fromPick(p));
+  print(shoesByWebsite.keys); // (https://nike.com, https://adidas.com)
 
   // Use the Context API to pass contextual information down to parsing
   // without adding new arguments
@@ -179,6 +215,14 @@ Future<PackageVersion> getLatestVersion() async {
   final List<PackageVersion> versions = pick(json, 'versions')
       .asListOrEmpty((pick) => PackageVersion.fromPick(pick));
   print(versions.length);
+
+  // Parse the values of a JSON object
+  final Map<String, String> devDependencies =
+      pick(json, 'latest', 'pubspec', 'dev_dependencies')
+          .asJsonObjectOrEmpty()
+          .mapValues((pick) => pick.asStringOrThrow());
+  print(devDependencies);
+  // {http: >=0.13.0 <2.0.0, lint: >=1.5.1 <3.0.0, test: ^1.16.0}
 
   return latest;
 }

@@ -56,6 +56,12 @@ This example demonstrates parsing of an HTTP response using `deep_pick`. You can
   // Parse lists with a fromPick constructor
   final List<PackageVersion> versions = pick(json, 'versions')
       .asListOrEmpty((pick) => PackageVersion.fromPick(pick));
+
+  // Parse the values of a JSON object
+  final Map<String, String> devDependencies =
+      pick(json, 'latest', 'pubspec', 'dev_dependencies')
+          .asJsonObjectOrEmpty()
+          .mapValues((pick) => pick.asStringOrThrow());
   
 
 ```
