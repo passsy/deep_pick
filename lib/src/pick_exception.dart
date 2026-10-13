@@ -2,6 +2,16 @@ part of 'pick.dart';
 
 class PickException implements Exception {
   /// A [PickException] with a freeform [message]
+  ///
+  /// The [message] is used as it is. It has no location, and a value written
+  /// into it is printed in full, also with [Pick.redactValues].
+  ///
+  /// A parser that reports a problem with a pick throws
+  /// [PickException.fromPick] instead, which adds the location and the found
+  /// value and respects redaction:
+  /// ```dart
+  /// throw PickException.fromPick(this, 'expected a Foo');
+  /// ```
   PickException(this.message);
 
   /// Builds the standard deep_pick error message from the state of [pick]
