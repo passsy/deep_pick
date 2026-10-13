@@ -2,14 +2,9 @@
 
 ## 1.2.0 (`10.10.26`)
 
-- Error messages point at the segment that is missing and show what the data holds there. [#64](https://github.com/passsy/deep_pick/pull/64)
-  For `pick(json, 'shoes')(0)('name').asStringOrThrow()`, a chained pick used to blame `shoes`.
+- Better error messages [#64](https://github.com/passsy/deep_pick/pull/64), especially for absent values
 
   ```text
-  // 1.1.0
-  PickException(Expected a non-null value but location "shoes" in pick(json, "shoes" (absent), 0, "name") is absent. Use asStringOrNull() when the value may be null/absent at some point (String?).)
-
-  // 1.2.0
   PickException: expected a non-null value at shoes[0].name, but it is absent
 
     query   shoes[0].name
@@ -28,10 +23,9 @@
   ```
 
 - **Fix** `Pick.isAbsent` is `true` below a `null`, however the path is written.
-  `pick({'a': null}, 'a', 'b').isAbsent` was `false`, while `pick({'a': null}, 'a')('b').isAbsent` was already `true`.
-  An explicit `null` at the requested location is unchanged.
-- **New** `PickException.fromPick(pick, 'expected a Timestamp')` gives custom parsers the same error message as the built-in ones.
-- **Deprecated** `Pick.debugParsingExit`, throw `PickException.fromPick` instead.
+  `pick({'a': null}, 'a', 'b').isAbsent` was `false`, while `pick({'a': null}, 'a')('b').isAbsent` was `true`.
+- **New** `PickException.fromPick(pick, 'expected a Timestamp')` but honestly, nobody outside deep_pick should call it.
+- **Deprecated** `Pick.path`, `Pick.missingValueAtIndex`, `Pick.followablePath` and `Pick.debugParsingExit`. The error message of a `PickException` shows where a pick failed, use `PickException.fromPick` in custom parsers.
 
 ## 1.1.0 (`30.08.24`)
 
