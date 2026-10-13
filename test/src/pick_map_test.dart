@@ -410,19 +410,19 @@ void main() {
       });
     });
 
-    test('whenNull maps the null values that mapValue skips', () {
+    test('whenNullValue maps the null values that mapValue skips', () {
       final withNull = {
         'jon': {'name': 'John Snow'},
         'nobody': null,
       };
       final Map<String, Person?> persons = pick(withNull).asMapOrThrow(
         mapValue: (pick) => Person.fromPick(pick),
-        whenNull: (pick) => null,
+        whenNullValue: (pick) => null,
       );
       expect(persons, {'jon': Person(name: 'John Snow'), 'nobody': null});
     });
 
-    test('whenNull receives a pick of the null value at its key', () {
+    test('whenNullValue receives a pick of the null value at its key', () {
       final withNull = {
         'persons': {
           'jon': {'name': 'John Snow'},
@@ -434,7 +434,7 @@ void main() {
           .withContext('lang', 'de')
           .asMapOrThrow<String, Person>(
             mapValue: (pick) => Person.fromPick(pick),
-            whenNull: (pick) {
+            whenNullValue: (pick) {
               picks.add(pick);
               return Person(name: 'unknown');
             },
@@ -455,9 +455,9 @@ void main() {
       );
     });
 
-    test('whenNull alone replaces null values and casts the others', () {
+    test('whenNullValue alone replaces null values and casts the others', () {
       final scores = pick({'a': 1, 'b': null})
-          .asMapOrThrow<String, int>(whenNull: (pick) => 0);
+          .asMapOrThrow<String, int>(whenNullValue: (pick) => 0);
       expect(scores, {'a': 1, 'b': 0});
     });
 
@@ -545,14 +545,14 @@ void main() {
       );
     });
 
-    test('whenNull maps the null values that mapValue skips', () {
+    test('whenNullValue maps the null values that mapValue skips', () {
       final withNull = {
         'jon': {'name': 'John Snow'},
         'nobody': null,
       };
       final persons = pick(withNull).asJsonObjectOrThrow(
         mapValue: parse,
-        whenNull: (pick) => Person(name: 'unknown'),
+        whenNullValue: (pick) => Person(name: 'unknown'),
       );
       expect(persons, isA<Map<String, Person>>());
       expect(persons, {
@@ -562,7 +562,7 @@ void main() {
 
       final nullable = pick(withNull).asJsonObjectOrThrow<String, Person?>(
         mapValue: parse,
-        whenNull: (pick) => null,
+        whenNullValue: (pick) => null,
       );
       expect(nullable, {'jon': Person(name: 'John Snow'), 'nobody': null});
     });
@@ -628,7 +628,7 @@ void main() {
         pick(data).asJsonObjectOrEmpty(
           mapKey: same,
           mapValue: parse,
-          whenNull: unknown,
+          whenNullValue: unknown,
         ),
         expected,
       );
@@ -639,7 +639,7 @@ void main() {
         pick(data).asJsonObjectOrNull(
           mapKey: same,
           mapValue: parse,
-          whenNull: unknown,
+          whenNullValue: unknown,
         ),
         expected,
       );

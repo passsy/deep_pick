@@ -10,12 +10,12 @@
   Map<String, Shoe> shoes = pick(json).asJsonObjectOrEmpty(mapValue: Shoe.fromPick);
   ```
 
-- **New** `whenNull` maps the entries with a `null` value, which `mapValue` ignores, same as for lists.
+- **New** `whenNullValue` maps the entries with a `null` value, which `mapValue` ignores, like `whenNull` does for lists.
 
   ```dart
   Map<String, Shoe?> shoes = pick(json).asJsonObjectOrEmpty(
     mapValue: Shoe.fromPick,
-    whenNull: (pick) => null,
+    whenNullValue: (pick) => null,
   );
   ```
 

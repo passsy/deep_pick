@@ -48,12 +48,12 @@ extension NullableMapPick on Pick {
     Object value,
     RK Function(Pick key)? mapKey,
     RV Function(RequiredPick pick)? mapValue,
-    RV Function(Pick pick)? whenNull,
+    RV Function(Pick pick)? whenNullValue,
   ) {
     if (value is! Map) {
       throw PickException.fromPick(this, 'expected a Map');
     }
-    if (mapKey == null && mapValue == null && whenNull == null) {
+    if (mapKey == null && mapValue == null && whenNullValue == null) {
       final view = value.cast<RK, RV>();
       // create copy of casted view so all items are type checked here
       // and not lazily type checked when accessing them
@@ -64,7 +64,7 @@ extension NullableMapPick on Pick {
       onlyStringKeys: false,
       mapKey: mapKey,
       mapValue: mapValue,
-      whenNull: whenNull,
+      whenNullValue: whenNullValue,
     );
   }
 
@@ -76,7 +76,7 @@ extension NullableMapPick on Pick {
   /// reports the full location.
   ///
   /// Entries with a `null` value are ignored when [mapValue] is set. To map
-  /// them as well, use [whenNull].
+  /// them as well, use [whenNullValue].
   ///
   /// [mapKey] converts the keys. It receives a pick of the key, so the usual
   /// parsers work on it, i.e. `mapKey: (key) => key.asIntOrThrow()`.
@@ -86,7 +86,7 @@ extension NullableMapPick on Pick {
     required bool onlyStringKeys,
     K Function(Pick key)? mapKey,
     V Function(RequiredPick pick)? mapValue,
-    V Function(Pick pick)? whenNull,
+    V Function(Pick pick)? whenNullValue,
   }) {
     // ignore: deprecated_member_use_from_same_package
     final location = path;
@@ -109,9 +109,9 @@ extension NullableMapPick on Pick {
             RequiredPick(value, path: locationOf(key), context: context),
           );
         }
-      } else if (whenNull != null) {
+      } else if (whenNullValue != null) {
         mappedValue =
-            whenNull(Pick(null, path: locationOf(key), context: context));
+            whenNullValue(Pick(null, path: locationOf(key), context: context));
       } else if (mapValue != null) {
         // null values are skipped, like the null items of asList*
         continue;
@@ -138,7 +138,7 @@ extension NullableMapPick on Pick {
   Map<RK, RV> asMapOrThrow<RK, RV>({
     RK Function(Pick key)? mapKey,
     RV Function(RequiredPick pick)? mapValue,
-    RV Function(Pick pick)? whenNull,
+    RV Function(Pick pick)? whenNullValue,
   }) {
     final value = this.value;
     if (value == null) {
@@ -149,7 +149,7 @@ extension NullableMapPick on Pick {
             'Use asMapOrEmpty()/asMapOrNull() when the value may be null/absent at some point (Map<$RK, $RV>?).',
       );
     }
-    return _parse(value, mapKey, mapValue, whenNull);
+    return _parse(value, mapKey, mapValue, whenNullValue);
   }
 
   /// Returns the picked [value] as [Map] or an empty map when the `value`
@@ -159,12 +159,12 @@ extension NullableMapPick on Pick {
   Map<RK, RV> asMapOrEmpty<RK, RV>({
     RK Function(Pick key)? mapKey,
     RV Function(RequiredPick pick)? mapValue,
-    RV Function(Pick pick)? whenNull,
+    RV Function(Pick pick)? whenNullValue,
   }) {
     final value = this.value;
     if (value == null) return <RK, RV>{};
     if (value is! Map) return <RK, RV>{};
-    return _parse(value, mapKey, mapValue, whenNull);
+    return _parse(value, mapKey, mapValue, whenNullValue);
   }
 
   /// Returns the picked [value] as [Map] or null when the `value`
@@ -174,12 +174,12 @@ extension NullableMapPick on Pick {
   Map<RK, RV>? asMapOrNull<RK, RV>({
     RK Function(Pick key)? mapKey,
     RV Function(RequiredPick pick)? mapValue,
-    RV Function(Pick pick)? whenNull,
+    RV Function(Pick pick)? whenNullValue,
   }) {
     final value = this.value;
     if (value == null) return null;
     if (value is! Map) return null;
-    return _parse(value, mapKey, mapValue, whenNull);
+    return _parse(value, mapKey, mapValue, whenNullValue);
   }
 
   /// Returns the picked [value] as JSON object
@@ -211,7 +211,7 @@ extension NullableMapPick on Pick {
     Object value,
     K Function(Pick key)? mapKey,
     V Function(RequiredPick pick)? mapValue,
-    V Function(Pick pick)? whenNull,
+    V Function(Pick pick)? whenNullValue,
   ) {
     if (value is! Map) {
       throw PickException.fromPick(this, 'expected a Map');
@@ -221,7 +221,7 @@ extension NullableMapPick on Pick {
       onlyStringKeys: true,
       mapKey: mapKey,
       mapValue: mapValue,
-      whenNull: whenNull,
+      whenNullValue: whenNullValue,
     );
   }
 
@@ -232,7 +232,7 @@ extension NullableMapPick on Pick {
   Map<K, V> asJsonObjectOrThrow<K extends String, V extends Object?>({
     K Function(Pick key)? mapKey,
     V Function(RequiredPick pick)? mapValue,
-    V Function(Pick pick)? whenNull,
+    V Function(Pick pick)? whenNullValue,
   }) {
     final value = this.value;
     if (value == null) {
@@ -243,7 +243,7 @@ extension NullableMapPick on Pick {
             'Use asJsonObjectOrEmpty()/asJsonObjectOrNull() when the value may be null/absent at some point (Map<$K, $V>?).',
       );
     }
-    return _parseJsonObject(value, mapKey, mapValue, whenNull);
+    return _parseJsonObject(value, mapKey, mapValue, whenNullValue);
   }
 
   /// Returns the picked [value] as JSON object or an empty map when the
@@ -253,12 +253,12 @@ extension NullableMapPick on Pick {
   Map<K, V> asJsonObjectOrEmpty<K extends String, V extends Object?>({
     K Function(Pick key)? mapKey,
     V Function(RequiredPick pick)? mapValue,
-    V Function(Pick pick)? whenNull,
+    V Function(Pick pick)? whenNullValue,
   }) {
     final value = this.value;
     if (value == null) return <K, V>{};
     if (value is! Map) return <K, V>{};
-    return _parseJsonObject(value, mapKey, mapValue, whenNull);
+    return _parseJsonObject(value, mapKey, mapValue, whenNullValue);
   }
 
   /// Returns the picked [value] as JSON object or null when the `value`
@@ -268,11 +268,11 @@ extension NullableMapPick on Pick {
   Map<K, V>? asJsonObjectOrNull<K extends String, V extends Object?>({
     K Function(Pick key)? mapKey,
     V Function(RequiredPick pick)? mapValue,
-    V Function(Pick pick)? whenNull,
+    V Function(Pick pick)? whenNullValue,
   }) {
     final value = this.value;
     if (value == null) return null;
     if (value is! Map) return null;
-    return _parseJsonObject(value, mapKey, mapValue, whenNull);
+    return _parseJsonObject(value, mapKey, mapValue, whenNullValue);
   }
 }

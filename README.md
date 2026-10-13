@@ -270,13 +270,13 @@ Map<String, Shoe> shoes = pick(json).asJsonObjectOrEmpty(mapValue: Shoe.fromPick
 An error inside a value reports the full location, like `adidas.id`.
 
 Entries with a `null` value are ignored, like `null` items of a list.
-Use `whenNull` to map them as well.
+Use `whenNullValue` to map them as well.
 
 ```dart
 // {"nike": {"id": "421"}, "reebok": null}
 Map<String, Shoe?> shoes = pick(json).asJsonObjectOrEmpty(
   mapValue: Shoe.fromPick,
-  whenNull: (pick) => null,
+  whenNullValue: (pick) => null,
 );
 ```
 
