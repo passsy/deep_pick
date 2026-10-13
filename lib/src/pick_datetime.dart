@@ -302,7 +302,7 @@ Duration _parseTimeZoneOffset(String? timeZone) {
   // do a simple lookup
   final timeZoneOffset = _timeZoneOffsets[timeZone.toUpperCase()];
   if (timeZoneOffset == null) {
-    throw PickException('Unknown time zone abbrevation $timeZone');
+    throw PickException('Unknown time zone abbreviation $timeZone');
   }
   return timeZoneOffset;
 }

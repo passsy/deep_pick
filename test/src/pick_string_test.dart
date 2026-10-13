@@ -16,7 +16,7 @@ void main() {
         );
       });
 
-      test('asString() alsow works for Maps and Lists calling their toString',
+      test('asString() also works for Maps and Lists calling their toString',
           () {
         expect(pick(['a', 'b']).asStringOrThrow(), '[a, b]');
         expect(pick({'a': 1}).asStringOrThrow(), '{a: 1}');
