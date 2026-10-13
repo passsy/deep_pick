@@ -21,8 +21,7 @@ extension BoolPick on Pick {
   ///  });
   /// ```
   /// {@endtemplate}
-  bool _parse() {
-    final value = required().value;
+  bool _parse(Object value) {
     if (value is bool) {
       return value;
     }
@@ -42,11 +41,16 @@ extension BoolPick on Pick {
   ///
   /// {@macro Pick.asBool}
   bool asBoolOrThrow() {
-    withContext(
-      requiredPickErrorHintKey,
-      'Use asBoolOrNull() when the value may be null/absent at some point (bool?).',
-    );
-    return _parse();
+    final value = this.value;
+    if (value == null) {
+      throw PickException.fromPick(
+        this,
+        'expected a non-null value',
+        hint:
+            'Use asBoolOrNull() when the value may be null/absent at some point (bool?).',
+      );
+    }
+    return _parse(value);
   }
 
   /// Returns the picked [value] as [bool] or `null` if it can't be interpreted
@@ -54,9 +58,10 @@ extension BoolPick on Pick {
   ///
   /// {@macro Pick.asBool}
   bool? asBoolOrNull() {
+    final value = this.value;
     if (value == null) return null;
     try {
-      return _parse();
+      return _parse(value);
     } catch (_) {
       return null;
     }
@@ -67,9 +72,10 @@ extension BoolPick on Pick {
   ///
   /// {@macro Pick.asBool}
   bool asBoolOrTrue() {
+    final value = this.value;
     if (value == null) return true;
     try {
-      return _parse();
+      return _parse(value);
     } catch (_) {
       return true;
     }
@@ -80,9 +86,10 @@ extension BoolPick on Pick {
   ///
   /// {@macro Pick.asBool}
   bool asBoolOrFalse() {
+    final value = this.value;
     if (value == null) return false;
     try {
-      return _parse();
+      return _parse(value);
     } catch (_) {
       return false;
     }

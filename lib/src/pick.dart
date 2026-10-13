@@ -445,13 +445,7 @@ class Pick {
       // nothing to drill into, a longer path is absent at the same location
       return _copyWith(path: _extended(_path, selectors));
     }
-    final childContext = Map.of(context);
-    if (selectors.isNotEmpty) {
-      // the hint is advice for this pick, a pick further down the path has
-      // its own location and parser
-      childContext.remove(requiredPickErrorHintKey);
-    }
-    return _drillDown(value, selectors, parent: this, context: childContext);
+    return _drillDown(value, selectors, parent: this, context: Map.of(context));
   }
 
   /// Returns a copy that redacts data values in its error messages and those
@@ -697,10 +691,6 @@ class RequiredPick extends Pick {
     );
   }
 }
-
-/// Used internally with [Pick.withContext] to add additional information
-/// to the error message
-const requiredPickErrorHintKey = '_required_pick_error_hint';
 
 /// Used internally with [Pick.redactValues] to mark a pick chain as carrying
 /// sensitive data

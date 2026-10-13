@@ -10,8 +10,7 @@ extension NullableIntPick on Pick {
   /// [roundDouble] and [truncateDouble] can not be true at the same time
   /// via [int.tryParse]
   /// {@endtemplate}
-  int _parse(bool roundDouble, bool truncateDouble) {
-    final value = required().value;
+  int _parse(Object value, bool roundDouble, bool truncateDouble) {
     if (roundDouble && truncateDouble) {
       throw PickException(
         '[roundDouble] and [truncateDouble] can not be true at the same time',
@@ -48,11 +47,16 @@ extension NullableIntPick on Pick {
   ///
   /// {@macro Pick.asInt}
   int asIntOrThrow({bool roundDouble = false, bool truncateDouble = false}) {
-    withContext(
-      requiredPickErrorHintKey,
-      'Use asIntOrNull() when the value may be null/absent at some point (int?).',
-    );
-    return _parse(roundDouble, truncateDouble);
+    final value = this.value;
+    if (value == null) {
+      throw PickException.fromPick(
+        this,
+        'expected a non-null value',
+        hint:
+            'Use asIntOrNull() when the value may be null/absent at some point (int?).',
+      );
+    }
+    return _parse(value, roundDouble, truncateDouble);
   }
 
   /// Returns the picked [value] as [int?] or returns `null` when the picked
@@ -60,9 +64,10 @@ extension NullableIntPick on Pick {
   ///
   /// {@macro Pick.asInt}
   int? asIntOrNull({bool roundDouble = false, bool truncateDouble = false}) {
+    final value = this.value;
     if (value == null) return null;
     try {
-      return _parse(roundDouble, truncateDouble);
+      return _parse(value, roundDouble, truncateDouble);
     } catch (_) {
       return null;
     }

@@ -87,8 +87,7 @@ extension NullableDateTimePick on Pick {
   /// - `'Thursday, 1-Jan-1970 00:00:00 GMT'`
   /// - `'Thu Jan  1 00:00:00 1970'`
   /// {@endtemplate}
-  DateTime _parse({PickDateFormat? format}) {
-    final value = required().value;
+  DateTime _parse(Object value, {PickDateFormat? format}) {
     if (value is DateTime) {
       return value;
     }
@@ -96,7 +95,7 @@ extension NullableDateTimePick on Pick {
       throw PickException.fromPick(this, 'expected a DateTime');
     }
 
-    final Map<PickDateFormat, DateTime? Function()> formats = {
+    final Map<PickDateFormat, DateTime? Function(String)> formats = {
       PickDateFormat.ISO_8601: _parseIso8601,
       PickDateFormat.RFC_1123: _parseRfc1123,
       PickDateFormat.RFC_850: _parseRfc850,
@@ -107,7 +106,7 @@ extension NullableDateTimePick on Pick {
         format == null ? formats : {format: formats[format]!};
     for (final entry in selectedFormats.entries) {
       try {
-        final dateTime = entry.value();
+        final dateTime = entry.value(value);
         if (dateTime != null) {
           return dateTime;
         }
@@ -138,30 +137,33 @@ extension NullableDateTimePick on Pick {
   ///
   /// {@macro Pick.asDateTime}
   DateTime asDateTimeOrThrow({PickDateFormat? format}) {
-    withContext(
-      requiredPickErrorHintKey,
-      'Use asDateTimeOrNull() when the value may be null/absent at some point (DateTime?).',
-    );
-    return _parse(format: format);
+    final value = this.value;
+    if (value == null) {
+      throw PickException.fromPick(
+        this,
+        'expected a non-null value',
+        hint:
+            'Use asDateTimeOrNull() when the value may be null/absent at some point (DateTime?).',
+      );
+    }
+    return _parse(value, format: format);
   }
 
   /// Parses the picked [value] as ISO 8601 String to [DateTime] or returns `null`
   ///
   /// {@macro Pick.asDateTime}
   DateTime? asDateTimeOrNull({PickDateFormat? format}) {
+    final value = this.value;
     if (value == null) return null;
     try {
-      return _parse(format: format);
+      return _parse(value, format: format);
     } catch (_) {
       return null;
     }
   }
 
   /// [PickDateFormat.ISO_8601]
-  DateTime? _parseIso8601() {
-    final value = required().value;
-    if (value is! String) return null;
-
+  DateTime? _parseIso8601(String value) {
     // DartTime.tryParse() does not support timezones like EST, PDT, etc.
     // deep_pick takes care of the time zone and DartTime.parse() of the rest
     final trimmedValue = value.trim();
@@ -182,9 +184,7 @@ extension NullableDateTimePick on Pick {
   }
 
   /// [PickDateFormat.RFC_1123]
-  DateTime? _parseRfc1123() {
-    final value = required().value;
-    if (value is! String) return null;
+  DateTime? _parseRfc1123(String value) {
     // not using HttpDate.parse because it is not available in the browsers
     try {
       final rfc1123Regex = RegExp(
@@ -207,9 +207,7 @@ extension NullableDateTimePick on Pick {
   }
 
   /// [PickDateFormat.ANSI_C_asctime]
-  DateTime? _parseAnsiCAsctime() {
-    final value = required().value;
-    if (value is! String) return null;
+  DateTime? _parseAnsiCAsctime(String value) {
     try {
       final asctimeRegex =
           RegExp(r'^\s*(\S{3})\s+(\S{3})\s*(\d+)\s+(\d+):(\d+):(\d+)\s+(\d+)');
@@ -227,9 +225,7 @@ extension NullableDateTimePick on Pick {
   }
 
   /// [PickDateFormat.RFC_850]
-  DateTime? _parseRfc850() {
-    final value = required().value;
-    if (value is! String) return null;
+  DateTime? _parseRfc850(String value) {
     try {
       final rfc850Regex = RegExp(
         r'^\s*(\S+),\s*(\d+)-(\S{3})-(\d+)\s+(\d+):(\d+):(\d+)\s*([\w+-]+)\s*',
