@@ -1,14 +1,6 @@
 # Changelog
 
-## 1.3.0
-
-- **New** `asPlainListOrThrow()`, `asPlainListOrEmpty()` and `asPlainListOrNull()` return the items of a `List` as they are, without a mapper [#74](https://github.com/passsy/deep_pick/pull/74).
-  Declare the item type to get a typed list, an item of another type throws a `PickException` that names it.
-
-  ```dart
-  List<Object?> items = pick(json, 'tags').asPlainListOrEmpty();
-  List<String> tags = pick(json, 'tags').asPlainListOrEmpty();
-  ```
+## 1.3.0 (`13.10.26`)
 
 - **New** `mapValue` for `asMap*()` and `asJsonObject*()` parses the values of a map, like the mapper of `asList*` does for the items of a list [#73](https://github.com/passsy/deep_pick/pull/73).
   An error inside a value reports the full location, like `adidas.id`.
@@ -42,6 +34,13 @@
   Use `asMap*()` to convert the keys to another type.
 - All six parsers are affected: `asMapOrThrow()`, `asMapOrEmpty()`, `asMapOrNull()`, `asJsonObjectOrThrow()`, `asJsonObjectOrEmpty()` and `asJsonObjectOrNull()`.
   `asJsonObject*()` got two type parameters for it, a call without arguments still returns a `Map<String, Object?>`.
+- **New** `asPlainListOrThrow()`, `asPlainListOrEmpty()` and `asPlainListOrNull()` return the items of a `List` as they are, without a mapper [#74](https://github.com/passsy/deep_pick/pull/74).
+  Declare the item type to get a typed list, an item of another type throws a `PickException` that names it.
+
+  ```dart
+  List<Object?> items = pick(json, 'tags').asPlainListOrEmpty();
+  List<String> tags = pick(json, 'tags').asPlainListOrEmpty();
+  ```
 
 ## 1.2.0 (`13.10.26`)
 

@@ -23,7 +23,7 @@ dart pub add deep_pick
 
 ```yaml
 dependencies:
-  deep_pick: ^1.2.0
+  deep_pick: ^1.3.0
 ```
 
 ## Example
