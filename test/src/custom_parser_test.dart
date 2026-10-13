@@ -32,14 +32,13 @@ void main() {
       );
     });
 
-    test('a missing value advises the OrNull parser', () {
+    test('a missing value throws', () {
       expect(
         () => pick(json, 'nothing').asFirestoreTimeStampOrThrow(),
         throwsA(
           pickException(
             containing: [
-              'expected a non-null value at nothing, but it is null',
-              'Use asFirestoreTimeStampOrNull() when the value may be null/absent at some point (Timestamp?).',
+              'expected a non-null value at nothing, but it is null'
             ],
           ),
         ),
@@ -50,7 +49,6 @@ void main() {
           pickException(
             containing: [
               'expected a non-null value at unknownKey, but it is absent',
-              'Use asFirestoreTimeStampOrNull() when the value may be null/absent at some point (Timestamp?).',
             ],
           ),
         ),
@@ -76,9 +74,10 @@ class Timestamp {
   final int millis;
 }
 
-/// The custom parser of the README, written with the exported API only
+/// The custom parser of the README, word for word
 extension TimestampPick on Pick {
-  Timestamp _parse(Object value) {
+  Timestamp asFirestoreTimeStampOrThrow() {
+    final value = required().value;
     if (value is Timestamp) {
       return value;
     }
@@ -88,24 +87,10 @@ extension TimestampPick on Pick {
     throw PickException.fromPick(this, 'expected a Timestamp');
   }
 
-  Timestamp asFirestoreTimeStampOrThrow() {
-    final value = this.value;
-    if (value == null) {
-      throw PickException.fromPick(
-        this,
-        'expected a non-null value',
-        hint:
-            'Use asFirestoreTimeStampOrNull() when the value may be null/absent at some point (Timestamp?).',
-      );
-    }
-    return _parse(value);
-  }
-
   Timestamp? asFirestoreTimeStampOrNull() {
-    final value = this.value;
     if (value == null) return null;
     try {
-      return _parse(value);
+      return asFirestoreTimeStampOrThrow();
     } catch (_) {
       return null;
     }
