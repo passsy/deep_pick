@@ -25,8 +25,10 @@
 - **Fix** `Pick.isAbsent` is `true` below a `null`, however the path is written.
   `pick({'a': null}, 'a', 'b').isAbsent` was `false`, while `pick({'a': null}, 'a')('b').isAbsent` was `true`.
 - **New** `PickException.fromPick(pick, 'expected a Timestamp')` but honestly, nobody outside deep_pick should call it.
-- **New** `redactValues()` keeps values out of error messages [#65](https://github.com/passsy/deep_pick/pull/65), for responses with personal data.
+- **New** `Pick.redactValues()` keeps values out of error messages [#65](https://github.com/passsy/deep_pick/pull/65), for responses with personal data.
   Map keys and types stay visible.
+  `Pick.redactsValues` lets custom parsers check the active policy.
+  `RequiredPick.redactValues()` returns a `RequiredPick` to preserve non-null chaining.
 
   ```dart
   pick(response).redactValues(enabled: kReleaseMode).letOrThrow(User.fromPick);
