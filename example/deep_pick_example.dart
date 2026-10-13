@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print, always_require_non_null_named_parameters, non_constant_identifier_names, omit_local_variable_types, avoid_dynamic_calls, unreachable_from_main
+// ignore_for_file: avoid_print, always_require_non_null_named_parameters, omit_local_variable_types, avoid_dynamic_calls, unreachable_from_main
 import 'dart:convert';
 
 import 'package:deep_pick/deep_pick.dart';
@@ -87,8 +87,8 @@ Future<void> main() async {
   print(puma.value); // null
 
   // Load data from an API
-  final stats = await getStats();
-  print(stats.requests);
+  final latest = await getLatestVersion();
+  print(latest.version);
 
   // pick values with a dynamic selector
   pickDeep(json, 'some.key.inside.the.object'.split('.')).asStringOrNull();
@@ -159,50 +159,49 @@ class Shoe {
   int get hashCode => id.hashCode ^ name.hashCode ^ tags.hashCode;
 }
 
-Future<CounterApiStats> getStats() async {
-  final response = await http.get(Uri.parse('https://api.countapi.xyz/stats'));
+Future<PackageVersion> getLatestVersion() async {
+  final response =
+      await http.get(Uri.parse('https://pub.dev/api/packages/deep_pick'));
   final json = jsonDecode(response.body);
 
   // Parse individual fields
-  final int? requests = pick(json, 'requests').asIntOrNull();
-  final int keys_created = pick(json, 'keys_created').asIntOrThrow();
-  final int? keys_updated = pick(json, 'keys_updated').asIntOrNull();
-  final String? version = pick(json, 'version').asStringOrNull();
-  print(
-    'requests $requests, keys_created $keys_created, '
-    'keys_updated: $keys_updated, version: "$version"',
-  );
+  final String? name = pick(json, 'name').asStringOrNull();
+  final String version = pick(json, 'latest', 'version').asStringOrThrow();
+  final String? sdk =
+      pick(json, 'latest', 'pubspec', 'environment', 'sdk').asStringOrNull();
+  print('name $name, version $version, sdk: "$sdk"');
 
   // Parse the full object
-  final CounterApiStats stats = CounterApiStats.fromPick(pick(json).required());
+  final PackageVersion latest =
+      PackageVersion.fromPick(pick(json, 'latest').required());
 
   // Parse lists
-  final List<CounterApiStats> multipleStats = pick(json, 'items')
-      .asListOrEmpty((pick) => CounterApiStats.fromPick(pick));
-  print(multipleStats); // always empty [], the countapi doesn't have items
+  final List<PackageVersion> versions = pick(json, 'versions')
+      .asListOrEmpty((pick) => PackageVersion.fromPick(pick));
+  print(versions.length);
 
-  return stats;
+  return latest;
 }
 
-class CounterApiStats {
-  const CounterApiStats({
-    required this.requests,
-    required this.keys_created,
-    required this.keys_updated,
-    this.version,
+class PackageVersion {
+  const PackageVersion({
+    required this.version,
+    required this.archiveUrl,
+    required this.published,
+    this.description,
   });
 
-  final int requests;
-  final int keys_created;
-  final int keys_updated;
-  final String? version;
+  final String version;
+  final String archiveUrl;
+  final DateTime published;
+  final String? description;
 
-  factory CounterApiStats.fromPick(RequiredPick pick) {
-    return CounterApiStats(
-      requests: pick('requests').asIntOrThrow(),
-      keys_created: pick('keys_created').asIntOrThrow(),
-      keys_updated: pick('keys_updated').asIntOrThrow(),
-      version: pick('version').asStringOrNull(),
+  factory PackageVersion.fromPick(RequiredPick pick) {
+    return PackageVersion(
+      version: pick('version').asStringOrThrow(),
+      archiveUrl: pick('archive_url').asStringOrThrow(),
+      published: pick('published').asDateTimeOrThrow(),
+      description: pick('pubspec', 'description').asStringOrNull(),
     );
   }
 }
