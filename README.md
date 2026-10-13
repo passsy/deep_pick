@@ -36,26 +36,26 @@ This example demonstrates parsing of an HTTP response using `deep_pick`. You can
 
 ```dart
 
-  final response = await http.get(Uri.parse('https://api.countapi.xyz/stats'));
+  final response = await http.get(Uri.parse('https://pub.dev/api/packages/deep_pick'));
   final json = jsonDecode(response.body);
 
   // Parse individual fields (nullable)
-  final int? requests = pick(json, 'requests').asIntOrNull();
+  final String? name = pick(json, 'name').asStringOrNull();
   
   // Require values to be non-null or throw a useful error message
-  final int keys_created = pick(json, 'keys_created').asIntOrThrow();
+  final String version = pick(json, 'latest', 'version').asStringOrThrow();
   
   // Pick deep nested values without parsing all objects in between
-  final String? version = pick(json, 'meta', 'version', 'commit').asStringOrNull();
+  final String? sdk = pick(json, 'latest', 'pubspec', 'environment', 'sdk').asStringOrNull();
   
   
   // Parse a full object using a fromPick factory constructor
-  final CounterApiStats stats = CounterApiStats.fromPick(pick(json).required());
+  final PackageVersion latest = PackageVersion.fromPick(pick(json, 'latest').required());
 
   
   // Parse lists with a fromPick constructor
-  final List<CounterApiStats> multipleStats = pick(json, 'items')
-      .asListOrEmpty((pick) => CounterApiStats.fromPick(pick));
+  final List<PackageVersion> versions = pick(json, 'versions')
+      .asListOrEmpty((pick) => PackageVersion.fromPick(pick));
   
 
 ```
@@ -65,25 +65,25 @@ This example demonstrates parsing of an HTTP response using `deep_pick`. You can
 
 ```dart
 // Http response model
-class CounterApiStats {
-  const CounterApiStats({
-    required this.requests,
-    required this.keys_created,
-    required this.keys_updated,
-    this.version,
+class PackageVersion {
+  const PackageVersion({
+    required this.version,
+    required this.archiveUrl,
+    required this.published,
+    this.description,
   });
 
-  final int requests;
-  final int keys_created;
-  final int keys_updated;
-  final String? version;
+  final String version;
+  final String archiveUrl;
+  final DateTime published;
+  final String? description;
 
-  factory CounterApiStats.fromPick(RequiredPick pick) {
-    return CounterApiStats(
-      requests: pick('requests').asIntOrThrow(),
-      keys_created: pick('keys_created').asIntOrThrow(),
-      keys_updated: pick('keys_updated').asIntOrThrow(),
-      version: pick('version').asStringOrNull(),
+  factory PackageVersion.fromPick(RequiredPick pick) {
+    return PackageVersion(
+      version: pick('version').asStringOrThrow(),
+      archiveUrl: pick('archive_url').asStringOrThrow(),
+      published: pick('published').asDateTimeOrThrow(),
+      description: pick('pubspec', 'description').asStringOrNull(),
     );
   }
 }
