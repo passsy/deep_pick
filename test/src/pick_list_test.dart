@@ -389,6 +389,172 @@ void main() {
     });
   });
 
+  group('pick().asPlainList*', () {
+    group('asPlainListOrThrow', () {
+      test('returns the original items, null included', () {
+        final nested = {'name': 'John Snow'};
+        final result = pick(['a', 1, null, nested]).asPlainListOrThrow();
+        expect(result, ['a', 1, null, nested]);
+        expect(result[3], same(nested));
+      });
+
+      test('without a type it is a List<Object?>', () {
+        final result = pick(['a', 1]).asPlainListOrThrow();
+        // not a List<dynamic>, the type parameter falls back to its bound
+        expect('${result.runtimeType}', contains('<Object?>'));
+      });
+
+      test('returns a copy', () {
+        final data = ['a'];
+        pick(data).asPlainListOrThrow().add('b');
+        expect(data, ['a']);
+      });
+
+      test('the expected type makes it a typed list', () {
+        final List<String> tags = pick(['a', 'b']).asPlainListOrThrow();
+        expect(tags, isA<List<String>>());
+        expect(tags, ['a', 'b']);
+
+        final List<String?> nullable = pick(['a', null]).asPlainListOrThrow();
+        expect(nullable, ['a', null]);
+
+        final List<Map<String, dynamic>> objects = pick([
+          <String, dynamic>{'name': 'John Snow'},
+        ]).asPlainListOrThrow();
+        expect(objects.single['name'], 'John Snow');
+      });
+
+      test('an item of another type throws and is not converted', () {
+        expect(
+          () => pick({
+            'tags': ['a', 1],
+          }, 'tags')
+              .asPlainListOrThrow<String>(),
+          throwsA(
+            pickException(
+              containing: [
+                'expected an item of type String at tags[1]',
+                'found   1  (an int)',
+              ],
+            ),
+          ),
+        );
+      });
+
+      test('a null item throws for a non-nullable type', () {
+        expect(
+          () => pick(['a', null]).asPlainListOrThrow<String>(),
+          throwsA(
+            pickException(
+              containing: [
+                'expected an item of type String at [1], but it is null',
+              ],
+            ),
+          ),
+        );
+      });
+
+      test('a broken item is redacted with the list', () {
+        expect(
+          () => pick(['a', 'secret']).redactValues().asPlainListOrThrow<int>(),
+          throwsA(
+            isA<PickException>().having(
+              (e) => e.message,
+              'message',
+              allOf(contains('<String>'), isNot(contains('secret'))),
+            ),
+          ),
+        );
+      });
+
+      test('null throws', () {
+        expect(
+          () => nullPick().asPlainListOrThrow<String>(),
+          throwsA(
+            pickException(
+              containing: [
+                'expected a non-null value at unknownKey, but it is absent',
+                'Use asPlainListOrEmpty()/asPlainListOrNull() when the value may be null/absent at some point (List<String>?).',
+              ],
+            ),
+          ),
+        );
+      });
+
+      test('wrong type throws', () {
+        expect(
+          () => pick('Bubblegum').asPlainListOrThrow(),
+          throwsA(
+            pickException(
+              containing: ['expected a List at <root>', 'Bubblegum'],
+            ),
+          ),
+        );
+      });
+
+      test('leaves the context untouched', () {
+        final list = pick(['a']).withContext('lang', 'de');
+        list.asPlainListOrThrow();
+        expect(list.context, {'lang': 'de'});
+      });
+    });
+
+    group('asPlainListOrEmpty', () {
+      test('pick value', () {
+        expect(pick(['a', 1, null]).asPlainListOrEmpty(), ['a', 1, null]);
+        final List<int> numbers = pick([1, 2]).asPlainListOrEmpty();
+        expect(numbers, [1, 2]);
+      });
+
+      test('null returns empty', () {
+        expect(nullPick().asPlainListOrEmpty(), isEmpty);
+        expect(nullPick().asPlainListOrEmpty<String>(), isA<List<String>>());
+      });
+
+      test('wrong type returns empty', () {
+        expect(pick('Bubblegum').asPlainListOrEmpty(), isEmpty);
+      });
+
+      test('an item of another type still throws', () {
+        expect(
+          () => pick(['a', 1]).asPlainListOrEmpty<String>(),
+          throwsA(
+            pickException(
+              containing: ['expected an item of type String at [1]'],
+            ),
+          ),
+        );
+      });
+    });
+
+    group('asPlainListOrNull', () {
+      test('pick value', () {
+        expect(pick(['a', 1, null]).asPlainListOrNull(), ['a', 1, null]);
+        final List<int>? numbers = pick([1, 2]).asPlainListOrNull();
+        expect(numbers, [1, 2]);
+      });
+
+      test('null returns null', () {
+        expect(nullPick().asPlainListOrNull(), isNull);
+      });
+
+      test('wrong type returns null', () {
+        expect(pick('Bubblegum').asPlainListOrNull(), isNull);
+      });
+
+      test('an item of another type still throws', () {
+        expect(
+          () => pick(['a', 1]).asPlainListOrNull<String>(),
+          throwsA(
+            pickException(
+              containing: ['expected an item of type String at [1]'],
+            ),
+          ),
+        );
+      });
+    });
+  });
+
   group('pick().asMapList*', () {
     group('typed entry validation', () {
       final converters = <String, List<Map<int, String>>? Function(Pick)>{

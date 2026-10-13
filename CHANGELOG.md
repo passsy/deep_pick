@@ -2,6 +2,14 @@
 
 ## 1.3.0
 
+- **New** `asPlainListOrThrow()`, `asPlainListOrEmpty()` and `asPlainListOrNull()` return the items of a `List` as they are, without a mapper [#74](https://github.com/passsy/deep_pick/pull/74).
+  Declare the item type to get a typed list, an item of another type throws a `PickException` that names it.
+
+  ```dart
+  List<Object?> items = pick(json, 'tags').asPlainListOrEmpty();
+  List<String> tags = pick(json, 'tags').asPlainListOrEmpty();
+  ```
+
 - **New** `mapValue` for `asMap*()` and `asJsonObject*()` parses the values of a map, like the mapper of `asList*` does for the items of a list [#73](https://github.com/passsy/deep_pick/pull/73).
   An error inside a value reports the full location, like `adidas.id`.
 
