@@ -6,7 +6,7 @@
 ![License](https://img.shields.io/github/license/passsy/deep_pick)
 [![style: lint](https://img.shields.io/badge/style-lint-4BC0F5.svg)](https://pub.dev/packages/lint)
 
-Simplifies manual JSON parsing with a type-safe API. 
+Simplifies manual JSON parsing with a type-safe API.
 - No `dynamic`, no manual casting
 - Flexible inputs types, fixed output types
 - Useful parsing error messages
@@ -18,7 +18,7 @@ pick(json, 'parsing', 'is', 'fun').asBoolOrThrow(); // true
 ```
 
 ```bash
-$ dart pub add deep_pick
+dart pub add deep_pick
 ```
 
 ```yaml
@@ -26,7 +26,7 @@ dependencies:
   deep_pick: ^1.2.0
 ```
 
-### Example
+## Example
 
 This example demonstrates parsing of an HTTP response using `deep_pick`. You can either use it to parse individual values of a json response or parse whole objects using the `fromPick` constructor.
 
@@ -53,7 +53,7 @@ This example demonstrates parsing of an HTTP response using `deep_pick`. You can
   final CounterApiStats stats = CounterApiStats.fromPick(pick(json).required());
 
   
-  // Parse lists with a fromPick constructor 
+  // Parse lists with a fromPick constructor
   final List<CounterApiStats> multipleStats = pick(json, 'items')
       .asListOrEmpty((pick) => CounterApiStats.fromPick(pick));
   
@@ -91,9 +91,6 @@ class CounterApiStats {
 </td>
 </tr>
 </table>
-
-
-
 
 ## Supported types
 
@@ -139,14 +136,14 @@ Write your own logic using `.let` instead.
 
 ```dart
 pick(1).asBoolOrNull(); // null
-pick(1).letOrNull((pick) => pick.value == 1 ? true : pick.value == 0 ? false : null); // true 
+pick(1).letOrNull((pick) => pick.value == 1 ? true : pick.value == 0 ? false : null); // true
 ```
 
 ### `DateTime`
 
-Accepts most common date formats such as 
-- [`ISO 8601`](https://www.w3.org/TR/NOTE-datetime) including [`RFC-3339`](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6), 
-- [`RFC 1123`](https://www.rfc-editor.org/rfc/rfc1123#page-55) including [HTTP `date`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Date) header, [RSS2](https://validator.w3.org/feed/docs/rss2.html) `pubDate`, [`RFC 822`](https://www.rfc-editor.org/rfc/rfc822#section-5), [`RFC 1036`](https://datatracker.ietf.org/doc/html/rfc1036#section-2.1.2) and [`RFC 2822`](https://datatracker.ietf.org/doc/html/rfc2822#page-14), 
+Accepts most common date formats such as
+- [`ISO 8601`](https://www.w3.org/TR/NOTE-datetime) including [`RFC-3339`](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6),
+- [`RFC 1123`](https://www.rfc-editor.org/rfc/rfc1123#page-55) including [HTTP `date`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Date) header, [RSS2](https://validator.w3.org/feed/docs/rss2.html) `pubDate`, [`RFC 822`](https://www.rfc-editor.org/rfc/rfc822#section-5), [`RFC 1036`](https://datatracker.ietf.org/doc/html/rfc1036#section-2.1.2) and [`RFC 2822`](https://datatracker.ietf.org/doc/html/rfc2822#page-14),
 - [`RFC 850`](https://www.rfc-editor.org/rfc/rfc850#section-2.1.4) including [`RFC 1036`](https://www.rfc-editor.org/rfc/rfc1036#section-2.1.2), `COOKIE`
 - `ANSI C asctime()`
 
@@ -218,9 +215,9 @@ When `null` is important for your logic you can process the `null` value by prov
 pick([1, null, 3]).asListOrNull(
   (it) => it.asIntOrThrow(),
   whenNull: (Pick pick) => 25,
-); 
+);
 // [1, 25, 3]
-``` 
+```
 
 ### `Map`
 
@@ -282,7 +279,6 @@ pick(data).asMapListOrEmpty<int, String>();
 `OrEmpty` and `OrNull` cover the list being absent or not a `List`.
 An item that isn't a `Map` throws a `PickException` that names the item, `null` items are ignored.
 
-
 ## Custom parsers
 
 Parsers in `deep_pick` are based on extension functions on the classes `Pick`.
@@ -340,15 +336,15 @@ The return type then becomes non-nullable (`String` instead of `String?`).
 When the `data` doesn't contain the `full_name` field (against your assumption) it would crash throwing a `PickException`.
 
 ```dart
-final DocumentSnapshot userDoc = 
+final DocumentSnapshot userDoc =
     await FirebaseFirestore.instance.collection('users').doc(userId).get();
 final data = userDoc.data();
 final String fullName = pick(data, 'full_name').asStringOrThrow();
 final int? level = pick(data, 'level').asIntOrNull();
 ```
 
-`deep_pick` offers an alternative `required()` API with the same result. 
-This is useful to make sure a value exists before parsing it. 
+`deep_pick` offers an alternative `required()` API with the same result.
+This is useful to make sure a value exists before parsing it.
 In case it is `null` or absent a useful error message is printed.
 
 ```dart
@@ -357,7 +353,7 @@ final String fullName = pick(data, 'full_name').required().asStringOrThrow();
 
 ## Background & Justification
 
-Before Dart 2.12 and the new `?[]` operator one had to write a lot of code to prevent crashes when a value isn't set! 
+Before Dart 2.12 and the new `?[]` operator one had to write a lot of code to prevent crashes when a value isn't set!
 Reducing this boilerplate was the origin of `deep_pick`.
 ```dart
 String milestoneCreator;
@@ -375,7 +371,7 @@ print(milestoneCreator); // octocat
 ```
 This example of parses an `issue` object of the [GitHub v3 API](https://developer.github.com/v3/issues/#get-an-issue).
 
-Today with Dart 2.12+ parsing Dart data structures has become way easier with the introduction of the `?[]` operator. 
+Today with Dart 2.12+ parsing Dart data structures has become way easier with the introduction of the `?[]` operator.
 ```dart
 final json = jsonDecode(response.data);
 final milestoneCreator = json?['milestone']?['creator']?['login'] as String?;
@@ -393,13 +389,13 @@ print(milestoneCreator); // octocat
 
 But even with the latest Dart version, `deep_pick` offers fantastic features over vanilla parsing using the `?[]` operators:
 
-### 1. Flexible input types 
+### 1. Flexible input types
 
-Different languages and their JSON libraries generate different JSON. 
-Sometimes `id`s are `String`, sometimes `int`. Booleans are provided as `true` or with quotes as String `"true"`. 
+Different languages and their JSON libraries generate different JSON.
+Sometimes `id`s are `String`, sometimes `int`. Booleans are provided as `true` or with quotes as String `"true"`.
 The meaning is the same but from a type perspective they are not.
 
-`deep_pick` does the basic conversions automatically. 
+`deep_pick` does the basic conversions automatically.
 By requesting a specific return type, apps won't break when a "price" usually returns `double` (`0.99`) but for whole numbers `int` (`1` instead of `1.0`).
 
 ```dart
@@ -410,11 +406,11 @@ pick(42.0).asDoubleOrNull(); // 42.0
 pick(42).asDoubleOrNull(); // 42.0 (double -> int)
 
 pick(true).asBoolOrFalse(); // true
-pick('true').asBoolOrFalse(); // true (String -> bool) 
+pick('true').asBoolOrFalse(); // true (String -> bool)
 ```
 
 ### 2. No RangeError for Lists
-Using the `?[]` operator can crash for Lists. 
+Using the `?[]` operator can crash for Lists.
 Accessing a list item by `index` outside of the available range causes a `RangeError`.
 You can't access index 23 when the `List` has only 10 items.
 
@@ -434,7 +430,7 @@ pick(json, 'shoes', 23, 'id').asStringOrNull(); // null
 ### 3. Useful error message
 
 Vanilla Dart returns a type error because `null` is not a `String`.
-There is no information available which part is `null` or missing. 
+There is no information available which part is `null` or missing.
 
 ```dart
 final milestoneCreator = json?['milestone']?['creator']?['login'] as String;
@@ -488,7 +484,7 @@ pick(response).redactValues(enabled: kReleaseMode).letOrThrow((pick) => User.fro
 
 ### 4. Null is default, crashes intentional
 
-Parsing objects from external systems isn't type-safe. 
+Parsing objects from external systems isn't type-safe.
 API changes happen, and it is up to the consumer to decide how to handle them.
 Consumer always have to assume the worst, such as missing values.
 
@@ -502,7 +498,7 @@ json?['milestone']?['creator']?['login'] as String;
 //                                      ----^
 // Unhandled exception:
 // type 'Null' is not a subtype of type 'String' in type cast
-``` 
+```
 
 With `deep_pick`, all casting methods (`.as*()`) have `null` in mind.
 For each type you have to choose between at least two ways to deal with `null`.
@@ -539,7 +535,7 @@ final UserId? id = pick(json, 'id').letOrNull((it) => UserId(it.asStringOrThrow(
 
 ## License
 
-```
+```text
 Copyright 2019 Pascal Welsch
 
 Licensed under the Apache License, Version 2.0 (the "License");
