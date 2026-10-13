@@ -56,6 +56,11 @@ This example demonstrates parsing of an HTTP response using `deep_pick`. You can
   // Parse lists with a fromPick constructor
   final List<PackageVersion> versions = pick(json, 'versions')
       .asListOrEmpty((pick) => PackageVersion.fromPick(pick));
+
+  // Parse the values of a JSON object
+  final Map<String, String> devDependencies =
+      pick(json, 'latest', 'pubspec', 'dev_dependencies')
+          .asJsonObjectOrEmpty(mapValue: (pick) => pick.asStringOrThrow());
   
 
 ```
@@ -219,6 +224,8 @@ pick([1, null, 3]).asListOrNull(
 // [1, 25, 3]
 ```
 
+For the `null` values of a `Map`, the same function is called [`whenNullValue`](#whennullvalue).
+
 ### `Map`
 
 Picking the `Map` is rarely used, because `Pick` itself grants further picking using the `.call(args)` method.
@@ -229,6 +236,8 @@ pick(json).asMapOrNull<String, dynamic>();
 pick(json).asMapOrThrow<String, dynamic>();
 pick(json).asMapOrEmpty<String, dynamic>();
 ```
+
+To parse the entries instead of casting them, see [Mapping the keys and values of a `Map`](#mapping-the-keys-and-values-of-a-map).
 
 ### JSON objects
 
@@ -252,6 +261,51 @@ Entries with any other key are ignored, use `asMap*` for those maps.
 pick({'a': 1, 2: 'two'}).asJsonObjectOrThrow();
 // {'a': 1}
 ```
+
+### Mapping the keys and values of a `Map`
+
+`asMap*` and `asJsonObject*` take three optional functions to parse the entries: `mapValue`, `whenNullValue` and `mapKey`.
+
+#### mapValue
+
+`mapValue` parses each value, like the mapper of `asList*` does for the items of a list.
+
+```dart
+// {"nike": {"id": "421"}, "adidas": {"id": "532"}}
+Map<String, Shoe> shoes = pick(json).asJsonObjectOrEmpty(mapValue: Shoe.fromPick);
+```
+
+An error inside a value reports the full location, like `adidas.id`.
+
+#### whenNullValue
+
+`mapValue` ignores entries with a `null` value, like `asList*` ignores `null` items.
+Use `whenNullValue` to map them as well, it is the `whenNull` of maps.
+
+```dart
+// {"nike": {"id": "421"}, "reebok": null}
+Map<String, Shoe?> shoes = pick(json).asJsonObjectOrEmpty(
+  mapValue: Shoe.fromPick,
+  whenNullValue: (pick) => null,
+);
+// reebok is kept, with a null value
+```
+
+#### mapKey
+
+`mapKey` converts the keys.
+It receives a pick of the key, so the usual parsers work on it.
+
+```dart
+// {"421": {"name": "Nike Zoom Fly 3"}, "532": {"name": "adidas Ultraboost"}}
+Map<int, Shoe> shoes = pick(json).asMapOrEmpty(
+  mapKey: (key) => key.asIntOrThrow(),
+  mapValue: Shoe.fromPick,
+);
+```
+
+The keys of a JSON object stay `String`s, the `mapKey` of `asJsonObject*` can rename them.
+Use `asMap*` to convert them to another type.
 
 ### Lists of JSON objects and `Map`s
 

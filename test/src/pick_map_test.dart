@@ -228,6 +228,510 @@ void main() {
       });
     });
   });
+
+  group('pick().asMap* with mappers', () {
+    final data = {
+      'jon': {'name': 'John Snow'},
+      'dany': {'name': 'Daenerys Targaryen'},
+    };
+
+    test('mapValue parses the values', () {
+      final Map<String, Person> persons =
+          pick(data).asMapOrThrow(mapValue: (pick) => Person.fromPick(pick));
+      expect(persons, {
+        'jon': Person(name: 'John Snow'),
+        'dany': Person(name: 'Daenerys Targaryen'),
+      });
+    });
+
+    test('mapValue alone leaves the key type open', () {
+      final persons =
+          pick(data).asMapOrThrow(mapValue: (pick) => Person.fromPick(pick));
+      expect(persons, isA<Map<dynamic, Person>>());
+      expect(persons, isNot(isA<Map<String, Person>>()));
+    });
+
+    test('mapValue reports the location of a broken value', () {
+      final broken = {
+        'jon': {'name': 'John Snow'},
+        'dany': {'nick': 'Dany'},
+      };
+      expect(
+        () => pick({'persons': broken}, 'persons').asMapOrThrow(
+          mapValue: (pick) => Person.fromPick(pick),
+        ),
+        throwsA(
+          pickException(
+            containing: [
+              'expected a non-null value at persons.dany.name, but it is absent',
+              'persons.dany = {"nick": "Dany"}',
+            ],
+          ),
+        ),
+      );
+    });
+
+    test('mapValue skips null values', () {
+      final withNull = {
+        'jon': {'name': 'John Snow'},
+        'nobody': null,
+      };
+      final persons = pick(withNull).asMapOrThrow<String, Person>(
+        mapValue: (pick) => Person.fromPick(pick),
+      );
+      expect(persons, {'jon': Person(name: 'John Snow')});
+    });
+
+    test('mapValue receives the context and the redaction of the map', () {
+      final root = pick(data).withContext('lang', 'de').redactValues();
+      final contexts = root.asMapOrThrow<String, Object?>(
+        mapValue: (pick) => pick.context['lang'],
+      );
+      expect(contexts, {'jon': 'de', 'dany': 'de'});
+
+      expect(
+        () => root.asMapOrThrow<String, int>(
+          mapValue: (pick) => pick('name').asIntOrThrow(),
+        ),
+        throwsA(
+          pickException(
+            containing: ['could not parse an int at jon.name', '<String>'],
+          ),
+        ),
+      );
+    });
+
+    test('mapValue works for keys that are not Strings', () {
+      final byId = {
+        1: {'name': 'John Snow'},
+      };
+      final persons = pick(byId).asMapOrThrow<int, Person>(
+        mapValue: (pick) => Person.fromPick(pick),
+      );
+      expect(persons, {1: Person(name: 'John Snow')});
+    });
+
+    test('mapValue works for a null key', () {
+      final nullKey = {
+        null: {'name': 'John Snow'},
+      };
+      final persons = pick(nullKey).asMapOrThrow<String?, Person>(
+        mapValue: (pick) => Person.fromPick(pick),
+      );
+      expect(persons, {null: Person(name: 'John Snow')});
+
+      final broken = {
+        null: {'nick': 'Jon'},
+      };
+      expect(
+        () =>
+            pick({'persons': broken}, 'persons').asMapOrThrow<String?, Person>(
+          mapValue: (pick) => Person.fromPick(pick),
+        ),
+        throwsA(
+          pickException(
+            containing: [
+              'expected a non-null value at persons.null.name, but it is absent',
+            ],
+          ),
+        ),
+      );
+    });
+
+    test('mapKey converts the keys and casts the values', () {
+      final Map<int, String> medals = pick({'1': 'gold', '2': 'silver'})
+          .asMapOrThrow(mapKey: (key) => key.asIntOrThrow());
+      expect(medals, {1: 'gold', 2: 'silver'});
+
+      expect(
+        () => pick({'1': 'gold'}).asMapOrThrow<int, bool>(
+          mapKey: (key) => key.asIntOrThrow(),
+        ),
+        throwsA(isA<TypeError>()),
+      );
+    });
+
+    test('mapKey receives keys of any type, also null', () {
+      final keys = <Object?>[];
+      final result = pick({1: 'int', 'a': 'String', null: 'null'})
+          .asMapOrThrow<String, String>(
+        mapKey: (key) {
+          keys.add(key.value);
+          return key.asStringOrNull() ?? 'none';
+        },
+      );
+      expect(keys, [1, 'a', null]);
+      expect(result, {'1': 'int', 'a': 'String', 'none': 'null'});
+    });
+
+    test('mapKey reports a broken key at the location of its map', () {
+      expect(
+        () => pick({
+          'medals': {'first': 'gold'},
+        }, 'medals')
+            .asMapOrThrow<int, String>(mapKey: (key) => key.asIntOrThrow()),
+        throwsA(
+          pickException(
+            containing: [
+              'could not parse an int at medals',
+              'found   "first"  (a String)',
+            ],
+          ),
+        ),
+      );
+    });
+
+    test('mapKey receives the context and the redaction of the map', () {
+      final root = pick({'first': 'gold'}).withContext('lang', 'de');
+      final result = root.asMapOrThrow<String, String>(
+        mapKey: (key) => '${key.context['lang']}-${key.asStringOrThrow()}',
+      );
+      expect(result, {'de-first': 'gold'});
+
+      expect(
+        () => root.redactValues().asMapOrThrow<int, String>(
+              mapKey: (key) => key.asIntOrThrow(),
+            ),
+        throwsA(
+          pickException(containing: ['could not parse an int', '<String>']),
+        ),
+      );
+    });
+
+    test('mapKey and mapValue together', () {
+      final persons = pick(data).asMapOrThrow(
+        mapKey: (key) => key.asStringOrThrow().length,
+        mapValue: (pick) => Person.fromPick(pick),
+      );
+      expect(persons, isA<Map<int, Person>>());
+      expect(persons, {
+        3: Person(name: 'John Snow'),
+        4: Person(name: 'Daenerys Targaryen'),
+      });
+    });
+
+    test('whenNullValue maps the null values that mapValue skips', () {
+      final withNull = {
+        'jon': {'name': 'John Snow'},
+        'nobody': null,
+      };
+      final Map<String, Person?> persons = pick(withNull).asMapOrThrow(
+        mapValue: (pick) => Person.fromPick(pick),
+        whenNullValue: (pick) => null,
+      );
+      expect(persons, {'jon': Person(name: 'John Snow'), 'nobody': null});
+    });
+
+    test('whenNullValue receives a pick of the null value at its key', () {
+      final withNull = {
+        'persons': {
+          'jon': {'name': 'John Snow'},
+          'nobody': null,
+        },
+      };
+      final picks = <Pick>[];
+      final persons = pick(withNull, 'persons')
+          .withContext('lang', 'de')
+          .asMapOrThrow<String, Person>(
+            mapValue: (pick) => Person.fromPick(pick),
+            whenNullValue: (pick) {
+              picks.add(pick);
+              return Person(name: 'unknown');
+            },
+          );
+      expect(persons['nobody'], Person(name: 'unknown'));
+      expect(picks.single.value, isNull);
+      expect(picks.single.isAbsent, isFalse);
+      expect(picks.single.context, {'lang': 'de'});
+      expect(
+        () => picks.single.required(),
+        throwsA(
+          pickException(
+            containing: [
+              'expected a non-null value at persons.nobody, but it is null',
+            ],
+          ),
+        ),
+      );
+    });
+
+    test('whenNullValue alone replaces null values and casts the others', () {
+      final scores = pick({'a': 1, 'b': null})
+          .asMapOrThrow<String, int>(whenNullValue: (pick) => 0);
+      expect(scores, {'a': 1, 'b': 0});
+    });
+
+    test('asMapOrEmpty and asMapOrNull take the same mappers', () {
+      Person parse(RequiredPick pick) => Person.fromPick(pick);
+      String upper(Pick key) => key.asStringOrThrow().toUpperCase();
+      final expected = {
+        'JON': Person(name: 'John Snow'),
+        'DANY': Person(name: 'Daenerys Targaryen'),
+      };
+
+      expect(
+        pick(data).asMapOrEmpty(mapKey: upper, mapValue: parse),
+        expected,
+      );
+      expect(nullPick().asMapOrEmpty(mapKey: upper, mapValue: parse), isEmpty);
+      expect(pick('a').asMapOrEmpty(mapKey: upper, mapValue: parse), isEmpty);
+
+      expect(
+        pick(data).asMapOrNull(mapKey: upper, mapValue: parse),
+        expected,
+      );
+      expect(nullPick().asMapOrNull(mapKey: upper, mapValue: parse), isNull);
+      expect(pick('a').asMapOrNull(mapKey: upper, mapValue: parse), isNull);
+    });
+  });
+
+  group('pick().asJsonObject* with mappers', () {
+    final data = {
+      'jon': {'name': 'John Snow'},
+      'dany': {'name': 'Daenerys Targaryen'},
+    };
+    Person parse(RequiredPick pick) => Person.fromPick(pick);
+
+    test('parses the values, the keys are Strings', () {
+      final persons = pick(data).asJsonObjectOrThrow(mapValue: parse);
+      expect(persons, isA<Map<String, Person>>());
+      expect(persons, {
+        'jon': Person(name: 'John Snow'),
+        'dany': Person(name: 'Daenerys Targaryen'),
+      });
+    });
+
+    test('ignores non-String keys and null values', () {
+      final mixed = {
+        'jon': {'name': 'John Snow'},
+        7: {'name': 'Seven'},
+        'nobody': null,
+      };
+      expect(
+        pick(mixed).asJsonObjectOrThrow(mapValue: parse),
+        {'jon': Person(name: 'John Snow')},
+      );
+    });
+
+    test('reports the location of a broken value', () {
+      final broken = {
+        'persons': {
+          'dany': {'nick': 'Dany'},
+        },
+      };
+      expect(
+        () => pick(broken, 'persons').asJsonObjectOrThrow(mapValue: parse),
+        throwsA(
+          pickException(
+            containing: [
+              'expected a non-null value at persons.dany.name, but it is absent',
+            ],
+          ),
+        ),
+      );
+    });
+
+    test('a missing value names the mapped type in the hint', () {
+      expect(
+        () => nullPick().asJsonObjectOrThrow(mapValue: parse),
+        throwsA(
+          pickException(
+            containing: [
+              'expected a non-null value at unknownKey, but it is absent',
+              '(Map<String, Person>?).',
+            ],
+          ),
+        ),
+      );
+    });
+
+    test('whenNullValue maps the null values that mapValue skips', () {
+      final withNull = {
+        'jon': {'name': 'John Snow'},
+        'nobody': null,
+      };
+      final persons = pick(withNull).asJsonObjectOrThrow(
+        mapValue: parse,
+        whenNullValue: (pick) => Person(name: 'unknown'),
+      );
+      expect(persons, isA<Map<String, Person>>());
+      expect(persons, {
+        'jon': Person(name: 'John Snow'),
+        'nobody': Person(name: 'unknown'),
+      });
+
+      final nullable = pick(withNull).asJsonObjectOrThrow<String, Person?>(
+        mapValue: parse,
+        whenNullValue: (pick) => null,
+      );
+      expect(nullable, {'jon': Person(name: 'John Snow'), 'nobody': null});
+    });
+
+    test('mapKey renames the keys, they stay Strings', () {
+      final persons = pick(data).asJsonObjectOrThrow(
+        mapKey: (key) => key.asStringOrThrow().toUpperCase(),
+        mapValue: parse,
+      );
+      expect(persons, isA<Map<String, Person>>());
+      expect(persons.keys, ['JON', 'DANY']);
+    });
+
+    test('mapKey never sees a key that is not a String', () {
+      final keys = <Object?>[];
+      final result = pick({'a': 1, 2: 'two', null: 3}).asJsonObjectOrThrow(
+        mapKey: (key) {
+          keys.add(key.value);
+          return key.asStringOrThrow();
+        },
+      );
+      expect(keys, ['a']);
+      expect(result, {'a': 1});
+    });
+
+    test('mapKey reports a broken key at the location of its map', () {
+      expect(
+        () => pick({
+          'medals': {'first': 'gold'},
+        }, 'medals')
+            .asJsonObjectOrThrow(
+          mapKey: (key) => key.asIntOrThrow().toString(),
+        ),
+        throwsA(
+          pickException(
+            containing: [
+              'could not parse an int at medals',
+              'found   "first"  (a String)',
+            ],
+          ),
+        ),
+      );
+    });
+
+    test('a call without mappers still is a Map<String, Object?>', () {
+      final plain = pick({'a': 1}).asJsonObjectOrThrow();
+      // not a Map<String, dynamic>, the type parameters fall back to their
+      // bounds
+      expect('${plain.runtimeType}', contains('<String, Object?>'));
+      expect('${nullPick().asJsonObjectOrEmpty().runtimeType}',
+          contains('<String, Object?>'));
+    });
+
+    test('asJsonObjectOrEmpty and asJsonObjectOrNull take the mapper', () {
+      final expected = {
+        'jon': Person(name: 'John Snow'),
+        'dany': Person(name: 'Daenerys Targaryen'),
+      };
+      String same(Pick key) => key.asStringOrThrow();
+      Person unknown(Pick pick) => Person(name: 'unknown');
+
+      expect(
+        pick(data).asJsonObjectOrEmpty(
+          mapKey: same,
+          mapValue: parse,
+          whenNullValue: unknown,
+        ),
+        expected,
+      );
+      expect(nullPick().asJsonObjectOrEmpty(mapValue: parse), isEmpty);
+      expect(pick('a').asJsonObjectOrEmpty(mapValue: parse), isEmpty);
+
+      expect(
+        pick(data).asJsonObjectOrNull(
+          mapKey: same,
+          mapValue: parse,
+          whenNullValue: unknown,
+        ),
+        expected,
+      );
+      expect(nullPick().asJsonObjectOrNull(mapValue: parse), isNull);
+      expect(pick('a').asJsonObjectOrNull(mapValue: parse), isNull);
+    });
+
+    test('without a mapper the values are cast to the expected type', () {
+      final Map<String, int> numbers = pick({'a': 1}).asJsonObjectOrThrow();
+      expect(numbers, {'a': 1});
+
+      expect(
+        () {
+          final Map<String, int> broken =
+              pick({'a': 'one'}).asJsonObjectOrThrow();
+          return broken;
+        },
+        throwsA(isA<TypeError>()),
+      );
+    });
+  });
+  group('empty/null map parser callback contracts', () {
+    final parsers = <String,
+        Map<String, int>? Function({
+      String Function(Pick)? mapKey,
+      int Function(RequiredPick)? mapValue,
+      int Function(Pick)? whenNullValue,
+    })
+            Function(Pick)>{
+      'asMapOrEmpty': (p) => p.asMapOrEmpty,
+      'asMapOrNull': (p) => p.asMapOrNull,
+      'asJsonObjectOrEmpty': (p) => p.asJsonObjectOrEmpty,
+      'asJsonObjectOrNull': (p) => p.asJsonObjectOrNull,
+    };
+
+    for (final entry in parsers.entries) {
+      group(entry.key, () {
+        test('maps a present null entry and preserves its key', () {
+          final parse = entry.value(pick({'a': null, 'b': 2}));
+          final result = parse(whenNullValue: (p) {
+            expect(p.value, isNull);
+            expect(p.isAbsent, isFalse);
+            return 7;
+          });
+          expect(result, {'a': 7, 'b': 2});
+        });
+
+        test('propagates mapValue failures', () {
+          final error = StateError('value callback failed');
+          final parse = entry.value(pick({'a': 1}));
+          expect(
+            () {
+              return parse(mapValue: (p) {
+                expect(p.value, 1);
+                throw error;
+              });
+            },
+            throwsA(same(error)),
+          );
+        });
+
+        test('propagates mapKey failures', () {
+          final error = StateError('key callback failed');
+          final parse = entry.value(pick({'a': 1}));
+          expect(
+            () {
+              return parse(mapKey: (p) {
+                expect(p.value, 'a');
+                throw error;
+              });
+            },
+            throwsA(same(error)),
+          );
+        });
+
+        test('propagates whenNullValue failures', () {
+          final error = StateError('null callback failed');
+          final parse = entry.value(pick({'a': null}));
+          expect(
+            () {
+              return parse(whenNullValue: (p) {
+                expect(p.value, isNull);
+                expect(p.isAbsent, isFalse);
+                throw error;
+              });
+            },
+            throwsA(same(error)),
+          );
+        });
+      });
+    }
+  });
 }
 
 class _User {

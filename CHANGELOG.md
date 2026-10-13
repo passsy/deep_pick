@@ -1,5 +1,40 @@
 # Changelog
 
+## 1.3.0
+
+- **New** `mapValue` for `asMap*()` and `asJsonObject*()` parses the values of a map, like the mapper of `asList*` does for the items of a list [#73](https://github.com/passsy/deep_pick/pull/73).
+  An error inside a value reports the full location, like `adidas.id`.
+
+  ```dart
+  // {"nike": {"id": "421"}, "adidas": {"id": "532"}}
+  Map<String, Shoe> shoes = pick(json).asJsonObjectOrEmpty(mapValue: Shoe.fromPick);
+  ```
+
+- **New** `whenNullValue` maps the entries with a `null` value, which `mapValue` ignores, like `whenNull` does for lists.
+
+  ```dart
+  Map<String, Shoe?> shoes = pick(json).asJsonObjectOrEmpty(
+    mapValue: Shoe.fromPick,
+    whenNullValue: (pick) => null,
+  );
+  ```
+
+- **New** `mapKey` converts the keys.
+  It receives a pick of the key, so the usual parsers work on it.
+
+  ```dart
+  // {"421": {"name": "Nike Zoom Fly 3"}}
+  Map<int, Shoe> shoes = pick(json).asMapOrEmpty(
+    mapKey: (key) => key.asIntOrThrow(),
+    mapValue: Shoe.fromPick,
+  );
+  ```
+
+  The keys of `asJsonObject*()` stay `String`s, its `mapKey` can rename them.
+  Use `asMap*()` to convert the keys to another type.
+- All six parsers are affected: `asMapOrThrow()`, `asMapOrEmpty()`, `asMapOrNull()`, `asJsonObjectOrThrow()`, `asJsonObjectOrEmpty()` and `asJsonObjectOrNull()`.
+  `asJsonObject*()` got two type parameters for it, a call without arguments still returns a `Map<String, Object?>`.
+
 ## 1.2.0 (`13.10.26`)
 
 - Better error messages [#64](https://github.com/passsy/deep_pick/pull/64), especially for absent values
