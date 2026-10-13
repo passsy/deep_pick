@@ -132,4 +132,106 @@ void main() {
       });
     });
   });
+
+  group('pick().asJsonObject*', () {
+    group('asJsonObjectOrThrow', () {
+      test('pipe through Map', () {
+        expect(pick({'ab': 'cd'}).asJsonObjectOrThrow(), {'ab': 'cd'});
+      });
+
+      test('can be passed to a fromJson function', () {
+        final dynamic data = {
+          'user': {'name': 'John Snow'},
+        };
+        final user = _User.fromJson(pick(data, 'user').asJsonObjectOrThrow());
+        expect(user.name, 'John Snow');
+      });
+
+      test('ignores entries with non-String keys', () {
+        final data = {
+          'a': 1,
+          2: 'two',
+          DateTime(2026): 'date',
+          null: 'null',
+          'b': null,
+        };
+        expect(pick(data).asJsonObjectOrThrow(), {'a': 1, 'b': null});
+      });
+
+      test('keeps nested values as they are', () {
+        final nested = {1: 'one'};
+        final result = pick({'nested': nested}).asJsonObjectOrThrow();
+        expect(result['nested'], same(nested));
+      });
+
+      test('returns a copy', () {
+        final data = {'a': 1};
+        pick(data).asJsonObjectOrThrow()['b'] = 2;
+        expect(data, {'a': 1});
+      });
+
+      test('null throws', () {
+        expect(
+          () => nullPick().asJsonObjectOrThrow(),
+          throwsA(
+            pickException(
+              containing: [
+                'expected a non-null value at unknownKey, but it is absent',
+                'Use asJsonObjectOrEmpty()/asJsonObjectOrNull() when the value may be null/absent at some point (Map<String, Object?>?).',
+              ],
+            ),
+          ),
+        );
+      });
+
+      test('wrong type throws', () {
+        expect(
+          () => pick('Bubblegum').asJsonObjectOrThrow(),
+          throwsA(
+            pickException(
+              containing: [
+                'expected a Map at <root>',
+                'Bubblegum',
+                '(a String)',
+              ],
+            ),
+          ),
+        );
+      });
+    });
+
+    group('asJsonObjectOrEmpty', () {
+      test('pick value', () {
+        expect(pick({'ab': 'cd', 1: 2}).asJsonObjectOrEmpty(), {'ab': 'cd'});
+      });
+
+      test('null returns empty', () {
+        expect(nullPick().asJsonObjectOrEmpty(), <String, Object?>{});
+      });
+
+      test('wrong type returns empty', () {
+        expect(pick(Object()).asJsonObjectOrEmpty(), <String, Object?>{});
+      });
+    });
+
+    group('asJsonObjectOrNull', () {
+      test('pick value', () {
+        expect(pick({'ab': 'cd', 1: 2}).asJsonObjectOrNull(), {'ab': 'cd'});
+      });
+
+      test('null returns null', () {
+        expect(nullPick().asJsonObjectOrNull(), isNull);
+      });
+
+      test('wrong type returns null', () {
+        expect(pick(Object()).asJsonObjectOrNull(), isNull);
+      });
+    });
+  });
+}
+
+class _User {
+  _User.fromJson(Map<String, dynamic> json) : name = json['name'] as String;
+
+  final String name;
 }

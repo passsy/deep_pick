@@ -83,4 +83,70 @@ extension NullableMapPick on Pick {
     if (value is! Map) return null;
     return _parse(value);
   }
+
+  /// Returns the picked [value] as JSON object
+  ///
+  /// {@template Pick.asJsonObject}
+  /// A JSON object is a [Map] with [String] keys, the type `fromJson`
+  /// functions expect.
+  ///
+  /// Entries with a key that isn't a [String] are ignored. Use
+  /// [asMapOrThrow] for maps with other keys.
+  ///
+  /// ```dart
+  /// final user = User.fromJson(pick(json, 'user').asJsonObjectOrThrow());
+  /// ```
+  /// {@endtemplate}
+  Map<String, Object?> _parseJsonObject(Object value) {
+    if (value is Map) {
+      final result = <String, Object?>{};
+      for (final entry in value.entries) {
+        final key = entry.key;
+        if (key is String) {
+          result[key] = entry.value;
+        }
+      }
+      return result;
+    }
+    throw PickException.fromPick(this, 'expected a Map');
+  }
+
+  /// Returns the picked [value] as JSON object. This method throws when
+  /// [value] is not a [Map] or [isAbsent]
+  ///
+  /// {@macro Pick.asJsonObject}
+  Map<String, Object?> asJsonObjectOrThrow() {
+    final value = this.value;
+    if (value == null) {
+      throw PickException.fromPick(
+        this,
+        'expected a non-null value',
+        hint:
+            'Use asJsonObjectOrEmpty()/asJsonObjectOrNull() when the value may be null/absent at some point (Map<String, Object?>?).',
+      );
+    }
+    return _parseJsonObject(value);
+  }
+
+  /// Returns the picked [value] as JSON object or an empty map when the
+  /// `value` isn't a [Map] or [isAbsent].
+  ///
+  /// {@macro Pick.asJsonObject}
+  Map<String, Object?> asJsonObjectOrEmpty() {
+    final value = this.value;
+    if (value == null) return <String, Object?>{};
+    if (value is! Map) return <String, Object?>{};
+    return _parseJsonObject(value);
+  }
+
+  /// Returns the picked [value] as JSON object or null when the `value`
+  /// isn't a [Map] or [isAbsent].
+  ///
+  /// {@macro Pick.asJsonObject}
+  Map<String, Object?>? asJsonObjectOrNull() {
+    final value = this.value;
+    if (value == null) return null;
+    if (value is! Map) return null;
+    return _parseJsonObject(value);
+  }
 }

@@ -388,4 +388,285 @@ void main() {
       });
     });
   });
+
+  group('pick().asMapList*', () {
+    group('asMapListOrThrow', () {
+      test('returns the maps of the list', () {
+        final data = [
+          {'name': 'John Snow'},
+          {1: 'one', 2: 'two'},
+        ];
+        expect(pick(data).asMapListOrThrow(), data);
+      });
+
+      test('typed keys and values', () {
+        final dynamic data = [
+          {1: 'gold', 2: 'silver'},
+          {1: 'bronze'},
+        ];
+        final List<Map<int, String>> maps =
+            pick(data).asMapListOrThrow<int, String>();
+        expect(maps, [
+          {1: 'gold', 2: 'silver'},
+          {1: 'bronze'},
+        ]);
+      });
+
+      test('ignores null items', () {
+        final data = [
+          {'a': 1},
+          null,
+          {'b': 2},
+        ];
+        expect(pick(data).asMapListOrThrow(), [
+          {'a': 1},
+          {'b': 2},
+        ]);
+      });
+
+      test('null throws', () {
+        expect(
+          () => nullPick().asMapListOrThrow<String, int>(),
+          throwsA(
+            pickException(
+              containing: [
+                'expected a non-null value at unknownKey, but it is absent',
+                'Use asMapListOrEmpty()/asMapListOrNull() when the value may be null/absent at some point (List<Map<String, int>>?).',
+              ],
+            ),
+          ),
+        );
+      });
+
+      test('wrong type throws', () {
+        expect(
+          () => pick('Bubblegum').asMapListOrThrow(),
+          throwsA(pickException(containing: ['expected a List at <root>'])),
+        );
+      });
+
+      test('item that is not a Map throws', () {
+        final data = {
+          'shoes': [
+            {'id': 1},
+            'Bubblegum',
+          ],
+        };
+        expect(
+          () => pick(data, 'shoes').asMapListOrThrow(),
+          throwsA(
+            pickException(
+              containing: [
+                'expected a Map at shoes[1]',
+                'Bubblegum',
+                '(a String)',
+              ],
+            ),
+          ),
+        );
+      });
+    });
+
+    group('asMapListOrEmpty', () {
+      test('pick value', () {
+        expect(
+          pick([
+            {'a': 1},
+          ]).asMapListOrEmpty(),
+          [
+            {'a': 1},
+          ],
+        );
+      });
+
+      test('null returns empty', () {
+        expect(nullPick().asMapListOrEmpty(), isEmpty);
+      });
+
+      test('wrong type returns empty', () {
+        expect(pick(Object()).asMapListOrEmpty(), isEmpty);
+      });
+
+      test('item that is not a Map throws', () {
+        expect(
+          () => pick([1]).asMapListOrEmpty(),
+          throwsA(pickException(containing: ['expected a Map at [0]'])),
+        );
+      });
+    });
+
+    group('asMapListOrNull', () {
+      test('pick value', () {
+        expect(
+          pick([
+            {'a': 1},
+          ]).asMapListOrNull(),
+          [
+            {'a': 1},
+          ],
+        );
+      });
+
+      test('null returns null', () {
+        expect(nullPick().asMapListOrNull(), isNull);
+      });
+
+      test('wrong type returns null', () {
+        expect(pick(Object()).asMapListOrNull(), isNull);
+      });
+
+      test('item that is not a Map throws', () {
+        expect(
+          () => pick([1]).asMapListOrNull(),
+          throwsA(pickException(containing: ['expected a Map at [0]'])),
+        );
+      });
+    });
+  });
+
+  group('pick().asJsonObjectList*', () {
+    group('asJsonObjectListOrThrow', () {
+      test('can be mapped with a fromJson function', () {
+        // no constructor tear-off, the package supports Dart 2.12
+        final dynamic data = {
+          'users': [
+            {'name': 'John Snow'},
+            {'name': 'Daenerys Targaryen'},
+          ],
+        };
+        final users = pick(data, 'users')
+            .asJsonObjectListOrThrow()
+            .map((json) => _User.fromJson(json))
+            .toList();
+        expect(users.map((it) => it.name), ['John Snow', 'Daenerys Targaryen']);
+      });
+
+      test('ignores entries with non-String keys', () {
+        final data = [
+          {'a': 1, 2: 'two'},
+          {3: 'three'},
+        ];
+        expect(pick(data).asJsonObjectListOrThrow(), [
+          {'a': 1},
+          <String, Object?>{},
+        ]);
+      });
+
+      test('ignores null items', () {
+        final data = [
+          {'a': 1},
+          null,
+          {'b': 2},
+        ];
+        expect(pick(data).asJsonObjectListOrThrow(), [
+          {'a': 1},
+          {'b': 2},
+        ]);
+      });
+
+      test('null throws', () {
+        expect(
+          () => nullPick().asJsonObjectListOrThrow(),
+          throwsA(
+            pickException(
+              containing: [
+                'expected a non-null value at unknownKey, but it is absent',
+                'Use asJsonObjectListOrEmpty()/asJsonObjectListOrNull() when the value may be null/absent at some point (List<Map<String, Object?>>?).',
+              ],
+            ),
+          ),
+        );
+      });
+
+      test('wrong type throws', () {
+        expect(
+          () => pick('Bubblegum').asJsonObjectListOrThrow(),
+          throwsA(pickException(containing: ['expected a List at <root>'])),
+        );
+      });
+
+      test('item that is not a Map throws', () {
+        final data = {
+          'shoes': [
+            {'id': 1},
+            'Bubblegum',
+          ],
+        };
+        expect(
+          () => pick(data, 'shoes').asJsonObjectListOrThrow(),
+          throwsA(
+            pickException(
+              containing: [
+                'expected a Map at shoes[1]',
+                'Bubblegum',
+                '(a String)',
+              ],
+            ),
+          ),
+        );
+      });
+    });
+
+    group('asJsonObjectListOrEmpty', () {
+      test('pick value', () {
+        expect(
+          pick([
+            {'a': 1, 2: 'two'},
+          ]).asJsonObjectListOrEmpty(),
+          [
+            {'a': 1},
+          ],
+        );
+      });
+
+      test('null returns empty', () {
+        expect(nullPick().asJsonObjectListOrEmpty(), isEmpty);
+      });
+
+      test('wrong type returns empty', () {
+        expect(pick(Object()).asJsonObjectListOrEmpty(), isEmpty);
+      });
+
+      test('item that is not a Map throws', () {
+        expect(
+          () => pick([1]).asJsonObjectListOrEmpty(),
+          throwsA(pickException(containing: ['expected a Map at [0]'])),
+        );
+      });
+    });
+
+    group('asJsonObjectListOrNull', () {
+      test('pick value', () {
+        expect(
+          pick([
+            {'a': 1, 2: 'two'},
+          ]).asJsonObjectListOrNull(),
+          [
+            {'a': 1},
+          ],
+        );
+      });
+
+      test('null returns null', () {
+        expect(nullPick().asJsonObjectListOrNull(), isNull);
+      });
+
+      test('wrong type returns null', () {
+        expect(pick(Object()).asJsonObjectListOrNull(), isNull);
+      });
+
+      test('item that is not a Map throws', () {
+        expect(
+          () => pick([1]).asJsonObjectListOrNull(),
+          throwsA(pickException(containing: ['expected a Map at [0]'])),
+        );
+      });
+    });
+  });
+}
+
+class _User {
+  _User.fromJson(Map<String, dynamic> json) : name = json['name'] as String;
+
+  final String name;
 }
