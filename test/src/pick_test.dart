@@ -817,6 +817,40 @@ void main() {
       expect(afterCall.context, {'lang': 'de'});
     });
 
+    test('OrThrow parsers leave the context untouched', () {
+      final data = {
+        'int': 1,
+        'double': 1.5,
+        'bool': true,
+        'string': 'a',
+        'date': '2012-02-27 13:27:00',
+        'list': ['a'],
+        'map': {'a': 1},
+      };
+      final parsers = <String, void Function(Pick)>{
+        'int': (pick) => pick.asIntOrThrow(),
+        'double': (pick) => pick.asDoubleOrThrow(),
+        'bool': (pick) => pick.asBoolOrThrow(),
+        'string': (pick) => pick.asStringOrThrow(),
+        'date': (pick) => pick.asDateTimeOrThrow(),
+        'list': (pick) => pick.asListOrThrow((it) => it.asString()),
+        'map': (pick) => pick.asMapOrThrow<String, int>(),
+        'let': (pick) => pick.letOrThrow((it) => it.value),
+      };
+      for (final entry in parsers.entries) {
+        final key = entry.key == 'let' ? 'string' : entry.key;
+        final parse = entry.value;
+
+        final found = pick(data, key).withContext('lang', 'de');
+        parse(found);
+        expect(found.context, {'lang': 'de'}, reason: entry.key);
+
+        final missing = pick(data, 'nope').withContext('lang', 'de');
+        expect(() => parse(missing), throwsA(isA<PickException>()));
+        expect(missing.context, {'lang': 'de'}, reason: entry.key);
+      }
+    });
+
     group('index', () {
       test('index is available in lists', () {
         final picked0 = pick(['a', 'b', 'c'], 0);

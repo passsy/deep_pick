@@ -44,14 +44,12 @@ class PickException implements Exception {
     String? detail,
     String? hint,
   }) {
-    final contextHint = pick.context[requiredPickErrorHintKey] as String?;
-    final valueIsMissing = pick.value == null;
     final headline = () {
       final located = '$problem at ${_describeLocation(pick._path)}';
       if (pick.isAbsent) {
         return '$located, but it is absent';
       }
-      if (valueIsMissing) {
+      if (pick.value == null) {
         return '$located, but it is null';
       }
       return located;
@@ -60,12 +58,7 @@ class PickException implements Exception {
       pick,
       headline: headline,
       detail: detail,
-      hints: [
-        if (hint != null) hint,
-        // the context hint advises an `OrNull` parser, which only helps when
-        // the value is missing
-        if (contextHint != null && valueIsMissing) contextHint,
-      ],
+      hint: hint,
     );
     return PickException(message);
   }
@@ -101,7 +94,7 @@ String _renderErrorMessage(
   Pick pick, {
   required String headline,
   String? detail,
-  List<String> hints = const [],
+  String? hint,
 }) {
   final rows = <String>[];
   final missingIndex = pick._missingIndex;
@@ -113,7 +106,7 @@ String _renderErrorMessage(
   if (detail != null) {
     rows.add(_errorRow('detail', detail));
   }
-  for (final hint in hints) {
+  if (hint != null) {
     rows.add(_errorRow('hint', hint));
   }
 

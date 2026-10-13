@@ -8,7 +8,7 @@ extension NullableDoublePick on Pick {
   /// via [double.tryParse]
   /// {@endtemplate}
   double _parse() {
-    final value = required().value;
+    final value = requireValue(this);
     if (value is double) {
       return value;
     }
@@ -62,10 +62,13 @@ extension NullableDoublePick on Pick {
   ///
   /// {@macro Pick.asDouble}
   double asDoubleOrThrow() {
-    withContext(
-      requiredPickErrorHintKey,
-      'Use asDoubleOrNull() when the value may be null/absent at some point (double?).',
-    );
+    if (value == null) {
+      throw missingValueException(
+        this,
+        hint:
+            'Use asDoubleOrNull() when the value may be null/absent at some point (double?).',
+      );
+    }
     return _parse();
   }
 

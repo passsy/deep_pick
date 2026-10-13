@@ -16,7 +16,7 @@ extension NullableStringPick on Pick {
   /// for [int], [double] and any other [Object].
   /// {@endtemplate}
   String _parse() {
-    final value = required().value;
+    final value = requireValue(this);
     if (value is String) {
       return value;
     }
@@ -28,10 +28,13 @@ extension NullableStringPick on Pick {
   ///
   /// {@macro Pick.asString}
   String asStringOrThrow() {
-    withContext(
-      requiredPickErrorHintKey,
-      'Use asStringOrNull() when the value may be null/absent at some point (String?).',
-    );
+    if (value == null) {
+      throw missingValueException(
+        this,
+        hint:
+            'Use asStringOrNull() when the value may be null/absent at some point (String?).',
+      );
+    }
     return _parse();
   }
 

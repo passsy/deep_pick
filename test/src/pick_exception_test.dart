@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:deep_pick/deep_pick.dart';
-import 'package:deep_pick/src/pick.dart' show requiredPickErrorHintKey;
 import 'package:test/test.dart';
 
 /// Captures the [PickException] thrown by [body]
@@ -848,9 +847,9 @@ void main() {
       );
     });
 
-    test('custom detail and both hint sources are rendered in order', () {
+    test('custom detail and hint are rendered in order', () {
       final e = PickException.fromPick(
-        pick(null).withContext(requiredPickErrorHintKey, 'context hint'),
+        pick(null),
         'expected a custom value',
         detail: 'custom detail',
         hint: 'factory hint',
@@ -860,8 +859,7 @@ void main() {
           'expected a custom value at <root>, but it is null\n\n'
           '  found   null\n'
           '  detail  custom detail\n'
-          '  hint    factory hint\n'
-          '  hint    context hint');
+          '  hint    factory hint');
     });
 
     test('the OrNull hint is only shown when the value is missing', () {
@@ -877,6 +875,16 @@ void main() {
         '  hint    Use asIntOrNull() when the value may be null/absent at '
         'some point (int?).',
       );
+    });
+
+    test('a pick does not keep the hint of a parser that failed on it', () {
+      final missing = pick({'id': 'abc'}, 'nope');
+      final first = grabException(() => missing.asIntOrThrow());
+      expect(first.message, contains('Use asIntOrNull()'));
+
+      // required() has no OrNull sibling to advise
+      final second = grabException(() => missing.required());
+      expect(second.message, isNot(contains('hint')));
     });
 
     test('a custom parser error does not advise letOrNull()', () {

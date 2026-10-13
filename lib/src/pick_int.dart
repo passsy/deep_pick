@@ -11,7 +11,7 @@ extension NullableIntPick on Pick {
   /// via [int.tryParse]
   /// {@endtemplate}
   int _parse(bool roundDouble, bool truncateDouble) {
-    final value = required().value;
+    final value = requireValue(this);
     if (roundDouble && truncateDouble) {
       throw PickException(
         '[roundDouble] and [truncateDouble] can not be true at the same time',
@@ -48,10 +48,13 @@ extension NullableIntPick on Pick {
   ///
   /// {@macro Pick.asInt}
   int asIntOrThrow({bool roundDouble = false, bool truncateDouble = false}) {
-    withContext(
-      requiredPickErrorHintKey,
-      'Use asIntOrNull() when the value may be null/absent at some point (int?).',
-    );
+    if (value == null) {
+      throw missingValueException(
+        this,
+        hint:
+            'Use asIntOrNull() when the value may be null/absent at some point (int?).',
+      );
+    }
     return _parse(roundDouble, truncateDouble);
   }
 

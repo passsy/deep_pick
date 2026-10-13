@@ -26,6 +26,8 @@
   `pick({'a': null}, 'a', 'b').isAbsent` was `false`, while `pick({'a': null}, 'a')('b').isAbsent` was `true`.
 - **New** `PickException.fromPick(pick, 'expected a Timestamp')` but honestly, nobody outside deep_pick should call it.
 - **New** `Pick.redactValues()` masks error values while keeping keys and types visible; `Pick.redactsValues` exposes the policy to custom parsers and `RequiredPick.redactValues()` preserves non-null chaining [#65](https://github.com/passsy/deep_pick/pull/65).
+- **Fix** `as*OrThrow()` and `letOrThrow()` no longer leave an internal `_required_pick_error_hint` entry in `Pick.context`.
+  That also makes them as fast as their `OrNull` counterparts [#68](https://github.com/passsy/deep_pick/pull/68).
 - **Deprecated** `Pick.path`, `Pick.missingValueAtIndex`, `Pick.followablePath` and `Pick.debugParsingExit`. The error message of a `PickException` shows where a pick failed.
 
 ## 1.1.0 (`30.08.24`)

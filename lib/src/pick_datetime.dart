@@ -88,7 +88,7 @@ extension NullableDateTimePick on Pick {
   /// - `'Thu Jan  1 00:00:00 1970'`
   /// {@endtemplate}
   DateTime _parse({PickDateFormat? format}) {
-    final value = required().value;
+    final value = requireValue(this);
     if (value is DateTime) {
       return value;
     }
@@ -138,10 +138,13 @@ extension NullableDateTimePick on Pick {
   ///
   /// {@macro Pick.asDateTime}
   DateTime asDateTimeOrThrow({PickDateFormat? format}) {
-    withContext(
-      requiredPickErrorHintKey,
-      'Use asDateTimeOrNull() when the value may be null/absent at some point (DateTime?).',
-    );
+    if (value == null) {
+      throw missingValueException(
+        this,
+        hint:
+            'Use asDateTimeOrNull() when the value may be null/absent at some point (DateTime?).',
+      );
+    }
     return _parse(format: format);
   }
 
@@ -159,7 +162,7 @@ extension NullableDateTimePick on Pick {
 
   /// [PickDateFormat.ISO_8601]
   DateTime? _parseIso8601() {
-    final value = required().value;
+    final value = requireValue(this);
     if (value is! String) return null;
 
     // DartTime.tryParse() does not support timezones like EST, PDT, etc.
@@ -183,7 +186,7 @@ extension NullableDateTimePick on Pick {
 
   /// [PickDateFormat.RFC_1123]
   DateTime? _parseRfc1123() {
-    final value = required().value;
+    final value = requireValue(this);
     if (value is! String) return null;
     // not using HttpDate.parse because it is not available in the browsers
     try {
@@ -208,7 +211,7 @@ extension NullableDateTimePick on Pick {
 
   /// [PickDateFormat.ANSI_C_asctime]
   DateTime? _parseAnsiCAsctime() {
-    final value = required().value;
+    final value = requireValue(this);
     if (value is! String) return null;
     try {
       final asctimeRegex =
@@ -228,7 +231,7 @@ extension NullableDateTimePick on Pick {
 
   /// [PickDateFormat.RFC_850]
   DateTime? _parseRfc850() {
-    final value = required().value;
+    final value = requireValue(this);
     if (value is! String) return null;
     try {
       final rfc850Regex = RegExp(

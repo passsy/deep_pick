@@ -36,7 +36,7 @@ extension NullableMapPick on Pick {
   /// ```
   /// {@endtemplate}
   Map<RK, RV> _parse<RK, RV>() {
-    final value = required().value;
+    final value = requireValue(this);
     if (value is Map) {
       final view = value.cast<RK, RV>();
       // create copy of casted view so all items are type checked here
@@ -51,10 +51,13 @@ extension NullableMapPick on Pick {
   ///
   /// {@macro Pick.asMap}
   Map<RK, RV> asMapOrThrow<RK, RV>() {
-    withContext(
-      requiredPickErrorHintKey,
-      'Use asMapOrEmpty()/asMapOrNull() when the value may be null/absent at some point (Map<$RK, $RV>?).',
-    );
+    if (value == null) {
+      throw missingValueException(
+        this,
+        hint:
+            'Use asMapOrEmpty()/asMapOrNull() when the value may be null/absent at some point (Map<$RK, $RV>?).',
+      );
+    }
     return _parse();
   }
 

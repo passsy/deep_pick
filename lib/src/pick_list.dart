@@ -44,18 +44,15 @@ extension NullableListPick on Pick {
     T Function(RequiredPick) map, {
     T Function(Pick pick)? whenNull,
   }) {
-    final value = required().value;
+    final value = requireValue(this);
     if (value is List) {
       final result = <T>[];
-      // the hint is advice for the list, an element has its own location
-      // and parser
-      final itemContext = Map.of(context)..remove(requiredPickErrorHintKey);
       var index = -1;
       for (final item in value) {
         index++;
         if (item != null) {
           final picked =
-              pickListItem(this, index, item as Object, context: itemContext);
+              pickListItem(this, index, item as Object, context: context);
           result.add(map(picked));
           continue;
         }
@@ -63,7 +60,7 @@ extension NullableListPick on Pick {
           // skip null items when whenNull isn't provided
           continue;
         }
-        final pick = pickNullListItem(this, index, context: itemContext);
+        final pick = pickNullListItem(this, index, context: context);
         result.add(whenNull(pick));
       }
       return result;
@@ -79,10 +76,13 @@ extension NullableListPick on Pick {
     T Function(RequiredPick) map, {
     T Function(Pick pick)? whenNull,
   }) {
-    withContext(
-      requiredPickErrorHintKey,
-      'Use asListOrEmpty()/asListOrNull() when the value may be null/absent at some point (List<$T>?).',
-    );
+    if (value == null) {
+      throw missingValueException(
+        this,
+        hint:
+            'Use asListOrEmpty()/asListOrNull() when the value may be null/absent at some point (List<$T>?).',
+      );
+    }
     return _parse(map, whenNull: whenNull);
   }
 

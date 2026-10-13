@@ -184,6 +184,31 @@ Pick pickNullListItem(
       path: _extended(list._path, [index]), context: Map.of(context));
 }
 
+/// The error of a [pick] that is `null` or absent where a value is required
+///
+/// [hint] is the advice of the parser that required the value, usually the
+/// parser that accepts a missing one. It is passed here, where the error is
+/// created, so a parser that finds its value does not pay for the hint.
+///
+/// For the parsers of this package, it is not exported.
+PickException missingValueException(Pick pick, {String? hint}) {
+  return PickException.fromPick(pick, 'expected a non-null value', hint: hint);
+}
+
+/// The non-null value of [pick], throws like [Pick.required] when it is
+/// `null` or absent
+///
+/// Saves the [RequiredPick] that `pick.required().value` creates.
+///
+/// For the parsers of this package, it is not exported.
+Object requireValue(Pick pick) {
+  final value = pick.value;
+  if (value == null) {
+    throw missingValueException(pick);
+  }
+  return value;
+}
+
 /// Traverses [start] along [selectors]
 ///
 /// [parent] is the pick [start] is the value of. A top-level pick has none,
@@ -445,13 +470,7 @@ class Pick {
       // nothing to drill into, a longer path is absent at the same location
       return _copyWith(path: _extended(_path, selectors));
     }
-    final childContext = Map.of(context);
-    if (selectors.isNotEmpty) {
-      // the hint is advice for this pick, a pick further down the path has
-      // its own location and parser
-      childContext.remove(requiredPickErrorHintKey);
-    }
-    return _drillDown(value, selectors, parent: this, context: childContext);
+    return _drillDown(value, selectors, parent: this, context: Map.of(context));
   }
 
   /// Returns a copy that redacts data values in its error messages and those
@@ -500,11 +519,7 @@ class Pick {
   ///
   /// Crashes when the the value is `null`.
   RequiredPick required() {
-    final value = this.value;
-    if (value == null) {
-      throw PickException.fromPick(this, 'expected a non-null value');
-    }
-    return RequiredPick(value, path: _path, context: context);
+    return RequiredPick(requireValue(this), path: _path, context: context);
   }
 
   @override
@@ -697,10 +712,6 @@ class RequiredPick extends Pick {
     );
   }
 }
-
-/// Used internally with [Pick.withContext] to add additional information
-/// to the error message
-const requiredPickErrorHintKey = '_required_pick_error_hint';
 
 /// Used internally with [Pick.redactValues] to mark a pick chain as carrying
 /// sensitive data

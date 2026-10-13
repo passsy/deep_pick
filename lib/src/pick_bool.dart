@@ -22,7 +22,7 @@ extension BoolPick on Pick {
   /// ```
   /// {@endtemplate}
   bool _parse() {
-    final value = required().value;
+    final value = requireValue(this);
     if (value is bool) {
       return value;
     }
@@ -42,10 +42,13 @@ extension BoolPick on Pick {
   ///
   /// {@macro Pick.asBool}
   bool asBoolOrThrow() {
-    withContext(
-      requiredPickErrorHintKey,
-      'Use asBoolOrNull() when the value may be null/absent at some point (bool?).',
-    );
+    if (value == null) {
+      throw missingValueException(
+        this,
+        hint:
+            'Use asBoolOrNull() when the value may be null/absent at some point (bool?).',
+      );
+    }
     return _parse();
   }
 
