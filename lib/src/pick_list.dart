@@ -55,7 +55,7 @@ extension NullableListPick on Pick {
         index++;
         if (item != null) {
           final picked =
-              RequiredPick(item, path: [...path, index], context: itemContext);
+              pickListItem(this, index, item as Object, context: itemContext);
           result.add(map(picked));
           continue;
         }
@@ -63,7 +63,7 @@ extension NullableListPick on Pick {
           // skip null items when whenNull isn't provided
           continue;
         }
-        final pick = Pick(null, path: [...path, index], context: itemContext);
+        final pick = pickNullListItem(this, index, context: itemContext);
         result.add(whenNull(pick));
       }
       return result;

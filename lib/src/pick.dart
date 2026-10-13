@@ -155,6 +155,33 @@ List<Object> _snapshotOf(List<Object> path) {
   return _FrozenPath(List.of(path));
 }
 
+/// The pick of the non-null [item] the [list] holds at [index], with its
+/// own copy of [context]
+///
+/// For the list parsers of this package, it is not exported.
+RequiredPick pickListItem(
+  Pick list,
+  int index,
+  Object item, {
+  required Map<String, dynamic> context,
+}) {
+  return RequiredPick._from(item,
+      path: _extended(list._path, [index]), context: Map.of(context));
+}
+
+/// The pick of a `null` the [list] holds at [index], with its own copy of
+/// [context]
+///
+/// For the list parsers of this package, it is not exported.
+Pick pickNullListItem(
+  Pick list,
+  int index, {
+  required Map<String, dynamic> context,
+}) {
+  return Pick._from(null, null,
+      path: _extended(list._path, [index]), context: Map.of(context));
+}
+
 /// Traverses [start] along [selectors]
 ///
 /// [parent] is the pick [start] is the value of. A top-level pick has none,
@@ -172,7 +199,7 @@ Pick _drillDown(
   required Pick? parent,
   required Map<String, dynamic> context,
 }) {
-  final parentPath = parent == null ? const <Object>[] : parent.path;
+  final parentPath = parent == null ? const <Object>[] : parent._path;
   final fullPath =
       parentPath.isEmpty ? selectors : _extended(parentPath, selectors);
   final lastIndex = selectors.length - 1;
@@ -186,7 +213,7 @@ Pick _drillDown(
         return Pick._from(parent ?? _rootOf(start), null,
             path: fullPath,
             context: context,
-            missingValueAtIndex: parentPath.length + i);
+            missingIndex: parentPath.length + i);
       }
     } else if (data is List &&
         selector is int &&
@@ -198,7 +225,7 @@ Pick _drillDown(
       final unreachable = Pick._from(parent ?? _rootOf(start), null,
           path: fullPath,
           context: context,
-          missingValueAtIndex: parentPath.length + i);
+          missingIndex: parentPath.length + i);
       if (data is Set && selector is int) {
         throw PickException(
           _renderErrorMessage(
@@ -216,7 +243,7 @@ Pick _drillDown(
       return Pick._from(parent ?? _rootOf(start), null,
           path: fullPath,
           context: context,
-          missingValueAtIndex: parentPath.length + i + 1);
+          missingIndex: parentPath.length + i + 1);
     }
     data = child;
   }
@@ -252,7 +279,7 @@ Object? _valueBeforeMissingSegment(Pick absent) {
     return null;
   }
   final followed =
-      absent.path.sublist(parent.path.length, absent.missingValueAtIndex);
+      absent._path.sublist(parent._path.length, absent._missingIndex);
   /*Map|List|null*/ dynamic data = parent.value;
   for (final selector in followed) {
     if (!_hasChild(data, selector)) {
@@ -274,8 +301,8 @@ class Pick {
     this.value, {
     List<Object> path = const [],
     Map<String, dynamic>? context,
-  })  : path = _snapshotOf(path),
-        missingValueAtIndex = null,
+  })  : _path = _snapshotOf(path),
+        _missingIndex = null,
         _parent = null,
         context = context != null ? Map.of(context) : {};
 
@@ -290,16 +317,17 @@ class Pick {
   /// Pick({'id': 1}, path: ['shoes'])('name'); // absent, {'id': 1} has no name
   /// ```
   Pick.absent(
-    int this.missingValueAtIndex, {
+    int missingValueAtIndex, {
     List<Object> path = const [],
     Map<String, Object?>? context,
-  })  : path = _snapshotOf(path),
+  })  : _path = _snapshotOf(path),
+        _missingIndex = missingValueAtIndex,
         value = null,
         _parent = null,
         context = context != null ? Map.of(context) : {};
 
   /// A pick that was picked from [parent], absent when it comes with a
-  /// [missingValueAtIndex]. Only absent picks retain [parent] for diagnostics.
+  /// [missingIndex]. Only absent picks retain [parent] for diagnostics.
   ///
   /// Keeps [context] and [path] as its own without copying them, the caller
   /// hands over a map and a list nobody else holds.
@@ -308,9 +336,10 @@ class Pick {
     this.value, {
     required List<Object> path,
     required this.context,
-    this.missingValueAtIndex,
-  })  : path = _FrozenPath(path),
-        _parent = missingValueAtIndex == null ? null : parent;
+    int? missingIndex,
+  })  : _path = _FrozenPath(path),
+        _missingIndex = missingIndex,
+        _parent = missingIndex == null ? null : parent;
 
   /// The picked value, might be `null`
   final Object? value;
@@ -345,7 +374,7 @@ class Pick {
   ///
   /// pick([], "a").isAbsent; // true
   /// ```
-  bool get isAbsent => missingValueAtIndex != null;
+  bool get isAbsent => _missingIndex != null;
 
   /// Attaches additional information which can be used during parsing.
   /// i.e the HTTP request/response including headers
@@ -362,7 +391,7 @@ class Pick {
   /// );
   /// ```
   int? get index {
-    final lastPathSegment = path.isNotEmpty ? path.last : null;
+    final lastPathSegment = _path.isNotEmpty ? _path.last : null;
     if (lastPathSegment == null) {
       return null;
     }
@@ -375,7 +404,12 @@ class Pick {
 
   /// When the picked value is unavailable ([Pick.isAbsent]) the index in
   /// [path] which couldn't be found
-  final int? missingValueAtIndex;
+  @Deprecated(
+    'Throw PickException.fromPick() instead of building an error message '
+    'from missingValueAtIndex',
+  )
+  int? get missingValueAtIndex => _missingIndex;
+  final int? _missingIndex;
 
   /// The full path to [value] inside of the object
   ///
@@ -383,13 +417,22 @@ class Pick {
   ///
   /// An unmodifiable snapshot of the selectors supplied when this pick was
   /// created. Later changes to the caller's list do not change the location.
-  final List<Object> path;
+  @Deprecated(
+    'Throw PickException.fromPick() instead of building an error message '
+    'from path',
+  )
+  List<Object> get path => _path;
+  final List<Object> _path;
 
   /// The path segments containing non-null values parsing could follow along
   ///
   /// I.e. `['shoes']` for an empty shoes list
+  @Deprecated(
+    'Throw PickException.fromPick() instead of building an error message '
+    'from followablePath',
+  )
   List<Object> get followablePath =>
-      path.take(missingValueAtIndex ?? path.length).toList();
+      _path.take(_missingIndex ?? _path.length).toList();
 
   // Pick even further
   Pick call([
@@ -418,15 +461,15 @@ class Pick {
       if (arg9 != null) arg9,
     ];
 
-    final missingIndex = missingValueAtIndex;
+    final missingIndex = _missingIndex;
     if (missingIndex != null) {
       // nothing to drill into, a longer path is absent at the same location
       return Pick._from(
         _parent,
         null,
-        path: _extended(path, selectors),
+        path: _extended(_path, selectors),
         context: Map.of(context),
-        missingValueAtIndex: missingIndex,
+        missingIndex: missingIndex,
       );
     }
     final childContext = Map.of(context);
@@ -447,12 +490,12 @@ class Pick {
     if (value == null) {
       throw PickException.fromPick(this, 'expected a non-null value');
     }
-    return RequiredPick(value, path: path, context: context);
+    return RequiredPick(value, path: _path, context: context);
   }
 
   @override
   @Deprecated('Use asStringOrNull() to pick a String value')
-  String toString() => 'Pick(value=$value, path=$path)';
+  String toString() => 'Pick(value=$value, path=$_path)';
 
   /// Attaches additional information which can be used during parsing.
   /// i.e the HTTP request/response including headers
@@ -536,7 +579,7 @@ class Pick {
 
     // The full path to [value] inside of the object
     // I.e. ['shoes', 0, 'name']
-    final fullPath = path;
+    final fullPath = _path;
 
     // The path segments containing non-null values parsing could follow along
     // I.e. ['shoes'] for an empty shoes list
@@ -599,15 +642,23 @@ class RequiredPick extends Pick {
   })  : value = value as Object,
         super(value, path: path, context: context);
 
+  /// A pick of a non-null [value] at a [path] this library built, keeps
+  /// [context] and [path] as its own without copying them
+  RequiredPick._from(
+    this.value, {
+    required List<Object> path,
+    required Map<String, dynamic> context,
+  }) : super._from(null, value, path: path, context: context);
+
   @override
   // ignore: overridden_fields
   covariant Object value;
 
   @override
   @Deprecated('Use asStringOrNull() to pick a String value')
-  String toString() => 'RequiredPick(value=$value, path=$path)';
+  String toString() => 'RequiredPick(value=$value, path=$_path)';
 
-  Pick nullable() => Pick(value, path: path, context: context);
+  Pick nullable() => Pick(value, path: _path, context: context);
 
   @override
   RequiredPick withContext(String key, Object? value) {
@@ -665,7 +716,7 @@ class PickException implements Exception {
     final contextHint = pick.context[requiredPickErrorHintKey] as String?;
     final valueIsMissing = pick.value == null;
     final headline = () {
-      final located = '$problem at ${_describeLocation(pick.path)}';
+      final located = '$problem at ${_describeLocation(pick._path)}';
       if (pick.isAbsent) {
         return '$located, but it is absent';
       }
@@ -722,7 +773,7 @@ String _renderErrorMessage(
   List<String> hints = const [],
 }) {
   final rows = <String>[];
-  final missingIndex = pick.missingValueAtIndex;
+  final missingIndex = pick._missingIndex;
   if (missingIndex == null) {
     rows.addAll(_rowsForFoundValue(pick));
   } else {
@@ -757,7 +808,8 @@ List<String> _rowsForFoundValue(Pick pick) {
     return '  (${_describeType(value)})';
   }();
   return [
-    if (pick.path.isNotEmpty) _errorRow('query', _describeLocation(pick.path)),
+    if (pick._path.isNotEmpty)
+      _errorRow('query', _describeLocation(pick._path)),
     _errorRow('found', '${valueBlock.first}$type'),
     ...valueBlock.skip(1),
   ];
@@ -766,7 +818,7 @@ List<String> _rowsForFoundValue(Pick pick) {
 /// The rows of a [pick] whose path broke at [missingIndex]: a marker under
 /// the segment that was not found, and what the data holds right before it
 List<String> _rowsForBrokenPath(Pick pick, int missingIndex) {
-  final path = pick.path;
+  final path = pick._path;
   if (path.isEmpty) {
     return [];
   }
