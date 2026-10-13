@@ -4,7 +4,7 @@ extension RequiredStringPick on RequiredPick {
   /// Returns the picked [value] as [String] representation
   ///
   /// {@macro Pick.asString}
-  String asString() => _parse();
+  String asString() => _parse(value);
 }
 
 extension NullableStringPick on Pick {
@@ -15,8 +15,7 @@ extension NullableStringPick on Pick {
   /// its [Object.toString()] will be called. This means that this method works
   /// for [int], [double] and any other [Object].
   /// {@endtemplate}
-  String _parse() {
-    final value = requireValue(this);
+  String _parse(Object value) {
     if (value is String) {
       return value;
     }
@@ -28,23 +27,26 @@ extension NullableStringPick on Pick {
   ///
   /// {@macro Pick.asString}
   String asStringOrThrow() {
+    final value = this.value;
     if (value == null) {
-      throw missingValueException(
+      throw PickException.fromPick(
         this,
+        'expected a non-null value',
         hint:
             'Use asStringOrNull() when the value may be null/absent at some point (String?).',
       );
     }
-    return _parse();
+    return _parse(value);
   }
 
   /// Returns the picked [value] as [String] or returns `null` when the picked value isn't available
   ///
   /// {@macro Pick.asString}
   String? asStringOrNull() {
+    final value = this.value;
     if (value == null) return null;
     try {
-      return _parse();
+      return _parse(value);
     } catch (_) {
       return null;
     }

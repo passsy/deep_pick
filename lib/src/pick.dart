@@ -184,31 +184,6 @@ Pick pickNullListItem(
       path: _extended(list._path, [index]), context: Map.of(context));
 }
 
-/// The error of a [pick] that is `null` or absent where a value is required
-///
-/// [hint] is the advice of the parser that required the value, usually the
-/// parser that accepts a missing one. It is passed here, where the error is
-/// created, so a parser that finds its value does not pay for the hint.
-///
-/// For the parsers of this package, it is not exported.
-PickException missingValueException(Pick pick, {String? hint}) {
-  return PickException.fromPick(pick, 'expected a non-null value', hint: hint);
-}
-
-/// The non-null value of [pick], throws like [Pick.required] when it is
-/// `null` or absent
-///
-/// Saves the [RequiredPick] that `pick.required().value` creates.
-///
-/// For the parsers of this package, it is not exported.
-Object requireValue(Pick pick) {
-  final value = pick.value;
-  if (value == null) {
-    throw missingValueException(pick);
-  }
-  return value;
-}
-
 /// Traverses [start] along [selectors]
 ///
 /// [parent] is the pick [start] is the value of. A top-level pick has none,
@@ -519,7 +494,11 @@ class Pick {
   ///
   /// Crashes when the the value is `null`.
   RequiredPick required() {
-    return RequiredPick(requireValue(this), path: _path, context: context);
+    final value = this.value;
+    if (value == null) {
+      throw PickException.fromPick(this, 'expected a non-null value');
+    }
+    return RequiredPick(value, path: _path, context: context);
   }
 
   @override

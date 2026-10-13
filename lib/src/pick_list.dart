@@ -41,10 +41,10 @@ extension NullableListPick on Pick {
   /// ```
   /// {@endtemplate}
   List<T> _parse<T>(
+    Object value,
     T Function(RequiredPick) map, {
     T Function(Pick pick)? whenNull,
   }) {
-    final value = requireValue(this);
     if (value is List) {
       final result = <T>[];
       var index = -1;
@@ -76,14 +76,16 @@ extension NullableListPick on Pick {
     T Function(RequiredPick) map, {
     T Function(Pick pick)? whenNull,
   }) {
+    final value = this.value;
     if (value == null) {
-      throw missingValueException(
+      throw PickException.fromPick(
         this,
+        'expected a non-null value',
         hint:
             'Use asListOrEmpty()/asListOrNull() when the value may be null/absent at some point (List<$T>?).',
       );
     }
-    return _parse(map, whenNull: whenNull);
+    return _parse(value, map, whenNull: whenNull);
   }
 
   /// Returns the picked [value] as [List] or an empty list when the `value`
@@ -94,9 +96,10 @@ extension NullableListPick on Pick {
     T Function(RequiredPick) map, {
     T Function(Pick pick)? whenNull,
   }) {
+    final value = this.value;
     if (value == null) return <T>[];
     if (value is! List) return <T>[];
-    return _parse(map, whenNull: whenNull);
+    return _parse(value, map, whenNull: whenNull);
   }
 
   /// Returns the picked [value] as [List] or null when the `value`
@@ -107,8 +110,9 @@ extension NullableListPick on Pick {
     T Function(RequiredPick) map, {
     T Function(Pick pick)? whenNull,
   }) {
+    final value = this.value;
     if (value == null) return null;
     if (value is! List) return null;
-    return _parse(map, whenNull: whenNull);
+    return _parse(value, map, whenNull: whenNull);
   }
 }

@@ -36,8 +36,9 @@ extension NullableLet on Pick {
   /// ```
   R letOrThrow<R>(R Function(RequiredPick pick) block) {
     if (value == null) {
-      throw missingValueException(
+      throw PickException.fromPick(
         this,
+        'expected a non-null value',
         hint:
             'Use letOrNull() when the value may be null/absent at some point.',
       );
