@@ -245,8 +245,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:deep_pick/deep_pick.dart';
 
 extension TimestampPick on Pick {
-  Timestamp asFirestoreTimeStampOrThrow() {
-    final value = required().value;
+  Timestamp _parse(Object value) {
     if (value is Timestamp) {
       return value;
     }
@@ -256,10 +255,24 @@ extension TimestampPick on Pick {
     throw PickException.fromPick(this, 'expected a Timestamp');
   }
 
+  Timestamp asFirestoreTimeStampOrThrow() {
+    final value = this.value;
+    if (value == null) {
+      throw PickException.fromPick(
+        this,
+        'expected a non-null value',
+        hint:
+            'Use asFirestoreTimeStampOrNull() when the value may be null/absent at some point (Timestamp?).',
+      );
+    }
+    return _parse(value);
+  }
+
   Timestamp? asFirestoreTimeStampOrNull() {
+    final value = this.value;
     if (value == null) return null;
     try {
-      return asFirestoreTimeStampOrThrow();
+      return _parse(value);
     } catch (_) {
       return null;
     }
