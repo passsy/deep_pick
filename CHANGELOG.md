@@ -22,6 +22,18 @@
     found   "M"  (a String)
   ```
 
+- **New** `asJsonObjectOrThrow()`, `asJsonObjectOrEmpty()` and `asJsonObjectOrNull()` return a `Map<String, Object?>` that goes straight into a `fromJson` function, no type arguments needed.
+  Entries with a key that isn't a `String` are ignored.
+- **New** `asJsonObjectListOrThrow()`, `asJsonObjectListOrEmpty()` and `asJsonObjectListOrNull()` for a list of JSON objects.
+
+  ```dart
+  // before
+  pick(json, 'users').asListOrEmpty((pick) => pick.asMapOrThrow<String, dynamic>());
+  // after
+  pick(json, 'users').asJsonObjectListOrEmpty();
+  ```
+
+- **New** `asMapListOrThrow<K, V>()`, `asMapListOrEmpty<K, V>()` and `asMapListOrNull<K, V>()` for a list of maps with any key type.
 - **Fix** `Pick.isAbsent` is `true` below a `null`, however the path is written.
   `pick({'a': null}, 'a', 'b').isAbsent` was `false`, while `pick({'a': null}, 'a')('b').isAbsent` was `true`.
 - **New** `PickException.fromPick(pick, 'expected a Timestamp')` but honestly, nobody outside deep_pick should call it.

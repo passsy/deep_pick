@@ -230,6 +230,55 @@ pick(json).asMapOrThrow<String, dynamic>();
 pick(json).asMapOrEmpty<String, dynamic>();
 ```
 
+### JSON objects
+
+`asJsonObject*` returns a `Map<String, Object?>`, the type `fromJson` functions expect.
+No type arguments needed.
+
+```dart
+pick(json, 'user').asJsonObjectOrNull();
+pick(json, 'user').asJsonObjectOrThrow();
+pick(json, 'user').asJsonObjectOrEmpty();
+```
+
+```dart
+final user = User.fromJson(pick(json, 'user').asJsonObjectOrThrow());
+```
+
+A JSON object only has `String` keys.
+Entries with any other key are ignored, use `asMap*` for those maps.
+
+```dart
+pick({'a': 1, 2: 'two'}).asJsonObjectOrThrow();
+// {'a': 1}
+```
+
+### Lists of JSON objects and `Map`s
+
+`asJsonObjectList*` is the shorthand for a `List` of JSON objects.
+
+```dart
+// before
+pick(json, 'users').asListOrEmpty((pick) => pick.asMapOrThrow<String, dynamic>());
+// after
+pick(json, 'users').asJsonObjectListOrEmpty();
+```
+
+```dart
+List<User> users = pick(json, 'users').asJsonObjectListOrEmpty().map(User.fromJson).toList();
+```
+
+`asMapList*` does the same for maps with any key type.
+
+```dart
+pick(data).asMapListOrNull(); // List<Map<dynamic, dynamic>>?
+pick(data).asMapListOrThrow<int, String>(); // List<Map<int, String>>
+pick(data).asMapListOrEmpty<int, String>();
+```
+
+`OrEmpty` and `OrNull` cover the list being absent or not a `List`.
+An item that isn't a `Map` throws a `PickException` that names the item, `null` items are ignored.
+
 ## Custom parsers
 
 Parsers in `deep_pick` are based on extension functions on the classes `Pick`.

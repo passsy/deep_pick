@@ -1,4 +1,5 @@
 import 'package:deep_pick/src/pick.dart';
+import 'package:deep_pick/src/pick_map.dart';
 
 extension NullableListPick on Pick {
   /// Returns the items of the [List] as list, mapped each item with [map]
@@ -114,5 +115,114 @@ extension NullableListPick on Pick {
     if (value == null) return null;
     if (value is! List) return null;
     return _parse(value, map, whenNull: whenNull);
+  }
+
+  /// Returns the picked [value] as [List] of [Map]s. This method throws when
+  /// [value] is not a `List` or [isAbsent]
+  ///
+  /// {@template Pick.asMapList}
+  /// Shorthand for `asList*((pick) => pick.asMapOrThrow<RK, RV>())`.
+  ///
+  /// Every item has to be a [Map], any other item throws. `null` items are
+  /// ignored.
+  ///
+  /// ```dart
+  /// final scores = pick([
+  ///   {1: 'gold', 2: 'silver'},
+  ///   {1: 'bronze'},
+  /// ]).asMapListOrThrow<int, String>();
+  /// ```
+  ///
+  /// Use [asJsonObjectListOrThrow] to get maps with [String] keys for
+  /// `fromJson` functions.
+  /// {@endtemplate}
+  List<Map<RK, RV>> asMapListOrThrow<RK, RV>() {
+    final value = this.value;
+    if (value == null) {
+      throw PickException.fromPick(
+        this,
+        'expected a non-null value',
+        hint:
+            'Use asMapListOrEmpty()/asMapListOrNull() when the value may be null/absent at some point (List<Map<$RK, $RV>>?).',
+      );
+    }
+    return _parse(value, (pick) => pick.asMapOrThrow<RK, RV>());
+  }
+
+  /// Returns the picked [value] as [List] of [Map]s or an empty list when the
+  /// `value` isn't a [List] or [isAbsent].
+  ///
+  /// {@macro Pick.asMapList}
+  List<Map<RK, RV>> asMapListOrEmpty<RK, RV>() {
+    final value = this.value;
+    if (value == null) return <Map<RK, RV>>[];
+    if (value is! List) return <Map<RK, RV>>[];
+    return _parse(value, (pick) => pick.asMapOrThrow<RK, RV>());
+  }
+
+  /// Returns the picked [value] as [List] of [Map]s or null when the `value`
+  /// isn't a [List] or [isAbsent].
+  ///
+  /// {@macro Pick.asMapList}
+  List<Map<RK, RV>>? asMapListOrNull<RK, RV>() {
+    final value = this.value;
+    if (value == null) return null;
+    if (value is! List) return null;
+    return _parse(value, (pick) => pick.asMapOrThrow<RK, RV>());
+  }
+
+  /// Returns the picked [value] as [List] of JSON objects. This method throws
+  /// when [value] is not a `List` or [isAbsent]
+  ///
+  /// {@template Pick.asJsonObjectList}
+  /// Shorthand for `asList*((pick) => pick.asJsonObjectOrThrow())`.
+  ///
+  /// A JSON object is a [Map] with [String] keys, the type `fromJson`
+  /// functions expect. Entries with a key that isn't a [String] are ignored.
+  /// Use [asMapListOrThrow] for maps with other keys.
+  ///
+  /// Every item has to be a [Map], any other item throws. `null` items are
+  /// ignored.
+  ///
+  /// ```dart
+  /// final users = pick(json, 'users')
+  ///     .asJsonObjectListOrEmpty()
+  ///     .map(User.fromJson)
+  ///     .toList();
+  /// ```
+  /// {@endtemplate}
+  List<Map<String, Object?>> asJsonObjectListOrThrow() {
+    final value = this.value;
+    if (value == null) {
+      throw PickException.fromPick(
+        this,
+        'expected a non-null value',
+        hint:
+            'Use asJsonObjectListOrEmpty()/asJsonObjectListOrNull() when the value may be null/absent at some point (List<Map<String, Object?>>?).',
+      );
+    }
+    return _parse(value, (pick) => pick.asJsonObjectOrThrow());
+  }
+
+  /// Returns the picked [value] as [List] of JSON objects or an empty list
+  /// when the `value` isn't a [List] or [isAbsent].
+  ///
+  /// {@macro Pick.asJsonObjectList}
+  List<Map<String, Object?>> asJsonObjectListOrEmpty() {
+    final value = this.value;
+    if (value == null) return <Map<String, Object?>>[];
+    if (value is! List) return <Map<String, Object?>>[];
+    return _parse(value, (pick) => pick.asJsonObjectOrThrow());
+  }
+
+  /// Returns the picked [value] as [List] of JSON objects or null when the
+  /// `value` isn't a [List] or [isAbsent].
+  ///
+  /// {@macro Pick.asJsonObjectList}
+  List<Map<String, Object?>>? asJsonObjectListOrNull() {
+    final value = this.value;
+    if (value == null) return null;
+    if (value is! List) return null;
+    return _parse(value, (pick) => pick.asJsonObjectOrThrow());
   }
 }
