@@ -950,18 +950,24 @@ void main() {
       PickDateFormat.RFC_850,
       PickDateFormat.ANSI_C_asctime
     ]) {
-      test('explicit $format failure names the format, also redacted', () {
-        final e = grabException(() {
-          pick({'date': 'CUSTOMERSECRET'})
-              .redactValues()('date')
-              .asDateTimeOrThrow(format: format);
+      for (final redact in [false, true]) {
+        test('explicit $format failure names the format (redact=$redact)', () {
+          final e = grabException(() {
+            final source = pick({'date': 'CUSTOMERSECRET'}, 'date');
+            final selected = redact ? source.redactValues() : source;
+            selected.asDateTimeOrThrow(format: format);
+          });
+          expect(e.message.split('\n').first,
+              'could not parse a DateTime at date');
+          expect(e.message, contains('does not match $format'));
+          if (redact) {
+            expect(e.message, contains('  found   <String>'));
+            expect(e.message, isNot(contains('CUSTOMERSECRET')));
+          } else {
+            expect(e.message, contains('  found   "CUSTOMERSECRET"'));
+          }
         });
-        expect(
-            e.message.split('\n').first, 'could not parse a DateTime at date');
-        expect(e.message, contains('does not match $format'));
-        expect(e.message, contains('  found   <String>'));
-        expect(e.message, isNot(contains('CUSTOMERSECRET')));
-      });
+      }
     }
   });
 }
