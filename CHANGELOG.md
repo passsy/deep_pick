@@ -31,6 +31,7 @@
   ```
 
   The keys of `asJsonObject*()` stay `String`s, its `mapKey` can rename them.
+  Use `asMap*()` to convert the keys to another type.
 - All six parsers are affected: `asMapOrThrow()`, `asMapOrEmpty()`, `asMapOrNull()`, `asJsonObjectOrThrow()`, `asJsonObjectOrEmpty()` and `asJsonObjectOrNull()`.
   `asJsonObject*()` got two type parameters for it, a call without arguments still returns a `Map<String, Object?>`.
 

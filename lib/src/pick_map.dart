@@ -205,7 +205,8 @@ extension NullableMapPick on Pick {
   /// ```
   ///
   /// The keys stay [String]s, [mapKey] can rename them or return a type that
-  /// is a [String], like an extension type.
+  /// is a [String], like an extension type. Use [asMapOrThrow] to convert
+  /// the keys to any other type.
   /// {@endtemplate}
   Map<K, V> _parseJsonObject<K extends String, V>(
     Object value,
