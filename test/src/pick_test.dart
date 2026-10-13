@@ -3,6 +3,27 @@
 import 'package:deep_pick/deep_pick.dart';
 import 'package:test/test.dart';
 
+/// A value below ten keys, the most selectors one call takes
+const _tenLevelsDeep = {
+  'a': {
+    'b': {
+      'c': {
+        'd': {
+          'e': {
+            'f': {
+              'g': {
+                'h': {
+                  'i': {'j': 'bottom'},
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
 void main() {
   group('pick', () {
     test('pick a value with one arg', () {
@@ -19,6 +40,12 @@ void main() {
       final p = pick(data, 'name', 'first');
       expect(p.value, 'John');
       expect(p.path, ['name', 'first']);
+    });
+
+    test('pick a value with ten args', () {
+      final p = pick(
+          _tenLevelsDeep, 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j');
+      expect(p.value, 'bottom');
     });
 
     test('ignores null args', () {
@@ -99,6 +126,12 @@ void main() {
   });
 
   group('Pick', () {
+    test('call() picks further with ten args', () {
+      final p = pick(_tenLevelsDeep)
+          .call('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j');
+      expect(p.value, 'bottom');
+    });
+
     test('null pick carries full location', () {
       final p = pick(null, 'some', 'path');
       expect(p.path, ['some', 'path']);
