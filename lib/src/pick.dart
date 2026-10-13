@@ -385,8 +385,9 @@ class Pick {
   /// When the picked value is unavailable ([Pick.isAbsent]) the index in
   /// [path] which couldn't be found
   @Deprecated(
-    'Throw PickException.fromPick() instead of building an error message '
-    'from missingValueAtIndex',
+    "Throw PickException.fromPick(this, 'expected a Foo') instead of "
+    'building an error message from missingValueAtIndex. '
+    'It adds the location and the found value to the message',
   )
   int? get missingValueAtIndex => _missingIndex;
   final int? _missingIndex;
@@ -398,8 +399,9 @@ class Pick {
   /// An unmodifiable snapshot of the selectors supplied when this pick was
   /// created. Later changes to the caller's list do not change the location.
   @Deprecated(
-    'Throw PickException.fromPick() instead of building an error message '
-    'from path',
+    "Throw PickException.fromPick(this, 'expected a Foo') instead of "
+    'building an error message from path. '
+    'It adds the location and the found value to the message',
   )
   List<Object> get path => _path;
   final List<Object> _path;
@@ -408,8 +410,9 @@ class Pick {
   ///
   /// I.e. `['shoes']` for an empty shoes list
   @Deprecated(
-    'Throw PickException.fromPick() instead of building an error message '
-    'from followablePath',
+    "Throw PickException.fromPick(this, 'expected a Foo') instead of "
+    'building an error message from followablePath. '
+    'It adds the location and the found value to the message',
   )
   List<Object> get followablePath =>
       _path.take(_missingIndex ?? _path.length).toList();
@@ -581,8 +584,9 @@ class Pick {
   ///
   /// With [redactValues] the value is replaced by its type.
   @Deprecated(
-    'Throw PickException.fromPick() instead of building an error message '
-    'from debugParsingExit',
+    "Throw PickException.fromPick(this, 'expected a Foo') instead of "
+    'building an error message from debugParsingExit. '
+    'It adds the location and the found value to the message',
   )
   String get debugParsingExit {
     final access = <String>[];
