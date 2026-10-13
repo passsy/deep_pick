@@ -45,7 +45,9 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asIntOrNull() when the value may be null/absent at some point (int?).',
+                'expected a non-null value at unknownKey, but it is absent',
+                'no such key',
+                'Use asIntOrNull() when the value may be null/absent at some point (int?).',
               ],
             ),
           ),
@@ -58,7 +60,8 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as int',
+                'expected an int at <root>',
+                '(an Object)',
               ],
             ),
           ),
@@ -66,7 +69,11 @@ void main() {
 
         expect(
           () => pick('Bubblegum').asIntOrThrow(),
-          throwsA(pickException(containing: ['String', 'Bubblegum', 'int'])),
+          throwsA(
+            pickException(
+              containing: ['could not parse an int', 'Bubblegum'],
+            ),
+          ),
         );
       });
     });
@@ -104,7 +111,7 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent.',
+                'expected a non-null value at unknownKey, but it is absent',
               ],
             ),
           ),
@@ -117,7 +124,8 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as int',
+                'expected an int at <root>',
+                '(an Object)',
               ],
             ),
           ),
@@ -125,7 +133,11 @@ void main() {
 
         expect(
           () => pick('Bubblegum').required().asIntOrThrow(),
-          throwsA(pickException(containing: ['String', 'Bubblegum', 'int'])),
+          throwsA(
+            pickException(
+              containing: ['could not parse an int', 'Bubblegum'],
+            ),
+          ),
         );
       });
     });

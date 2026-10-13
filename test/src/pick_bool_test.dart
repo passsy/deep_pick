@@ -32,7 +32,13 @@ void main() {
       expect(
         () => pick('Bubblegum').asBoolOrThrow(),
         throwsA(
-          pickException(containing: ['String', 'Bubblegum', '<root>', 'bool']),
+          pickException(
+            containing: [
+              'could not parse a bool at <root>',
+              'Bubblegum',
+              'only the exact Strings "true" and "false" are valid',
+            ],
+          ),
         ),
       );
       expect(
@@ -71,7 +77,13 @@ void main() {
       expect(
         () => pick('Bubblegum').required().asBoolOrThrow(),
         throwsA(
-          pickException(containing: ['String', 'Bubblegum', '<root>', 'bool']),
+          pickException(
+            containing: [
+              'could not parse a bool at <root>',
+              'Bubblegum',
+              'only the exact Strings "true" and "false" are valid',
+            ],
+          ),
         ),
       );
       expect(

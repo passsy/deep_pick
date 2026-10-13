@@ -41,7 +41,8 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asDoubleOrNull() when the value may be null/absent at some point (double?).',
+                'expected a non-null value at unknownKey, but it is absent',
+                'Use asDoubleOrNull() when the value may be null/absent at some point (double?).',
               ],
             ),
           ),
@@ -54,7 +55,8 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as double',
+                'expected a double at <root>',
+                '(an Object)',
               ],
             ),
           ),
@@ -62,7 +64,8 @@ void main() {
 
         expect(
           () => pick('Bubblegum').asDoubleOrThrow(),
-          throwsA(pickException(containing: ['String', 'Bubblegum', 'double'])),
+          throwsA(pickException(
+              containing: ['could not parse a double', 'Bubblegum'])),
         );
       });
     });
@@ -122,7 +125,7 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent.',
+                'expected a non-null value at unknownKey, but it is absent',
               ],
             ),
           ),
@@ -135,7 +138,8 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as double',
+                'expected a double at <root>',
+                '(an Object)',
               ],
             ),
           ),
@@ -143,7 +147,8 @@ void main() {
 
         expect(
           () => pick('Bubblegum').required().asDoubleOrThrow(),
-          throwsA(pickException(containing: ['String', 'Bubblegum', 'double'])),
+          throwsA(pickException(
+              containing: ['could not parse a double', 'Bubblegum'])),
         );
       });
     });

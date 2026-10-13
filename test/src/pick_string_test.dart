@@ -16,7 +16,7 @@ void main() {
         );
       });
 
-      test('asString() alsow works for Maps and Lists calling their toString',
+      test('asString() also works for Maps and Lists calling their toString',
           () {
         expect(pick(['a', 'b']).asStringOrThrow(), '[a, b]');
         expect(pick({'a': 1}).asStringOrThrow(), '{a: 1}');
@@ -28,7 +28,8 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asStringOrNull() when the value may be null/absent at some point (String?).',
+                'expected a non-null value at unknownKey, but it is absent',
+                'Use asStringOrNull() when the value may be null/absent at some point (String?).',
               ],
             ),
           ),
@@ -74,7 +75,7 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent.',
+                'expected a non-null value at unknownKey, but it is absent',
               ],
             ),
           ),

@@ -1,5 +1,32 @@
 # Changelog
 
+## 1.2.0 (`13.10.26`)
+
+- Better error messages [#64](https://github.com/passsy/deep_pick/pull/64), especially for absent values
+
+  ```text
+  PickException: expected a non-null value at shoes[0].name, but it is absent
+
+    query   shoes[0].name
+                     ~~~~ no such key
+    at      shoes[0] = {"id": 42, "size": "M"}
+    hint    Use asStringOrNull() when the value may be null/absent at some point (String?).
+  ```
+
+  A value that can't be parsed is shown with its type, and large values are shortened.
+
+  ```text
+  PickException: could not parse an int at shoes[0].size
+
+    query   shoes[0].size
+    found   "M"  (a String)
+  ```
+
+- **Fix** `Pick.isAbsent` is `true` below a `null`, however the path is written.
+  `pick({'a': null}, 'a', 'b').isAbsent` was `false`, while `pick({'a': null}, 'a')('b').isAbsent` was `true`.
+- **New** `PickException.fromPick(pick, 'expected a Timestamp')` but honestly, nobody outside deep_pick should call it.
+- **Deprecated** `Pick.path`, `Pick.missingValueAtIndex`, `Pick.followablePath` and `Pick.debugParsingExit`. The error message of a `PickException` shows where a pick failed.
+
 ## 1.1.0 (`30.08.24`)
 
 - Allow `.letOrNull((pick) => null)` to return `null` without manually setting a nullable type [#61](https://github.com/passsy/deep_pick/pull/61)
@@ -11,7 +38,6 @@
 - Add support for timezones in `asDateTime*` methods [#47](https://github.com/passsy/deep_pick/pull/47), [#51](https://github.com/passsy/deep_pick/pull/51)
 - Add official support for date formats `RFC 3339`, `RFC 2822` and `RFC 1036`
 - Push test coverage to 100% 🤘
-
 
 ## 0.10.0 (`01.10.21`)
 

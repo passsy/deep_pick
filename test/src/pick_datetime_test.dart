@@ -29,7 +29,8 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent. Use asDateTimeOrNull() when the value may be null/absent at some point (DateTime?).',
+                'expected a non-null value at unknownKey, but it is absent',
+                'Use asDateTimeOrNull() when the value may be null/absent at some point (DateTime?).',
               ],
             ),
           ),
@@ -42,7 +43,8 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as DateTime',
+                'expected a DateTime at <root>',
+                '(an Object)',
               ],
             ),
           ),
@@ -50,7 +52,9 @@ void main() {
         expect(
           () => pick('Bubblegum').asDateTimeOrThrow(),
           throwsA(
-            pickException(containing: ['String', 'Bubblegum', 'DateTime']),
+            pickException(
+              containing: ['could not parse a DateTime', 'Bubblegum'],
+            ),
           ),
         );
       });
@@ -99,7 +103,7 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Expected a non-null value but location "unknownKey" in pick(json, "unknownKey" (absent)) is absent.',
+                'expected a non-null value at unknownKey, but it is absent',
               ],
             ),
           ),
@@ -112,7 +116,8 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Type Object of picked value "Instance of \'Object\'" using pick(<root>) can not be parsed as DateTime',
+                'expected a DateTime at <root>',
+                '(an Object)',
               ],
             ),
           ),
@@ -120,7 +125,9 @@ void main() {
         expect(
           () => pick('Bubblegum').required().asDateTimeOrThrow(),
           throwsA(
-            pickException(containing: ['String', 'Bubblegum', 'DateTime']),
+            pickException(
+              containing: ['could not parse a DateTime', 'Bubblegum'],
+            ),
           ),
         );
       });
@@ -240,7 +247,10 @@ void main() {
                 .asDateTimeOrThrow(format: PickDateFormat.ANSI_C_asctime),
             throwsA(
               pickException(
-                containing: ['2005-08-15T15:52:01+0000', 'DateTime'],
+                containing: [
+                  'could not parse a DateTime',
+                  '2005-08-15T15:52:01+0000'
+                ],
               ),
             ),
           );
@@ -386,7 +396,10 @@ void main() {
           () => pick('Sun, 06 Nov 199408:49:37 GMT').asDateTimeOrThrow(),
           throwsA(
             pickException(
-              containing: ['Sun, 06 Nov 199408:49:37 GMT', 'DateTime'],
+              containing: [
+                'could not parse a DateTime',
+                'Sun, 06 Nov 199408:49:37 GMT'
+              ],
             ),
           ),
         );
@@ -462,7 +475,10 @@ void main() {
           () => pick('Sunday, 6 Nov 1994 08:49:37 GMT').asDateTimeOrThrow(),
           throwsA(
             pickException(
-              containing: ['Sunday, 6 Nov 1994 08:49:37 GMT', 'DateTime'],
+              containing: [
+                'could not parse a DateTime',
+                'Sunday, 6 Nov 1994 08:49:37 GMT'
+              ],
             ),
           ),
         );
@@ -473,7 +489,10 @@ void main() {
           () => pick('Sun, 6 November 1994 08:49:37 GMT').asDateTimeOrThrow(),
           throwsA(
             pickException(
-              containing: ['Sun, 6 November 1994 08:49:37 GMT', 'DateTime'],
+              containing: [
+                'could not parse a DateTime',
+                'Sun, 6 November 1994 08:49:37 GMT'
+              ],
             ),
           ),
         );
@@ -559,7 +578,10 @@ void main() {
           () => pick('Sunday, 06-Nov-9408:49:37 GMT').asDateTimeOrThrow(),
           throwsA(
             pickException(
-              containing: ['Sunday, 06-Nov-9408:49:37 GMT', 'DateTime'],
+              containing: [
+                'could not parse a DateTime',
+                'Sunday, 06-Nov-9408:49:37 GMT'
+              ],
             ),
           ),
         );
@@ -672,8 +694,8 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Type String of picked value "2023-01-09T12:31:54ABC"',
-                'Unknown time zone abbrevation ABC',
+                '"2023-01-09T12:31:54ABC"',
+                'no known format matched (ISO 8601, RFC 1123, RFC 850, asctime)',
               ],
             ),
           ),
@@ -684,8 +706,8 @@ void main() {
           throwsA(
             pickException(
               containing: [
-                'Type String of picked value "Mon, 11 Nov 24 11:58:15 ESTX"',
-                'Unknown time zone abbrevation ESTX',
+                '"Mon, 11 Nov 24 11:58:15 ESTX"',
+                'no known format matched (ISO 8601, RFC 1123, RFC 850, asctime)',
               ],
             ),
           ),
@@ -704,7 +726,10 @@ void main() {
           () => pick('Sunday, 6-November-94 08:49:37 GMT').asDateTimeOrThrow(),
           throwsA(
             pickException(
-              containing: ['Sunday, 6-November-94 08:49:37 GMT', 'DateTime'],
+              containing: [
+                'could not parse a DateTime',
+                'Sunday, 6-November-94 08:49:37 GMT'
+              ],
             ),
           ),
         );
@@ -756,21 +781,30 @@ void main() {
         expect(
           () => pick('SunNov  6 08:49:37 1994').asDateTimeOrThrow(),
           throwsA(
-            pickException(containing: ['SunNov  6 08:49:37 1994', 'DateTime']),
+            pickException(containing: [
+              'could not parse a DateTime',
+              'SunNov  6 08:49:37 1994'
+            ]),
           ),
         );
 
         expect(
           () => pick('Sun Nov  608:49:37 1994').asDateTimeOrThrow(),
           throwsA(
-            pickException(containing: ['Sun Nov  608:49:37 1994', 'DateTime']),
+            pickException(containing: [
+              'could not parse a DateTime',
+              'Sun Nov  608:49:37 1994'
+            ]),
           ),
         );
 
         expect(
           () => pick('Sun Nov  6 08:49:371994').asDateTimeOrThrow(),
           throwsA(
-            pickException(containing: ['Sun Nov  6 08:49:371994', 'DateTime']),
+            pickException(containing: [
+              'could not parse a DateTime',
+              'Sun Nov  6 08:49:371994'
+            ]),
           ),
         );
       });
@@ -850,7 +884,10 @@ void main() {
           () => pick('Sunday Nov 0 08:49:37 1994').asDateTimeOrThrow(),
           throwsA(
             pickException(
-              containing: ['Sunday Nov 0 08:49:37 1994', 'DateTime'],
+              containing: [
+                'could not parse a DateTime',
+                'Sunday Nov 0 08:49:37 1994'
+              ],
             ),
           ),
         );
@@ -861,7 +898,10 @@ void main() {
           () => pick('Sun November 0 08:49:37 1994').asDateTimeOrThrow(),
           throwsA(
             pickException(
-              containing: ['Sun November 0 08:49:37 1994', 'DateTime'],
+              containing: [
+                'could not parse a DateTime',
+                'Sun November 0 08:49:37 1994'
+              ],
             ),
           ),
         );
@@ -872,7 +912,10 @@ void main() {
           () => pick('Sun November 0 08:49:37 1994 ').asDateTimeOrThrow(),
           throwsA(
             pickException(
-              containing: ['Sun November 0 08:49:37 1994 ', 'DateTime'],
+              containing: [
+                'could not parse a DateTime',
+                'Sun November 0 08:49:37 1994 '
+              ],
             ),
           ),
         );
