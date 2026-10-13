@@ -2,7 +2,7 @@
 
 ## 1.3.0
 
-- **New** `mapValues()` parses the values of a picked map, like the mapper of `asList*` does for the items of a list [#55](https://github.com/passsy/deep_pick/issues/55).
+- **New** `mapValues()` parses the values of a picked map, like the mapper of `asList*` does for the items of a list [#73](https://github.com/passsy/deep_pick/pull/73).
   An error inside a value reports the full location, like `adidas.id`.
 
   ```dart
@@ -24,6 +24,8 @@
 - **New** `PickedMap<K, V>` is the type that carries `mapValues()` and `mapKeys()`.
   `asMapOrThrow()`, `asMapOrEmpty()`, `asMapOrNull()`, `asJsonObjectOrThrow()`, `asJsonObjectOrEmpty()` and `asJsonObjectOrNull()` return it instead of a plain `Map`.
   It is a `Map<K, V>`, so existing code keeps working.
+  One exception: an extension method with the same name, like `mapValues()` of `dartx`, is no longer reached when called directly on the result of these parsers.
+  Assign the result to a `Map` variable first to keep using it.
 
 ## 1.2.0 (`13.10.26`)
 
