@@ -95,8 +95,7 @@ Future<void> main() async {
 
   // map the values of a JSON object to dart objects
   final Map<String, Shoe> shoesByBrand = pickFromJson(rawJsonByBrand)
-      .asJsonObjectOrEmpty()
-      .mapValues((p) => Shoe.fromPick(p));
+      .asJsonObjectOrEmpty(mapValue: (p) => Shoe.fromPick(p));
   print(shoesByBrand);
   // {
   //   nike: Shoe{id: 421, name: "Nike Zoom Fly 3", price: "Not for sale", tags: [nike, JustDoIt]},
@@ -104,10 +103,11 @@ Future<void> main() async {
   // }
 
   // convert the keys as well, a key is a pick too
-  final Map<Uri, Shoe> shoesByWebsite = pickFromJson(rawJsonByBrand)
-      .asJsonObjectOrEmpty()
-      .mapKeys((key) => Uri.parse('https://${key.asStringOrThrow()}.com'))
-      .mapValues((p) => Shoe.fromPick(p));
+  final Map<Uri, Shoe> shoesByWebsite =
+      pickFromJson(rawJsonByBrand).asMapOrEmpty(
+    mapKey: (key) => Uri.parse('https://${key.asStringOrThrow()}.com'),
+    mapValue: (p) => Shoe.fromPick(p),
+  );
   print(shoesByWebsite.keys); // (https://nike.com, https://adidas.com)
 
   // Use the Context API to pass contextual information down to parsing
@@ -219,8 +219,7 @@ Future<PackageVersion> getLatestVersion() async {
   // Parse the values of a JSON object
   final Map<String, String> devDependencies =
       pick(json, 'latest', 'pubspec', 'dev_dependencies')
-          .asJsonObjectOrEmpty()
-          .mapValues((pick) => pick.asStringOrThrow());
+          .asJsonObjectOrEmpty(mapValue: (pick) => pick.asStringOrThrow());
   print(devDependencies);
   // {http: >=0.13.0 <2.0.0, lint: >=1.5.1 <3.0.0, test: ^1.16.0}
 

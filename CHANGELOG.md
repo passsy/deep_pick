@@ -2,30 +2,37 @@
 
 ## 1.3.0
 
-- **New** `mapValues()` parses the values of a picked map, like the mapper of `asList*` does for the items of a list [#73](https://github.com/passsy/deep_pick/pull/73).
+- **New** `mapValue` for `asMap*()` and `asJsonObject*()` parses the values of a map, like the mapper of `asList*` does for the items of a list [#73](https://github.com/passsy/deep_pick/pull/73).
   An error inside a value reports the full location, like `adidas.id`.
 
   ```dart
   // {"nike": {"id": "421"}, "adidas": {"id": "532"}}
-  Map<String, Shoe> shoes = pick(json).asJsonObjectOrEmpty().mapValues(Shoe.fromPick);
+  Map<String, Shoe> shoes = pick(json).asJsonObjectOrEmpty(mapValue: Shoe.fromPick);
   ```
 
-- **New** `mapKeys()` converts the keys of a picked map.
+- **New** `whenNull` maps the entries with a `null` value, which `mapValue` ignores, same as for lists.
+
+  ```dart
+  Map<String, Shoe?> shoes = pick(json).asJsonObjectOrEmpty(
+    mapValue: Shoe.fromPick,
+    whenNull: (pick) => null,
+  );
+  ```
+
+- **New** `mapKey` converts the keys.
   It receives a pick of the key, so the usual parsers work on it.
 
   ```dart
   // {"421": {"name": "Nike Zoom Fly 3"}}
-  Map<int, Shoe> shoes = pick(json)
-      .asJsonObjectOrEmpty()
-      .mapKeys((key) => key.asIntOrThrow())
-      .mapValues(Shoe.fromPick);
+  Map<int, Shoe> shoes = pick(json).asMapOrEmpty(
+    mapKey: (key) => key.asIntOrThrow(),
+    mapValue: Shoe.fromPick,
+  );
   ```
 
-- **New** `PickedMap<K, V>` is the type that carries `mapValues()` and `mapKeys()`.
-  `asMapOrThrow()`, `asMapOrEmpty()`, `asMapOrNull()`, `asJsonObjectOrThrow()`, `asJsonObjectOrEmpty()` and `asJsonObjectOrNull()` return it instead of a plain `Map`.
-  It is a `Map<K, V>`, so existing code keeps working.
-  One exception: an extension method with the same name, like `mapValues()` of `dartx`, is no longer reached when called directly on the result of these parsers.
-  Assign the result to a `Map` variable first to keep using it.
+  The keys of `asJsonObject*()` stay `String`s, its `mapKey` can rename them.
+- All six parsers are affected: `asMapOrThrow()`, `asMapOrEmpty()`, `asMapOrNull()`, `asJsonObjectOrThrow()`, `asJsonObjectOrEmpty()` and `asJsonObjectOrNull()`.
+  `asJsonObject*()` got two type parameters for it, a call without arguments still returns a `Map<String, Object?>`.
 
 ## 1.2.0 (`13.10.26`)
 

@@ -60,8 +60,7 @@ This example demonstrates parsing of an HTTP response using `deep_pick`. You can
   // Parse the values of a JSON object
   final Map<String, String> devDependencies =
       pick(json, 'latest', 'pubspec', 'dev_dependencies')
-          .asJsonObjectOrEmpty()
-          .mapValues((pick) => pick.asStringOrThrow());
+          .asJsonObjectOrEmpty(mapValue: (pick) => pick.asStringOrThrow());
   
 
 ```
@@ -261,27 +260,39 @@ pick({'a': 1, 2: 'two'}).asJsonObjectOrThrow();
 
 #### Mapping keys and values
 
-`asJsonObject*` and `asMap*` return a `PickedMap`.
-It is a regular `Map` that also knows where it was picked from, which allows parsing its values with `mapValues`, like the mapper of `asList*` does for the items of a list.
+`asJsonObject*` and `asMap*` take a `mapValue` function that parses each value, like the mapper of `asList*` does for the items of a list.
 
 ```dart
 // {"nike": {"id": "421"}, "adidas": {"id": "532"}}
-Map<String, Shoe> shoes = pick(json).asJsonObjectOrEmpty().mapValues(Shoe.fromPick);
+Map<String, Shoe> shoes = pick(json).asJsonObjectOrEmpty(mapValue: Shoe.fromPick);
 ```
 
 An error inside a value reports the full location, like `adidas.id`.
-Entries with a `null` value are ignored.
 
-`mapKeys` converts the keys.
+Entries with a `null` value are ignored, like `null` items of a list.
+Use `whenNull` to map them as well.
+
+```dart
+// {"nike": {"id": "421"}, "reebok": null}
+Map<String, Shoe?> shoes = pick(json).asJsonObjectOrEmpty(
+  mapValue: Shoe.fromPick,
+  whenNull: (pick) => null,
+);
+```
+
+`mapKey` converts the keys.
 It receives a pick of the key, so the usual parsers work on it.
 
 ```dart
 // {"421": {"name": "Nike Zoom Fly 3"}, "532": {"name": "adidas Ultraboost"}}
-Map<int, Shoe> shoes = pick(json)
-    .asJsonObjectOrEmpty()
-    .mapKeys((key) => key.asIntOrThrow())
-    .mapValues(Shoe.fromPick);
+Map<int, Shoe> shoes = pick(json).asMapOrEmpty(
+  mapKey: (key) => key.asIntOrThrow(),
+  mapValue: Shoe.fromPick,
+);
 ```
+
+The keys of a JSON object stay `String`s, the `mapKey` of `asJsonObject*` can rename them.
+Use `asMap*` to convert them to another type.
 
 ### Lists of JSON objects and `Map`s
 

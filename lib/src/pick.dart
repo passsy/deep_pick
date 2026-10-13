@@ -2,7 +2,6 @@ import 'dart:collection';
 import 'dart:convert';
 
 part 'pick_exception.dart';
-part 'picked_map.dart';
 
 /// Picks a values from a [json] String at location arg0, arg1...
 ///
