@@ -25,6 +25,7 @@
 - **Fix** `Pick.isAbsent` is `true` below a `null`, however the path is written.
   `pick({'a': null}, 'a', 'b').isAbsent` was `false`, while `pick({'a': null}, 'a')('b').isAbsent` was `true`.
 - **New** `PickException.fromPick(pick, 'expected a Timestamp')` but honestly, nobody outside deep_pick should call it.
+- **New** `Pick.redactValues()` masks error values while keeping keys and types visible; `Pick.redactsValues` exposes the policy to custom parsers and `RequiredPick.redactValues()` preserves non-null chaining [#65](https://github.com/passsy/deep_pick/pull/65).
 - **Deprecated** `Pick.path`, `Pick.missingValueAtIndex`, `Pick.followablePath` and `Pick.debugParsingExit`. The error message of a `PickException` shows where a pick failed.
 
 ## 1.1.0 (`30.08.24`)
