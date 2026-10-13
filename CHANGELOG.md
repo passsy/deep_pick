@@ -28,7 +28,9 @@
 - **New** `Pick.redactValues()` masks error values while keeping keys and types visible; `Pick.redactsValues` exposes the policy to custom parsers and `RequiredPick.redactValues()` preserves non-null chaining [#65](https://github.com/passsy/deep_pick/pull/65).
 - **Fix** `as*OrThrow()` and `letOrThrow()` no longer leave an internal `_required_pick_error_hint` entry in `Pick.context`.
   That also makes them as fast as their `OrNull` counterparts [#68](https://github.com/passsy/deep_pick/pull/68).
-- **Deprecated** `Pick.path`, `Pick.missingValueAtIndex`, `Pick.followablePath` and `Pick.debugParsingExit`. The error message of a `PickException` shows where a pick failed.
+- **Deprecated** `Pick.path`, `Pick.missingValueAtIndex`, `Pick.followablePath` and `Pick.debugParsingExit`.
+  The error message of a `PickException` shows where a pick failed.
+  A custom parser that built its message from them throws `PickException.fromPick(this, 'expected a Foo')` instead.
 
 ## 1.1.0 (`30.08.24`)
 
