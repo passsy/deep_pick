@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.2.0 (`10.10.26`)
+## 1.2.0 (`13.10.26`)
 
 - Better error messages [#64](https://github.com/passsy/deep_pick/pull/64), especially for absent values
 
@@ -25,7 +25,7 @@
 - **Fix** `Pick.isAbsent` is `true` below a `null`, however the path is written.
   `pick({'a': null}, 'a', 'b').isAbsent` was `false`, while `pick({'a': null}, 'a')('b').isAbsent` was `true`.
 - **New** `PickException.fromPick(pick, 'expected a Timestamp')` but honestly, nobody outside deep_pick should call it.
-- **Deprecated** `Pick.path`, `Pick.missingValueAtIndex`, `Pick.followablePath` and `Pick.debugParsingExit`. The error message of a `PickException` shows where a pick failed, use `PickException.fromPick` in custom parsers.
+- **Deprecated** `Pick.path`, `Pick.missingValueAtIndex`, `Pick.followablePath` and `Pick.debugParsingExit`. The error message of a `PickException` shows where a pick failed.
 
 ## 1.1.0 (`30.08.24`)
 
