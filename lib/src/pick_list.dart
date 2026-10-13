@@ -117,6 +117,86 @@ extension NullableListPick on Pick {
     return _parse(value, map, whenNull: whenNull);
   }
 
+  /// Returns the items of the picked [List] as they are
+  ///
+  /// {@template Pick.asPlainList}
+  /// The plain list, without a mapper. The items are the original values,
+  /// nothing is converted and `null` items are kept.
+  ///
+  /// ```dart
+  /// final List<Object?> tags = pick(['a', 1, null]).asPlainListOrThrow();
+  /// // ['a', 1, null]
+  /// ```
+  ///
+  /// Declare the type of the items to get a typed list. Every item has to be
+  /// of that type already, an item of another type throws a [PickException]
+  /// that names the item.
+  ///
+  /// ```dart
+  /// final List<String> tags = pick(['a', 'b']).asPlainListOrThrow();
+  /// ```
+  ///
+  /// Use [asListOrThrow] to convert the items, i.e. to parse `1` as `'1'`.
+  /// {@endtemplate}
+  List<T> _parsePlain<T>(Object value) {
+    if (value is! List) {
+      throw PickException.fromPick(this, 'expected a List');
+    }
+    final result = <T>[];
+    var index = -1;
+    for (final item in value) {
+      index++;
+      if (item is T) {
+        result.add(item);
+        continue;
+      }
+      throw PickException.fromPick(
+        this(index),
+        'expected an item of type $T',
+      );
+    }
+    return result;
+  }
+
+  /// Returns the items of the picked [List] as they are. This method throws
+  /// when [value] is not a `List` or [isAbsent]
+  ///
+  /// {@macro Pick.asPlainList}
+  List<T> asPlainListOrThrow<T extends Object?>() {
+    final value = this.value;
+    if (value == null) {
+      throw PickException.fromPick(
+        this,
+        'expected a non-null value',
+        hint:
+            'Use asPlainListOrEmpty()/asPlainListOrNull() when the value may be null/absent at some point (List<$T>?).',
+      );
+    }
+    return _parsePlain(value);
+  }
+
+  /// Returns the items of the picked [List] as they are or an empty list
+  /// when the `value` isn't a [List] or [isAbsent].
+  ///
+  /// {@macro Pick.asPlainList}
+  List<T> asPlainListOrEmpty<T extends Object?>() {
+    final value = this.value;
+    if (value == null) return <T>[];
+    if (value is! List) return <T>[];
+    return _parsePlain(value);
+  }
+
+  /// Returns the items of the picked [List] as they are or null when the
+  /// `value` isn't a [List] or [isAbsent].
+  ///
+  /// {@macro Pick.asPlainList}
+  List<T>? asPlainListOrNull<T extends Object?>() {
+    final value = this.value;
+    if (value == null) return null;
+    if (value is! List) return null;
+    return _parsePlain(value);
+  }
+
   /// Returns the picked [value] as [List] of [Map]s. This method throws when
   /// [value] is not a `List` or [isAbsent]
   ///

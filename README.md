@@ -226,6 +226,25 @@ pick([1, null, 3]).asListOrNull(
 
 For the `null` values of a `Map`, the same function is called [`whenNullValue`](#whennullvalue).
 
+#### Plain lists
+
+`asPlainList*` returns the items of a `List` as they are, without a mapper.
+Nothing is converted and `null` items are kept.
+
+```dart
+List<Object?> tags = pick(json, 'tags').asPlainListOrEmpty();
+```
+
+Declare the type of the items to get a typed list.
+
+```dart
+List<String> tags = pick(json, 'tags').asPlainListOrEmpty();
+```
+
+Every item has to be of that type already.
+An item of another type throws a `PickException` that names the item, like `expected an item of type String at tags[1]`.
+Use `asList*` when the items need converting, for example to read `1` as `"1"`.
+
 ### `Map`
 
 Picking the `Map` is rarely used, because `Pick` itself grants further picking using the `.call(args)` method.

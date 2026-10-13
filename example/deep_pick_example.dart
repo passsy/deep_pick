@@ -72,6 +72,11 @@ Future<void> main() async {
       .asListOrEmpty((it) => it.asStringOrThrow());
   print(tags); // [nike, JustDoIt]
 
+  // pick a list as it is, without mapping the items
+  final List<String> plainTags =
+      pick(json, 'shoes', 0, 'tags').asPlainListOrEmpty();
+  print(plainTags); // [nike, JustDoIt]
+
   // pick maps
   final shoe = pick(json, 'shoes', 0).required().asMapOrThrow();
   print(shoe); // {id: 421, name: Nike Zoom Fly 3, tags: [nike, JustDoIt]}
