@@ -8,6 +8,7 @@ enum PickDateFormat {
   /// https://www.w3.org/TR/NOTE-datetime
   ///
   /// Also covers [RFC-3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)
+  /// and Atom date constructs (RFC 4287), including colon-separated offsets.
   ///
   /// Example:
   /// - `2005-08-15T15:52:01+0000`

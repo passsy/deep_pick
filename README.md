@@ -155,10 +155,14 @@ Accepts most common date formats such as
 ```dart
 pick('2021-11-01T11:53:15Z').asDateTimeOrNull(); // UTC
 pick('2021-11-01T11:53:15+0000').asDateTimeOrNull(); // ISO 8601
+pick('2021-11-01T11:53:15+01:00').asDateTimeOrThrow(); // Atom (RFC 4287)
 pick('Monday, 01-Nov-21 11:53:15 UTC').asDateTimeOrThrow(); // RFC 850
 pick('Wed, 21 Oct 2015 07:28:00 GMT').asDateTimeOrThrow(); // RFC 1123
 pick('Sun Nov  6 08:49:37 1994').asDateTimeOrThrow(); // asctime()
 ```
+
+Atom dates use the ISO 8601 parser, including when explicitly selecting
+`format: PickDateFormat.ISO_8601`. Offsets are converted to UTC.
 
 ### `List`
 
