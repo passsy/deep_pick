@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Add explicit `PickDateFormat.UNIX_SECONDS` for numeric Unix timestamps, returning UTC with fractional seconds rounded to microseconds.
+
 ## 1.3.0 (`13.10.26`)
 
 - **New** `mapValue` for `asMap*()` and `asJsonObject*()` parses the values of a map, like the mapper of `asList*` does for the items of a list [#73](https://github.com/passsy/deep_pick/pull/73).

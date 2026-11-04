@@ -160,6 +160,18 @@ pick('Wed, 21 Oct 2015 07:28:00 GMT').asDateTimeOrThrow(); // RFC 1123
 pick('Sun Nov  6 08:49:37 1994').asDateTimeOrThrow(); // asctime()
 ```
 
+Parse numeric Unix timestamps by explicitly selecting seconds as the unit:
+
+```dart
+pick(1000000000).asDateTimeOrThrow(format: PickDateFormat.UNIX_SECONDS); // 2001-09-09T01:46:40Z
+pick(1.25).asDateTimeOrNull(format: PickDateFormat.UNIX_SECONDS); // 1970-01-01T00:00:01.250Z
+```
+
+Unix seconds return UTC and accept finite `int`/`double` values within Dart's
+`DateTime` range, including negative timestamps. Fractional seconds are rounded
+to the nearest microsecond. Numeric strings are not accepted. Automatic parsing
+does not guess whether a number represents seconds or milliseconds.
+
 ### `List`
 
 When the JSON object contains a List of items that List can be mapped to a `List<T>` of objects (`T`).
