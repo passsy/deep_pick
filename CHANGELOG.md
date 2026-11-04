@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Support W3C reduced-precision dates (`YYYY` and `YYYY-MM`) through the ISO 8601 parser, defaulting to the start of the year/month in local time.
+
 ## 1.3.0 (`13.10.26`)
 
 - **New** `mapValue` for `asMap*()` and `asJsonObject*()` parses the values of a map, like the mapper of `asList*` does for the items of a list [#73](https://github.com/passsy/deep_pick/pull/73).

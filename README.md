@@ -160,6 +160,13 @@ pick('Wed, 21 Oct 2015 07:28:00 GMT').asDateTimeOrThrow(); // RFC 1123
 pick('Sun Nov  6 08:49:37 1994').asDateTimeOrThrow(); // asctime()
 ```
 
+The [W3C date profile](https://www.w3.org/TR/NOTE-datetime) is supported
+through `PickDateFormat.ISO_8601` and automatic parsing, including `YYYY` and
+`YYYY-MM`. Missing components use the start of the year or month in local time:
+`pick('1997').asDateTimeOrThrow()` returns `DateTime(1997)`, and
+`pick('1997-07').asDateTimeOrThrow()` returns `DateTime(1997, 7)`.
+Dates with explicit timezone offsets are converted to UTC.
+
 ### `List`
 
 When the JSON object contains a List of items that List can be mapped to a `List<T>` of objects (`T`).
