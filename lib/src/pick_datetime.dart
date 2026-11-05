@@ -105,14 +105,14 @@ extension NullableDateTimePick on Pick {
     if (format == PickDateFormat.UNIX_SECONDS) {
       // Check the supported DateTime range before multiplication, so huge
       // integers cannot overflow and become plausible timestamps.
-      if (value is num &&
-          value.isFinite &&
-          value >= -8640000000000 &&
-          value <= 8640000000000) {
-        return DateTime.fromMicrosecondsSinceEpoch(
-          (value * Duration.microsecondsPerSecond).round(),
-          isUtc: true,
-        );
+      const maxUnixSeconds = 8640000000000; // ±100,000,000 days.
+      if (value is num) {
+        final isFinite = value.isFinite;
+        final isInRange = isFinite && value.abs() <= maxUnixSeconds;
+        if (isInRange) {
+          final microseconds = (value * Duration.microsecondsPerSecond).round();
+          return DateTime.fromMicrosecondsSinceEpoch(microseconds, isUtc: true);
+        }
       }
       throw PickException.fromPick(
         this,
