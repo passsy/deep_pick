@@ -161,8 +161,8 @@ pick('Wed, 21 Oct 2015 07:28:00 GMT').asDateTimeOrThrow(); // RFC 1123
 pick('Sun Nov  6 08:49:37 1994').asDateTimeOrThrow(); // asctime()
 ```
 
-Atom dates use the ISO 8601 parser, including when explicitly selecting
-`format: PickDateFormat.ISO_8601`. Offsets are converted to UTC.
+Atom dates use the ISO 8601 parser, including when explicitly selecting `format: PickDateFormat.ISO_8601`.
+Offsets are converted to UTC.
 
 ### `List`
 
