@@ -177,7 +177,9 @@ extension NullableDateTimePick on Pick {
     if (reducedDate != null) {
       final year = int.parse(reducedDate.group(1)!);
       final month = int.parse(reducedDate.group(2) ?? '1');
-      if (month < 1 || month > 12) return null;
+      if (month < 1 || month > 12) {
+        return null;
+      }
       return DateTime(year, month);
     }
     final timeZoneComponent =
