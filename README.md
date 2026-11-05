@@ -147,7 +147,7 @@ pick(1).letOrNull((pick) => pick.value == 1 ? true : pick.value == 0 ? false : n
 ### `DateTime`
 
 Accepts most common date formats such as
-- [`ISO 8601`](https://www.w3.org/TR/NOTE-datetime) including [`RFC-3339`](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6),
+- [`ISO 8601`](https://www.w3.org/TR/NOTE-datetime) including [`RFC-3339`](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6) and [Atom (`RFC 4287`)](https://datatracker.ietf.org/doc/html/rfc4287#section-3.3),
 - [`RFC 1123`](https://www.rfc-editor.org/rfc/rfc1123#page-55) including [HTTP `date`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Date) header, [RSS2](https://validator.w3.org/feed/docs/rss2.html) `pubDate`, [`RFC 822`](https://www.rfc-editor.org/rfc/rfc822#section-5), [`RFC 1036`](https://datatracker.ietf.org/doc/html/rfc1036#section-2.1.2) and [`RFC 2822`](https://datatracker.ietf.org/doc/html/rfc2822#page-14),
 - [`RFC 850`](https://www.rfc-editor.org/rfc/rfc850#section-2.1.4) including [`RFC 1036`](https://www.rfc-editor.org/rfc/rfc1036#section-2.1.2), `COOKIE`
 - `ANSI C asctime()`
@@ -155,10 +155,14 @@ Accepts most common date formats such as
 ```dart
 pick('2021-11-01T11:53:15Z').asDateTimeOrNull(); // UTC
 pick('2021-11-01T11:53:15+0000').asDateTimeOrNull(); // ISO 8601
+pick('2021-11-01T11:53:15+01:00').asDateTimeOrThrow(); // Atom (RFC 4287)
 pick('Monday, 01-Nov-21 11:53:15 UTC').asDateTimeOrThrow(); // RFC 850
 pick('Wed, 21 Oct 2015 07:28:00 GMT').asDateTimeOrThrow(); // RFC 1123
 pick('Sun Nov  6 08:49:37 1994').asDateTimeOrThrow(); // asctime()
 ```
+
+Atom dates use the ISO 8601 parser, including when explicitly selecting `format: PickDateFormat.ISO_8601`.
+Offsets are converted to UTC.
 
 ### `List`
 
