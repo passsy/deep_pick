@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+- **New** `PickDateFormat.UNIX_SECONDS` lets `asDateTimeOrThrow()` and `asDateTimeOrNull()` parse numeric Unix seconds to UTC, rounding fractional seconds to microseconds [#78](https://github.com/passsy/deep_pick/pull/78).
+
+  ```dart
+  pick(1000000000).asDateTimeOrThrow(format: PickDateFormat.UNIX_SECONDS); // 2001-09-09T01:46:40Z
+  ```
+
+- **Breaking** Adding `UNIX_SECONDS` to `PickDateFormat` requires consumers with exhaustive switches over the enum to add a `case PickDateFormat.UNIX_SECONDS:` branch [#78](https://github.com/passsy/deep_pick/pull/78).
+  Automatic numeric parsing remains disabled; callers must select Unix seconds explicitly.
+
 ## 1.3.0 (`13.10.26`)
 
 - **New** `mapValue` for `asMap*()` and `asJsonObject*()` parses the values of a map, like the mapper of `asList*` does for the items of a list [#73](https://github.com/passsy/deep_pick/pull/73).

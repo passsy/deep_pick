@@ -58,6 +58,15 @@ enum PickDateFormat {
   /// - `Sun, 6-Nov-94 08:49:37 GMT`
   /// - `Monday, 15-Aug-05 15:52:01 UTC`
   RFC_850,
+
+  /// Numeric seconds since 1970-01-01T00:00:00Z (Unix time).
+  ///
+  /// Accepts finite int/double values and returns UTC. Fractional seconds are
+  /// rounded to the nearest microsecond. Numeric strings are not accepted.
+  /// Must be selected explicitly to avoid ambiguity with millisecond timestamps.
+  ///
+  /// Example: `pick(1000000000).asDateTimeOrThrow(format: PickDateFormat.UNIX_SECONDS)`
+  UNIX_SECONDS,
 }
 
 extension NullableDateTimePick on Pick {
@@ -68,7 +77,9 @@ extension NullableDateTimePick on Pick {
   /// RFC 1123, RFC 5322 and ANSI C's asctime()
   ///
   /// Optionally accepts a [format] defining the exact to be parsed format.
-  /// By default, all formats will be attempted
+  /// By default, all String formats will be attempted.
+  /// Numeric Unix seconds require `format: PickDateFormat.UNIX_SECONDS` and
+  /// return UTC, with fractional seconds rounded to the nearest microsecond.
   ///
   /// Examples of parsable date formats:
   ///
@@ -90,6 +101,26 @@ extension NullableDateTimePick on Pick {
   DateTime _parse(Object value, {PickDateFormat? format}) {
     if (value is DateTime) {
       return value;
+    }
+    if (format == PickDateFormat.UNIX_SECONDS) {
+      // Check the supported DateTime range before multiplication, so huge
+      // integers cannot overflow and become plausible timestamps.
+      const maxUnixSeconds = 8640000000000; // ±100,000,000 days.
+      if (value is num) {
+        final isFinite = value.isFinite;
+        final isAfterMinimum = value >= -maxUnixSeconds;
+        final isBeforeMaximum = value <= maxUnixSeconds;
+        final isInRange = isFinite && isAfterMinimum && isBeforeMaximum;
+        if (isInRange) {
+          final microseconds = (value * Duration.microsecondsPerSecond).round();
+          return DateTime.fromMicrosecondsSinceEpoch(microseconds, isUtc: true);
+        }
+      }
+      throw PickException.fromPick(
+        this,
+        'could not parse a DateTime',
+        detail: 'does not match $format',
+      );
     }
     if (value is! String) {
       throw PickException.fromPick(this, 'expected a DateTime');
@@ -131,7 +162,7 @@ extension NullableDateTimePick on Pick {
     );
   }
 
-  /// Parses the picked [value] as ISO 8601 String to [DateTime] or throws
+  /// Parses the picked [value] as [DateTime] or throws
   ///
   /// Shorthand for `.required().asDateTime()`
   ///
@@ -149,7 +180,7 @@ extension NullableDateTimePick on Pick {
     return _parse(value, format: format);
   }
 
-  /// Parses the picked [value] as ISO 8601 String to [DateTime] or returns `null`
+  /// Parses the picked [value] as [DateTime] or returns `null`
   ///
   /// {@macro Pick.asDateTime}
   DateTime? asDateTimeOrNull({PickDateFormat? format}) {
