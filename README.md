@@ -167,10 +167,10 @@ pick(1000000000).asDateTimeOrThrow(format: PickDateFormat.UNIX_SECONDS); // 2001
 pick(1.25).asDateTimeOrNull(format: PickDateFormat.UNIX_SECONDS); // 1970-01-01T00:00:01.250Z
 ```
 
-Unix seconds return UTC and accept finite `int`/`double` values within Dart's
-`DateTime` range, including negative timestamps. Fractional seconds are rounded
-to the nearest microsecond. Numeric strings are not accepted. Automatic parsing
-does not guess whether a number represents seconds or milliseconds.
+Unix seconds return UTC and accept finite `int`/`double` values within Dart's `DateTime` range, including negative timestamps.
+Fractional seconds are rounded to the nearest microsecond.
+Numeric strings are not accepted.
+Automatic parsing does not guess whether a number represents seconds or milliseconds.
 
 ### `List`
 
