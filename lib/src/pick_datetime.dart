@@ -7,6 +7,9 @@ enum PickDateFormat {
   ///
   /// https://www.w3.org/TR/NOTE-datetime
   ///
+  /// Supports the W3C date profile, including `YYYY` and `YYYY-MM`.
+  /// Missing month/day components default to January/the first day, in local time.
+  ///
   /// Also covers [RFC-3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)
   ///
   /// Example:
@@ -167,6 +170,18 @@ extension NullableDateTimePick on Pick {
     // DartTime.tryParse() does not support timezones like EST, PDT, etc.
     // deep_pick takes care of the time zone and DartTime.parse() of the rest
     final trimmedValue = value.trim();
+    // The W3C profile includes reduced-precision dates that DateTime.tryParse
+    // does not accept. Use the beginning of that local year or month.
+    final reducedDate =
+        RegExp(r'^(\d{4})(?:-(\d{2}))?$').firstMatch(trimmedValue);
+    if (reducedDate != null) {
+      final year = int.parse(reducedDate.group(1)!);
+      final month = int.parse(reducedDate.group(2) ?? '1');
+      if (month < 1 || month > 12) {
+        return null;
+      }
+      return DateTime(year, month);
+    }
     final timeZoneComponent =
         RegExp(r'(?<=[\d\W])[a-zA-Z]+$').firstMatch(trimmedValue)?.group(0);
 
