@@ -383,9 +383,11 @@ void main() {
       });
       test('invalid timestamps retain path and redaction', () {
         expect(
-          () => pick({'time': 'PRIVATE'})
-              .redactValues()('time')
-              .asDateTimeOrThrow(format: format),
+          () {
+            return pick({'time': 'PRIVATE'})
+                .redactValues()('time')
+                .asDateTimeOrThrow(format: format);
+          },
           throwsA(isA<PickException>()
               .having((e) => e.toString(), 'path', contains('time'))
               .having((e) => e.toString(), 'format', contains('$format'))
