@@ -323,11 +323,15 @@ void main() {
           test(entry.key, () {
             final selected = pick(entry.key);
             for (final format in [null, PickDateFormat.ISO_8601]) {
-              expect(selected.asDateTimeOrThrow(format: format), entry.value);
-              expect(selected.asDateTimeOrNull(format: format), entry.value);
+              expect(selected.asDateTimeOrThrow(format: format), entry.value,
+                  reason: 'format: $format');
+              expect(selected.asDateTimeOrNull(format: format), entry.value,
+                  reason: 'format: $format');
               expect(selected.required().asDateTimeOrThrow(format: format),
-                  entry.value);
-              expect(selected.asDateTimeOrThrow(format: format).isUtc, isTrue);
+                  entry.value,
+                  reason: 'format: $format');
+              expect(selected.asDateTimeOrThrow(format: format).isUtc, isTrue,
+                  reason: 'format: $format');
             }
           });
         }
