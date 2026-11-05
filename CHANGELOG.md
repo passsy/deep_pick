@@ -2,7 +2,14 @@
 
 ## Unreleased
 
-- Support W3C reduced-precision dates (`YYYY` and `YYYY-MM`) through the ISO 8601 parser, defaulting to the start of the year/month in local time.
+- **New** `asDateTimeOrThrow()` and `asDateTimeOrNull()` support W3C reduced-precision dates (`YYYY` and `YYYY-MM`) through `PickDateFormat.ISO_8601` and automatic parsing [#77](https://github.com/passsy/deep_pick/pull/77).
+  Missing components default to the start of the year or month in local time.
+  Automatic parsing now accepts four-digit strings such as `'0042'` and year-month strings such as `'1997-07'`, which previously returned null or threw.
+  Callers that need to reject these inputs must validate their shape before parsing.
+
+  ```dart
+  pick('1997-07').asDateTimeOrThrow(); // DateTime(1997, 7)
+  ```
 
 ## 1.3.0 (`13.10.26`)
 
