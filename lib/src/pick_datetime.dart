@@ -108,7 +108,9 @@ extension NullableDateTimePick on Pick {
       const maxUnixSeconds = 8640000000000; // ±100,000,000 days.
       if (value is num) {
         final isFinite = value.isFinite;
-        final isInRange = isFinite && value.abs() <= maxUnixSeconds;
+        final isAfterMinimum = value >= -maxUnixSeconds;
+        final isBeforeMaximum = value <= maxUnixSeconds;
+        final isInRange = isFinite && isAfterMinimum && isBeforeMaximum;
         if (isInRange) {
           final microseconds = (value * Duration.microsecondsPerSecond).round();
           return DateTime.fromMicrosecondsSinceEpoch(microseconds, isUtc: true);
