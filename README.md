@@ -555,6 +555,25 @@ Pass `enabled` to decide at runtime, for example to keep the values in debug bui
 pick(response).redactValues(enabled: kReleaseMode).letOrThrow((pick) => User.fromPick(pick));
 ```
 
+#### Redact by default
+
+To redact values everywhere without adding `.redactValues()` to every pick, build with the `deep_pick.redactValues` define:
+
+```bash
+flutter build ipa --dart-define=deep_pick.redactValues=true
+```
+
+It is decided when the error is thrown, so the message never contains the values, no matter how the exception is wrapped or logged later.
+It is a compile-time constant and also covers picks in other isolates, like parsing with `compute()` or `Isolate.run()`.
+
+The define only switches the default.
+Where values are not sensitive and you want them in error messages, turn redaction off for that pick and its descendants with `.redactValues(enabled: false)`:
+
+```dart
+// built with --dart-define=deep_pick.redactValues=true
+pick(config).redactValues(enabled: false).letOrThrow(Config.fromPick);
+```
+
 ### 4. Null is default, crashes intentional
 
 Parsing objects from external systems isn't type-safe.
