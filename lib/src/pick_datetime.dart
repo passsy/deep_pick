@@ -8,6 +8,7 @@ enum PickDateFormat {
   /// https://www.w3.org/TR/NOTE-datetime
   ///
   /// Also covers [RFC-3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6)
+  /// and Atom date constructs (RFC 4287), including colon-separated offsets.
   ///
   /// Example:
   /// - `2005-08-15T15:52:01+0000`
@@ -65,7 +66,7 @@ extension NullableDateTimePick on Pick {
   ///
   /// {@template Pick.asDateTime}
   /// Tries to parse the most common date formats such as ISO 8601, RFC 3339,
-  /// RFC 1123, RFC 5322 and ANSI C's asctime()
+  /// Atom (RFC 4287), RFC 1123, RFC 5322 and ANSI C's asctime()
   ///
   /// Optionally accepts a [format] defining the exact to be parsed format.
   /// By default, all formats will be attempted
