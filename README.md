@@ -535,7 +535,18 @@ Notice the distinction between "absent" and "null" when you see such errors.
 ### Redacting values in error messages
 
 Error messages show the data at the location parsing failed.
-That's great during development, but when API responses carry personal data those messages may end up in crash reporters and logs.
+That's great during development, but when API responses carry personal data those messages may end up in crash reporters and logs:
+
+```dart
+pick(response).letOrThrow((pick) => User.fromPick(pick));
+
+// PickException: expected a non-null value at shoes[0].name, but it is absent
+//
+//   query   shoes[0].name
+//                    ~~~~ no such key
+//   at      shoes[0] = {"id": "421", "owner": "jane@example.com"}
+```
+
 Add `.redactValues()` at the root of a pick chain to mask all values while keeping Map keys and types visible.
 Keys count as schema, so the keys of a Map that is keyed by data, like `{"jane@example.com": {...}}`, stay visible too:
 
@@ -546,7 +557,7 @@ pick(response).redactValues().letOrThrow((pick) => User.fromPick(pick));
 //
 //   query   shoes[0].name
 //                    ~~~~ no such key
-//   at      shoes[0] = Map with keys "id", "size"
+//   at      shoes[0] = Map with keys "id", "owner"
 ```
 
 Pass `enabled` to decide at runtime, for example to keep the values in debug builds:
