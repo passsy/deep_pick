@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- **New** `--dart-define=deep_pick.redactValues=true` redacts the values in error messages of every pick by default, also in other isolates.
+- **New** `--dart-define=deep_pick.redactValues=true` redacts the values in error messages of every pick by default, also in other isolates [#79](https://github.com/passsy/deep_pick/pull/79).
   The define only switches the default.
   Turn redaction off where values are not sensitive with `.redactValues(enabled: false)`.
 
