@@ -1,5 +1,5 @@
 // Prints the messages of picks that fail, for redact_by_default_test.dart,
-// which runs it with and without --define=deep_pick.redactValues=true
+// which runs it with and without -Ddeep_pick.redactValues=true
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';

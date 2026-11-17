@@ -24,8 +24,7 @@ void main() {
   });
 
   test('the define redacts by default, also in other isolates', () async {
-    final messages =
-        await runPrintErrors(['--define=deep_pick.redactValues=true']);
+    final messages = await runPrintErrors(['-Ddeep_pick.redactValues=true']);
     expect(messages['default'], contains('could not parse an int at name'));
     expect(messages['default'], isNot(contains('PRIVATE_VALUE')));
     expect(messages['isolate'], isNot(contains('PRIVATE_VALUE')));
@@ -33,8 +32,7 @@ void main() {
 
   test('redactValues(enabled: false) shows values despite the define',
       () async {
-    final messages =
-        await runPrintErrors(['--define=deep_pick.redactValues=true']);
+    final messages = await runPrintErrors(['-Ddeep_pick.redactValues=true']);
     expect(messages['opt-out'], contains('PRIVATE_VALUE'));
   });
 }
