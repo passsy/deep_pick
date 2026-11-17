@@ -535,7 +535,18 @@ Notice the distinction between "absent" and "null" when you see such errors.
 ### Redacting values in error messages
 
 Error messages show the data at the location parsing failed.
-That's great during development, but when API responses carry personal data those messages may end up in crash reporters and logs.
+That's great during development, but when API responses carry personal data those messages may end up in crash reporters and logs:
+
+```dart
+pick(response).letOrThrow((pick) => User.fromPick(pick));
+
+// PickException: expected a non-null value at shoes[0].name, but it is absent
+//
+//   query   shoes[0].name
+//                    ~~~~ no such key
+//   at      shoes[0] = {"id": "421", "owner": "jane@example.com"}
+```
+
 Add `.redactValues()` at the root of a pick chain to mask all values while keeping Map keys and types visible.
 Keys count as schema, so the keys of a Map that is keyed by data, like `{"jane@example.com": {...}}`, stay visible too:
 
@@ -546,13 +557,32 @@ pick(response).redactValues().letOrThrow((pick) => User.fromPick(pick));
 //
 //   query   shoes[0].name
 //                    ~~~~ no such key
-//   at      shoes[0] = Map with keys "id", "size"
+//   at      shoes[0] = Map with keys "id", "owner"
 ```
 
 Pass `enabled` to decide at runtime, for example to keep the values in debug builds:
 
 ```dart
 pick(response).redactValues(enabled: kReleaseMode).letOrThrow((pick) => User.fromPick(pick));
+```
+
+#### Redact by default
+
+To redact values everywhere without adding `.redactValues()` to every pick, build with the `deep_pick.redactValues` define:
+
+```bash
+flutter build ipa --dart-define=deep_pick.redactValues=true
+```
+
+It is decided when the error is thrown, so the message never contains the values, no matter how the exception is wrapped or logged later.
+It is a compile-time constant and also covers picks in other isolates, like parsing with `compute()` or `Isolate.run()`.
+
+The define only switches the default.
+Where values are not sensitive and you want them in error messages, turn redaction off for that pick and its descendants with `.redactValues(enabled: false)`:
+
+```dart
+// built with --dart-define=deep_pick.redactValues=true
+pick(config).redactValues(enabled: false).letOrThrow(Config.fromPick);
 ```
 
 ### 4. Null is default, crashes intentional

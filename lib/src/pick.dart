@@ -481,16 +481,32 @@ class Pick {
   ///
   /// `enabled: false` returns a copy that shows values again, also when a
   /// pick above it redacted them. [redactsValues] tells which one applies.
+  ///
+  /// ## Redact by default
+  ///
+  /// Build with `--dart-define=deep_pick.redactValues=true` to redact the
+  /// values of every pick without calling [redactValues]. It covers picks in
+  /// all isolates, also those parsing with `compute()` or `Isolate.run()`.
+  ///
+  /// The define only switches the default. Where values are not sensitive
+  /// and you want them in error messages, call `redactValues(enabled: false)`
+  /// and that pick and its descendants show values again:
+  /// ```dart
+  /// // built with --dart-define=deep_pick.redactValues=true
+  /// pick(config).redactValues(enabled: false).letOrThrow(Config.fromPick);
+  /// ```
   Pick redactValues({bool enabled = true}) {
     return _copyWith(context: {...context, _redactValuesContextKey: enabled});
   }
 
-  /// Whether [redactValues] is enabled for this pick, by a call on it or on
-  /// a pick above it
+  /// Whether values are redacted for this pick, by a [redactValues] call on
+  /// it or on a pick above it, or else by the
+  /// `--dart-define=deep_pick.redactValues=true` default
   ///
   /// A custom parser that writes its own error message should leave the
   /// picked [value] out of it when this is `true`.
-  bool get redactsValues => context[_redactValuesContextKey] == true;
+  bool get redactsValues =>
+      context[_redactValuesContextKey] as bool? ?? _redactValuesByDefault;
 
   /// Enter a "required" context which requires the picked value to be non-null
   /// or a [PickException] is thrown.
@@ -699,3 +715,7 @@ class RequiredPick extends Pick {
 /// Used internally with [Pick.redactValues] to mark a pick chain as carrying
 /// sensitive data
 const _redactValuesContextKey = '_redact_values';
+
+/// The value of [Pick.redactsValues] when no [Pick.redactValues] call decided
+/// it. A compile-time constant, so it also applies in spawned isolates.
+const _redactValuesByDefault = bool.fromEnvironment('deep_pick.redactValues');

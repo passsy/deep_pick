@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+- **New** `--dart-define=deep_pick.redactValues=true` redacts the values in error messages of every pick by default, also in other isolates [#79](https://github.com/passsy/deep_pick/pull/79).
+  The define only switches the default.
+  Turn redaction off where values are not sensitive with `.redactValues(enabled: false)`.
+
+  ```dart
+  // built with --dart-define=deep_pick.redactValues=true
+  pick(config).redactValues(enabled: false).letOrThrow(Config.fromPick);
+  ```
+
 ## 1.3.0 (`13.10.26`)
 
 - **New** `mapValue` for `asMap*()` and `asJsonObject*()` parses the values of a map, like the mapper of `asList*` does for the items of a list [#73](https://github.com/passsy/deep_pick/pull/73).
